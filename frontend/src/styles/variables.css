@@ -1,0 +1,22 @@
+:root {
+  /* Couleurs principales */
+  --background-gradient-start: #0a1f0f;
+  --background-gradient-end: #112420;
+  --text-primary: #e6fff0;
+  --text-secondary: #88b094;
+  --accent-color: #4ecca3;
+  --button-gradient-start: #4ecca3;
+  --button-gradient-end: #2eaf7d;
+  
+  /* Espacements */
+  --spacing-xs: 0.5rem;
+  --spacing-sm: 1rem;
+  --spacing-md: 2rem;
+  --spacing-lg: 4rem;
+  
+  /* Autres */
+  --border-radius: 8px;
+  --nav-height: 70px;
+  --max-width: 1200px;
+  --transition: all 0.3s ease;
+}

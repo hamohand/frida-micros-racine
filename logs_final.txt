@@ -1,0 +1,486 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:20:57.352Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:20:57.355Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:20:58.374Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:20:58.419Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 39 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:20:59.254Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:20:59.275Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:20:59.275Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:20:59.321Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:20:59.322Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1924 ms
+2026-01-09T11:20:59.707Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:20:59.762Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:20:59.796Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:20:59.992Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:00.011Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:00.145Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4efe014f
+2026-01-09T11:21:00.147Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:00.168Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:01.005Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:01.170Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:01.480Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:02.238Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:02.710Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:02.712Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:02.714Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:02.718Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:02.721Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:02.736Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:02.771Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:04.340Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:04.343Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:05.358Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:05.407Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 44 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:06.115Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:06.128Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:06.129Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:06.163Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:06.163Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1777 ms
+2026-01-09T11:21:06.470Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:06.525Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:06.555Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:06.757Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:06.776Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:06.960Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@4efe014f
+2026-01-09T11:21:06.961Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:06.992Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:07.852Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:07.972Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:08.284Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:08.931Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:10.134Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:10.136Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:10.139Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:10.144Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:10.150Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:10.168Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:10.200Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:12.371Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:12.374Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:13.367Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:13.421Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 49 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:14.094Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:14.123Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:14.123Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:14.176Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:14.177Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1759 ms
+2026-01-09T11:21:14.539Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:14.595Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:14.636Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:14.842Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:14.859Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:15.007Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7c5ac0
+2026-01-09T11:21:15.008Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:15.029Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:15.733Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:15.855Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:16.147Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:16.817Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:17.239Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:17.240Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:17.242Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:17.247Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:17.250Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:17.270Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:17.301Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:18.989Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:18.991Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:20.054Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:20.120Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 60 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:20.000Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:20.019Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:20.020Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:20.070Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:20.071Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1032 ms
+2026-01-09T11:21:20.459Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:20.518Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:20.549Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:20.782Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:20.800Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:20.943Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5de335cf
+2026-01-09T11:21:20.944Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:20.964Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:21.749Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:21.883Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:22.192Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:22.809Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:23.149Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:23.150Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:23.154Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:23.157Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:23.160Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:23.174Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:23.200Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:25.282Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:25.284Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:26.384Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:26.450Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 59 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:27.126Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:27.148Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:27.148Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:27.206Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:27.207Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1872 ms
+2026-01-09T11:21:27.566Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:27.622Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:27.652Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:27.880Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:27.905Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:28.076Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@7c5ac0
+2026-01-09T11:21:28.078Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:28.107Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:28.895Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:29.012Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:29.299Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:30.010Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:30.432Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:30.434Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:30.437Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:30.442Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:30.444Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:30.478Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:30.516Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:33.477Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:33.479Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:34.465Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:34.525Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 54 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:35.308Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:35.320Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:35.320Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:35.356Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:35.357Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1837 ms
+2026-01-09T11:21:35.712Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:35.769Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:35.806Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:36.000Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:36.018Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:36.153Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@c677d7e
+2026-01-09T11:21:36.154Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:36.176Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:36.889Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:37.010Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:37.331Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:38.121Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:38.500Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:38.502Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:38.504Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:38.507Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:38.510Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:38.525Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:38.551Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:43.009Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:43.011Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:43.974Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:44.019Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 41 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:44.697Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:44.711Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:44.711Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:44.745Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:44.745Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1691 ms
+2026-01-09T11:21:45.066Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:45.115Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:45.151Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:45.333Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:45.349Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:45.482Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@59b3f754
+2026-01-09T11:21:45.483Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:45.503Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:46.204Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:46.321Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:46.601Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:47.237Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:47.600Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:47.602Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:47.603Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:47.607Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:47.609Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:47.625Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:47.650Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:21:54.110Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:21:54.112Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:21:55.113Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:21:55.161Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 42 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:21:55.825Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:21:55.838Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:21:55.839Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:21:55.880Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:21:55.881Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1726 ms
+2026-01-09T11:21:56.360Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:21:56.418Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:21:56.448Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:21:56.652Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:21:56.669Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:21:56.813Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@c677d7e
+2026-01-09T11:21:56.814Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:21:56.839Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:21:57.713Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:21:57.836Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:58.195Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:21:58.904Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:21:59.286Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:21:59.288Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:21:59.291Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:21:59.296Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:21:59.298Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:21:59.315Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:21:59.348Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.3.4)
+
+2026-01-09T11:22:13.444Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+2026-01-09T11:22:13.446Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+2026-01-09T11:22:14.388Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-01-09T11:22:14.431Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 38 ms. Found 6 JPA repository interfaces.
+2026-01-09T11:22:15.064Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-01-09T11:22:15.079Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-01-09T11:22:15.080Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+2026-01-09T11:22:15.118Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-01-09T11:22:15.119Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1631 ms
+2026-01-09T11:22:15.458Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-01-09T11:22:15.499Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+2026-01-09T11:22:15.529Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-01-09T11:22:15.713Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-01-09T11:22:15.730Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-01-09T11:22:15.870Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@51f4439e
+2026-01-09T11:22:15.871Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-01-09T11:22:15.890Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-01-09T11:22:16.629Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-01-09T11:22:16.760Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:22:17.083Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-01-09T11:22:17.736Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-01-09T11:22:18.190Z  WARN 1 --- [backendAi] [           main] ConfigServletWebServerApplicationContext : Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration': Unsatisfied dependency expressed through constructor parameter 1: No qualifying bean of type 'com.google.api.gax.core.CredentialsProvider' available: expected at least 1 bean which qualifies as autowire candidate. Dependency annotations: {}
+2026-01-09T11:22:18.192Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-01-09T11:22:18.193Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown initiated...
+2026-01-09T11:22:18.196Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Shutdown completed.
+2026-01-09T11:22:18.199Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Stopping service [Tomcat]
+2026-01-09T11:22:18.215Z  INFO 1 --- [backendAi] [           main] .s.b.a.l.ConditionEvaluationReportLogger : 
+
+Error starting ApplicationContext. To display the condition evaluation report re-run your application with 'debug' enabled.
+2026-01-09T11:22:18.244Z ERROR 1 --- [backendAi] [           main] o.s.b.d.LoggingFailureAnalysisReporter   : 
+
+***************************
+APPLICATION FAILED TO START
+***************************
+
+Description:
+
+Parameter 1 of constructor in com.google.cloud.documentai.v1.spring.DocumentProcessorServiceSpringAutoConfiguration required a bean of type 'com.google.api.gax.core.CredentialsProvider' that could not be found.
+
+
+Action:
+
+Consider defining a bean of type 'com.google.api.gax.core.CredentialsProvider' in your configuration.
+

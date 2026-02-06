@@ -1,0 +1,100 @@
+backend-1  | 
+backend-1  |   .   ____          _            __ _ _
+backend-1  |  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+backend-1  | ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+backend-1  |  \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+backend-1  |   '  |____| .__|_| |_|_| |_\__, | / / / /
+backend-1  |  =========|_|==============|___/=/_/_/_/
+backend-1  | 
+backend-1  |  :: Spring Boot ::                (v3.3.4)
+backend-1  | 
+backend-1  | 2026-01-11T17:02:13.343Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Starting BackendAiApplication v0.0.1-SNAPSHOT using Java 21.0.9 with PID 1 (/app/app.jar started by spring in /app)
+backend-1  | 2026-01-11T17:02:13.345Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : The following 1 profile is active: "docker"
+backend-1  | 2026-01-11T17:02:14.225Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+backend-1  | 2026-01-11T17:02:14.277Z  INFO 1 --- [backendAi] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 38 ms. Found 6 JPA repository interfaces.
+backend-1  | 2026-01-11T17:02:14.862Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+backend-1  | 2026-01-11T17:02:14.877Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+backend-1  | 2026-01-11T17:02:14.877Z  INFO 1 --- [backendAi] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.30]
+backend-1  | 2026-01-11T17:02:14.917Z  INFO 1 --- [backendAi] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+backend-1  | 2026-01-11T17:02:14.918Z  INFO 1 --- [backendAi] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 1532 ms
+backend-1  | 2026-01-11T17:02:15.276Z  INFO 1 --- [backendAi] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+backend-1  | 2026-01-11T17:02:15.315Z  INFO 1 --- [backendAi] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.5.3.Final
+backend-1  | 2026-01-11T17:02:15.338Z  INFO 1 --- [backendAi] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+backend-1  | 2026-01-11T17:02:15.494Z  INFO 1 --- [backendAi] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+backend-1  | 2026-01-11T17:02:15.511Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+backend-1  | 2026-01-11T17:02:15.637Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@505a8582
+backend-1  | 2026-01-11T17:02:15.638Z  INFO 1 --- [backendAi] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+backend-1  | 2026-01-11T17:02:15.656Z  WARN 1 --- [backendAi] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+backend-1  | 2026-01-11T17:02:16.353Z  INFO 1 --- [backendAi] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+backend-1  | 2026-01-11T17:02:16.475Z  INFO 1 --- [backendAi] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+backend-1  | 2026-01-11T17:02:16.751Z  INFO 1 --- [backendAi] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+backend-1  | 2026-01-11T17:02:17.352Z  WARN 1 --- [backendAi] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+backend-1  | 2026-01-11T17:02:18.454Z  INFO 1 --- [backendAi] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+backend-1  | 2026-01-11T17:02:18.509Z  INFO 1 --- [backendAi] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+backend-1  | 2026-01-11T17:02:18.522Z  INFO 1 --- [backendAi] [           main] c.muhend.backendai.BackendAiApplication  : Started BackendAiApplication in 5.54 seconds (process running for 6.004)
+backend-1  | Backend Ai démarré, port 8080 _______________
+backend-1  | 2026-01-11T17:02:22.639Z  INFO 1 --- [backendAi] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+backend-1  | 2026-01-11T17:02:22.639Z  INFO 1 --- [backendAi] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+backend-1  | 2026-01-11T17:02:22.640Z  INFO 1 --- [backendAi] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+backend-1  | 2026-01-11T17:04:24.368Z  INFO 1 --- [backendAi] [io-8080-exec-10] c.m.b.service.dossier.FolderService      : Dossier créé avec succès folderPath: /frida-storage/hammedd20260111
+backend-1  | 2026-01-11T17:07:56.842Z  INFO 1 --- [backendAi] [nio-8080-exec-6] c.m.backendai.config.util.PathResolver   : Dossier créé: /frida-storage/hammedd20260111/1
+backend-1  | 2026-01-11T17:07:56.855Z  INFO 1 --- [backendAi] [nio-8080-exec-6] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/1/1768151276842_moh.pdf
+backend-1  | 2026-01-11T17:08:12.561Z  INFO 1 --- [backendAi] [nio-8080-exec-8] c.m.backendai.config.util.PathResolver   : Dossier créé: /frida-storage/hammedd20260111/2
+backend-1  | 2026-01-11T17:08:12.566Z  INFO 1 --- [backendAi] [nio-8080-exec-8] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/2/1768151292561_neila.pdf
+backend-1  | 2026-01-11T17:08:30.051Z  INFO 1 --- [backendAi] [nio-8080-exec-2] c.m.backendai.config.util.PathResolver   : Dossier créé: /frida-storage/hammedd20260111/3
+backend-1  | 2026-01-11T17:08:30.148Z  INFO 1 --- [backendAi] [nio-8080-exec-2] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/3/1768151310051_malik.pdf
+backend-1  | 2026-01-11T17:08:30.161Z  INFO 1 --- [backendAi] [nio-8080-exec-2] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/3/1768151310155_hichem.pdf
+backend-1  | 2026-01-11T17:09:16.458Z  INFO 1 --- [backendAi] [nio-8080-exec-6] c.m.backendai.config.util.PathResolver   : Dossier créé: /frida-storage/hammedd20260111/11
+backend-1  | 2026-01-11T17:09:16.465Z  INFO 1 --- [backendAi] [nio-8080-exec-6] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/11/1768151356458_smail.pdf
+backend-1  | 2026-01-11T17:09:16.475Z  INFO 1 --- [backendAi] [nio-8080-exec-6] c.m.b.s.dossier.FileStorageService       : Fichier sauvegardé avec succès: /frida-storage/hammedd20260111/11/1768151356470_soraya.pdf
+backend-1  | 2026-01-11T17:09:26.108Z ERROR 1 --- [backendAi] [nio-8080-exec-9] o.a.c.c.C.[.[.[/].[dispatcherServlet]    : Servlet.service() for servlet [dispatcherServlet] in context with path [] threw exception [Request processing failed: java.lang.IllegalArgumentException: When allowCredentials is true, allowedOrigins cannot contain the special value "*" since that cannot be set on the "Access-Control-Allow-Origin" response header. To allow credentials to a set of origins, list them explicitly or consider using "allowedOriginPatterns" instead.] with root cause
+backend-1  | 
+backend-1  | java.lang.IllegalArgumentException: When allowCredentials is true, allowedOrigins cannot contain the special value "*" since that cannot be set on the "Access-Control-Allow-Origin" response header. To allow credentials to a set of origins, list them explicitly or consider using "allowedOriginPatterns" instead.
+backend-1  | 	at org.springframework.web.cors.CorsConfiguration.validateAllowCredentials(CorsConfiguration.java:574) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.handler.AbstractHandlerMapping.getHandler(AbstractHandlerMapping.java:542) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.DispatcherServlet.getHandler(DispatcherServlet.java:1284) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1065) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.DispatcherServlet.doService(DispatcherServlet.java:979) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.FrameworkServlet.processRequest(FrameworkServlet.java:1014) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.servlet.FrameworkServlet.doGet(FrameworkServlet.java:903) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:564) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.springframework.web.servlet.FrameworkServlet.service(FrameworkServlet.java:885) ~[spring-webmvc-6.1.13.jar!/:6.1.13]
+backend-1  | 	at jakarta.servlet.http.HttpServlet.service(HttpServlet.java:658) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:195) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.websocket.server.WsFilter.doFilter(WsFilter.java:51) ~[tomcat-embed-websocket-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:100) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.springframework.web.filter.FormContentFilter.doFilterInternal(FormContentFilter.java:93) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.springframework.web.filter.ServerHttpObservationFilter.doFilterInternal(ServerHttpObservationFilter.java:113) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:201) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:116) ~[spring-web-6.1.13.jar!/:6.1.13]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:164) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:140) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:167) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:90) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:483) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:115) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:93) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:74) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:344) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.coyote.http11.Http11Processor.service(Http11Processor.java:384) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.coyote.AbstractProcessorLight.process(AbstractProcessorLight.java:63) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.coyote.AbstractProtocol$ConnectionHandler.process(AbstractProtocol.java:905) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.util.net.NioEndpoint$SocketProcessor.doRun(NioEndpoint.java:1741) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.util.net.SocketProcessorBase.run(SocketProcessorBase.java:52) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1190) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.util.threads.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:659) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:63) ~[tomcat-embed-core-10.1.30.jar!/:na]
+backend-1  | 	at java.base/java.lang.Thread.run(Unknown Source) ~[na:na]
+backend-1  | 

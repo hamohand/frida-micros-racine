@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+.github
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+package-lock.json
+dist
+build
+
+# Java/Maven
+target
+.m2
+*.jar
+*.class
+*.log
+
+# IDE
+.vscode
+.idea
+*.iml
+*.iws
+*.ipr
+.DS_Store
+.classpath
+.project
+.settings
+
+# Docker
+.dockerignore
+Dockerfile
+docker-compose.yml
+
+# Environment
+.env
+.env.local
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Angular
+.angular
+.sass-cache
+.cache
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+
+# Temporary files
+*.tmp
+temp/
+tmp/

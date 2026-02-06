@@ -1,0 +1,52 @@
+### Fichiers globaux ###
+HELP.md
+
+### Répertoires de build ###
+build/
+target/
+
+# Exclusions spécifiques dans certains chemins
+!**/src/main/**/target/
+!**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### Maven ###
+!.mvn/wrapper/maven-wrapper.jar
+
+### STS (Spring Tool Suite) ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+
+# ========================
+# Dependency directories
+# ========================
+node_modules/
+
+# ========================
+# Environment and secret files
+# ========================
+.env
+../tci/tarif-essais250912/demo/.env
+/sql
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+
+### NetBeans ###
+/nbbuild/
+/nbdist/
+/nbproject/private/
+/dist/
+/.nb-gradle/
+
+### Visual Studio Code ###
+.vscode/

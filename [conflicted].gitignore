@@ -1,0 +1,159 @@
+# ===== Environment =====
+.env
+.env.local
+.env.*.local
+
+# ===== IDE & Editor =====
+.vscode/
+.idea/
+*.iml
+*.iws
+*.ipr
+.DS_Store
+.classpath
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ===== Build & Dist =====
+target/
+dist/
+build/
+.next/
+out/
+
+# ===== Node =====
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.eslintcache
+.node_repl_history
+
+# ===== Angular =====
+.angular/
+.cache/
+.sass-cache/
+coverage/
+
+# ===== Java =====
+*.class
+*.jar
+*.war
+*.ear
+.m2/
+.gradle/
+!gradle/wrapper/gradle-wrapper.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# ===== Python (si applicable) =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.pytest_cache/
+.coverage
+
+# ===== OS =====
+Thumbs.db
+.DS_Store
+.AppleDouble
+.LSOverride
+*.swp
+*.swo
+*~
+
+# ===== Docker =====
+.dockerignore
+docker-compose.override.yml
+
+# ===== Logs =====
+*.log
+logs/
+
+# ===== Database =====
+*.sqlite
+*.db
+*.sql.gz
+
+# ===== Temporary =====
+temp/
+tmp/
+*.tmp
+.cache/
+*.bak
+*.backup
+
+# ===== Secrets & Credentials =====
+.ssh/
+*.pem
+*.key
+secrets/
+credentials.json
+.aws/
+.gcloud/
+
+# ===== OS Lock Files =====
+.lock
+*.lock
+
+# ===== Uploads (mais pas le dossier) =====
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ===== macOS =====
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# ===== Windows =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ===== Backup =====
+*.sql
+backup_*.sql
+backup/
+
+# ===== IDE Specific =====
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Sublime
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+.vim
+.vimrc
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt][a-z]
+*.un~
+
+# ===== Compiled/Generated =====
+src/generated/
+src/generated-sources/
+target/generated-sources/
+target/generated-test-sources/
+dist/
+build/

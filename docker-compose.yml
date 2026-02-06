@@ -1,0 +1,128 @@
+services:
+  # ===== PostgreSQL Database =====
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DATABASE_PORT}:5432"
+    volumes:
+      - frida_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - frida-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===== Backend (Spring Boot) =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      network: host
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      BACKEND_PORT: ${BACKEND_PORT}
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${DB_NAME}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
+      GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
+      SERVICES_CALCULS_URL: http://calculs-api:8081
+      SERVICES_OCR_URL: http://ocr-api:8082
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    depends_on:
+      db:
+        condition: service_healthy
+      calculs-api:
+        condition: service_healthy
+      ocr-api:
+        condition: service_healthy
+    networks:
+      - frida-network
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ${ROOT_PATH}:/frida-storage/ # On monte le dossier Windows C:/frida/ ici
+      - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/config/google-credentials.json:ro
+    restart: unless-stopped
+
+  # ===== Frontend (Angular + Nginx) =====
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      network: host
+    ports:
+      - "${FRONTEND_PORT}:80"
+    environment:
+      BACKEND_URL: http://backend:${BACKEND_PORT}
+    depends_on:
+      - backend
+    networks:
+      - frida-network
+    restart: unless-stopped
+
+  # ===== Service Calculs (Spring Boot) =====
+  calculs-api:
+    build:
+      context: ../frida_calculs_api
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      CORS_ORIGINS: ${CORS_ORIGINS}
+    networks:
+      - frida-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8081/calculs/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+  # ===== Service OCR (Python Flask) =====
+  ocr-api:
+    build:
+      context: ../easytess_api/easytess-backend
+      dockerfile: Dockerfile
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: 8082
+      ALLOWED_ORIGINS: ${CORS_ORIGINS}
+    volumes:
+      - ocr_uploads:/app/uploads
+      - ocr_entities:/app/entities
+    networks:
+      - frida-network
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8082/" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+networks:
+  frida-network:
+    driver: bridge
+
+volumes:
+  frida_data:
+    driver: local
+  ocr_uploads:
+  ocr_entities:

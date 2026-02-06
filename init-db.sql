@@ -1,0 +1,2 @@
+-- Initialisation script for Frida OCR Database
+-- The database schema is managed by Spring Boot (Hibernate)
