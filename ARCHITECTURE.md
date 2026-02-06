@@ -93,8 +93,6 @@ frida-ai/
 ├── start.sh                          # Script démarrage
 ├── stop.sh                           # Script arrêt
 ├── init-db.sql                       # Initialisation PostgreSQL
-├── pom.xml                           # Racine (legacy, à archiver)
-├── package.json                      # Racine (legacy, à archiver)
 └── compose.yaml                      # Ancien (à supprimer)
 ```
 

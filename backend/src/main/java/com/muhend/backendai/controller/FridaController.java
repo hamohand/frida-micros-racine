@@ -4,7 +4,7 @@ import com.muhend.backendai.dto.FridaDetailsDTO;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.HeritierEntity;
 import com.muhend.backendai.entities.TemoinEntity;
-import com.muhend.backendai.repository.FridaRepo;
+
 import com.muhend.backendai.service.DefuntService;
 import com.muhend.backendai.service.FridaService;
 import com.muhend.backendai.service.HeritierService;
@@ -21,8 +21,7 @@ import java.util.Optional;
 public class FridaController {
     @Autowired
     private final FridaService fridaService;
-    @Autowired
-    private FridaRepo defuntRepo;
+
     @Autowired
     private HeritierService heritierService;
     @Autowired
@@ -33,7 +32,6 @@ public class FridaController {
     public FridaController(FridaService fridaService) {
         this.fridaService = fridaService;
     }
-    // @Autowired
 
     /**
      * Endpoint pour récupérer une fiche par numFrida
@@ -75,7 +73,6 @@ public class FridaController {
     /* ------------Non encore utilisés dans l'application---------------------- */
     @GetMapping("/search")
     public List<FridaDetailsDTO> getDefuntsByNom(@RequestParam String nom) {
-        // return defuntRepo.findByNomPrenom(nom);
         return fridaService.getFridaByNom(nom).orElse(List.of());
     }
 
@@ -88,7 +85,5 @@ public class FridaController {
     public List<FridaEntity> getAllFridaEntities() {
         return fridaService.getAllFridaEntities();
     }
-
-    // ai
 
 }
