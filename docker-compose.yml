@@ -42,7 +42,8 @@ services:
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
       SERVICES_CALCULS_URL: http://calculs-api:8081
-      SERVICES_OCR_URL: http://ocr-api:8082
+      # SERVICES_OCR_URL pointe vers host.docker.internal car ocr-api tourne en local
+      SERVICES_OCR_URL: http://host.docker.internal:8082
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
@@ -50,8 +51,9 @@ services:
         condition: service_healthy
       calculs-api:
         condition: service_healthy
-      ocr-api:
-        condition: service_healthy
+      # ocr-api est lancé en local, on ne l'attend plus ici
+      # ocr-api:
+      #   condition: service_healthy
     networks:
       - frida-network
     volumes:
@@ -94,28 +96,28 @@ services:
       timeout: 10s
       retries: 3
     restart: unless-stopped
-
   # ===== Service OCR (Python Flask) =====
-  ocr-api:
-    build:
-      context: ../easytess_api/easytess-backend
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
-    environment:
-      PORT: 8082
-      ALLOWED_ORIGINS: ${CORS_ORIGINS}
-    volumes:
-      - ocr_uploads:/app/uploads
-      - ocr_entities:/app/entities
-    networks:
-      - frida-network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8082/" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
+  # Retiré de Docker Compose car installé en local pour plus d'efficacité
+  # ocr-api:
+  #   build:
+  #     context: ../easytess_ocr_api/easytess-backend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8082:8082"
+  #   environment:
+  #     PORT: 8082
+  #     ALLOWED_ORIGINS: ${CORS_ORIGINS}
+  #   volumes:
+  #     - ocr_uploads:/app/uploads
+  #     - ocr_entities:/app/entities
+  #   networks:
+  #     - frida-network
+  #   healthcheck:
+  #     test: [ "CMD", "curl", "-f", "http://localhost:8082/" ]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+  #   restart: unless-stopped
 
 networks:
   frida-network:
@@ -124,5 +126,5 @@ networks:
 volumes:
   frida_data:
     driver: local
-  ocr_uploads:
-  ocr_entities:
+  # ocr_uploads:
+  # ocr_entities:
