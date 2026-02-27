@@ -29,6 +29,16 @@ public class FolderService {
     @Getter
     public static Path folderPath;
 
+    /** Sous-dossiers créés automatiquement pour chaque catégorie d'identité */
+    private static final String[] SUB_FOLDERS = {
+            "1", // Défunt
+            "2", // Conjoint
+            "3", // Enfants
+            "4", // Parents du défunt
+            "5", // Frères et sœurs
+            "11" // Témoins
+    };
+
     public FolderResponse createFolder(CreateFolderRequest request) {
         String baseFolderName = generateBaseFolderName(request);
         folderPath = findAvailablePath(baseFolderName);
@@ -36,9 +46,9 @@ public class FolderService {
         try {
             Files.createDirectories(folderPath);
             log.info("Dossier créé avec succès folderPath: {}", folderPath);
-            // log.info("Dossier créé avec succès getFileName: {}",
-            // folderPath.getFileName());
-            // log.info("Dossier créé avec succès toString: {}", folderPath.toString());
+
+            // Création automatique des sous-dossiers pour chaque catégorie
+            createSubFolders(folderPath);
 
             return FolderResponse.builder()
                     .folderName(folderPath.getFileName().toString())
@@ -47,6 +57,20 @@ public class FolderService {
         } catch (IOException e) {
             log.error("Erreur lors de la création du dossier: {}", e.getMessage());
             throw new FolderCreationException("Impossible de créer le dossier: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Crée les sous-dossiers pour chaque catégorie d'identité (défunt, conjoint,
+     * enfants, parents, fratrie, témoins).
+     */
+    private void createSubFolders(Path parentFolder) throws IOException {
+        for (String subFolder : SUB_FOLDERS) {
+            Path subPath = parentFolder.resolve(subFolder);
+            if (!Files.exists(subPath)) {
+                Files.createDirectories(subPath);
+                log.info("Sous-dossier créé: {}", subPath);
+            }
         }
     }
 

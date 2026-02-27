@@ -54,6 +54,38 @@ import {LireaiEcrirebdService} from "../../../services/lireai-ecrirebd.service";
         </button>
       </div>
 
+      <!-- Fenêtre Parents du défunt -->
+      <div *ngIf="windows['f4'].isVisible" class="window-section">
+        <app-file-upload
+            [config]="getUploadConfig('4', 'Parents du défunt')"
+            (filesUploaded)="onFilesUploaded('f4', $event)"
+            (uploadCancelled)="onUploadCancelled('f4')"
+        ></app-file-upload>
+        <button
+            *ngIf="!windows['f4'].hasFiles"
+            class="btn btn-secondary continue-btn"
+            (click)="continueToNext('f4')"
+        >
+          Continuer s'il n'y a pas de parents
+        </button>
+      </div>
+
+      <!-- Fenêtre Frères et sœurs du défunt -->
+      <div *ngIf="windows['f5'].isVisible" class="window-section">
+        <app-file-upload
+            [config]="getUploadConfig('5', 'Frères et sœurs du défunt')"
+            (filesUploaded)="onFilesUploaded('f5', $event)"
+            (uploadCancelled)="onUploadCancelled('f5')"
+        ></app-file-upload>
+        <button
+            *ngIf="!windows['f5'].hasFiles"
+            class="btn btn-secondary continue-btn"
+            (click)="continueToNext('f5')"
+        >
+          Continuer s'il n'y a pas de frères et sœurs
+        </button>
+      </div>
+
       <!-- Fenêtre témoins -->
       <div *ngIf="windows['f_temoins'].isVisible" class="window-section">
         <app-file-upload
@@ -61,13 +93,6 @@ import {LireaiEcrirebdService} from "../../../services/lireai-ecrirebd.service";
             (filesUploaded)="onFilesUploaded('f_temoins', $event)"
             (uploadCancelled)="onUploadCancelled('f_temoins')"
         ></app-file-upload>
-<!--        <button-->
-<!--            *ngIf="!windows['f_temoins'].hasFiles"-->
-<!--            class="btn btn-secondary continue-btn"-->
-<!--            (click)="continueToNext('f_temoins')"-->
-<!--        >-->
-<!--          Continuer s'il n'y a pas d'enfants-->
-<!--        </button>-->
       </div>
     </div>
 
@@ -155,16 +180,17 @@ import {LireaiEcrirebdService} from "../../../services/lireai-ecrirebd.service";
 })
 export class UploadWindowsComponent implements OnInit {
   windows: Record<string, UploadWindowState> = {
-    //Défunt
-    f1: { isVisible: true, hasFiles: false, path: '1' }, // dossier "1"
-    //Héritiers : 2-10
-    f2: { isVisible: false, hasFiles: false, path: '2' }, // Conjoints dossier "2"
-    f3: { isVisible: false, hasFiles: false, path: '3' }, // Enfants dossier "3"
-    f4: { isVisible: false, hasFiles: false, path: '4' }, // Enfants dossier "3"
+    // Défunt
+    f1: { isVisible: true, hasFiles: false, path: '1' },
+    // Héritiers
+    f2: { isVisible: false, hasFiles: false, path: '2' },  // Conjoint
+    f3: { isVisible: false, hasFiles: false, path: '3' },  // Enfants
+    f4: { isVisible: false, hasFiles: false, path: '4' },  // Parents du défunt
+    f5: { isVisible: false, hasFiles: false, path: '5' },  // Frères et sœurs
     // Témoins
-    f_temoins: { isVisible: false, hasFiles: false, path: '11' }, // dossier "11"
+    f_temoins: { isVisible: false, hasFiles: false, path: '11' },
     // Lecture AI
-    f_ai: { isVisible: false, hasFiles: false, path: '' } // Nouvelle fenêtre
+    f_ai: { isVisible: false, hasFiles: false, path: '' }
   };
 
   isReading = false;
@@ -217,7 +243,7 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   private moveToNextWindow(currentWindow: string) {
-    const windows = ['f1', 'f2', 'f3', 'f_temoins', 'f_ai']; // Ajoutez 'f_ai' à la liste des fenêtres
+    const windows = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
     const currentIndex = windows.indexOf(currentWindow);
 
     if (currentIndex < windows.length - 1) {
