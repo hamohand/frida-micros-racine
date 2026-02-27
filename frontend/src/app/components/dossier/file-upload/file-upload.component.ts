@@ -1,12 +1,13 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
 import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="upload-container">
       <h2>{{ config.title }}</h2>
@@ -37,7 +38,9 @@ import { v4 as uuidv4 } from 'uuid';
           <div class="file-info">
             <span class="material-icons">Document :</span>
             <span class="file-name">{{ file.file.name }}</span>
-<!--            <span class="file-size">{{ getFileSize(file.file.size) }}</span>-->
+            <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" class="select-doc-type file-select">
+              <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
+            </select>
           </div>
           <button 
             class="btn-icon" 
@@ -70,6 +73,22 @@ import { v4 as uuidv4 } from 'uuid';
     
     .upload-container {
       padding: var(--spacing-xs);
+    }
+
+    .doc-type-selector {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      margin-bottom: var(--spacing-xs);
+    }
+
+    .select-doc-type {
+      padding: 6px 12px;
+      border: 1px solid var(--accent-color);
+      border-radius: var(--border-radius);
+      background: rgba(78, 204, 163, 0.05);
+      color: inherit;
+      font-size: 0.95rem;
     }
     
     .drop-zone {
@@ -112,11 +131,16 @@ import { v4 as uuidv4 } from 'uuid';
       margin-top: var(--spacing-xs);
       justify-content: flex-end;
     }
+    
+    .file-select {
+      margin-left: var(--spacing-sm);
+      padding: 4px 8px;
+    }
   `]
 })
 export class FileUploadComponent {
   @Input() config!: UploadConfig;
-  @Output() filesUploaded = new EventEmitter<File[]>();
+  @Output() filesUploaded = new EventEmitter<{ files: File[], docType: string }[]>();
   @Output() uploadCancelled = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
@@ -148,7 +172,7 @@ export class FileUploadComponent {
     event.stopPropagation();
     const dropZone = event.currentTarget as HTMLElement;
     dropZone.classList.remove('drag-over');
-    
+
     const files = event.dataTransfer?.files;
     if (files) {
       this.addFiles(Array.from(files));
@@ -164,12 +188,13 @@ export class FileUploadComponent {
 
   addFiles(newFiles: File[]) {
     const validFiles = newFiles.filter(file => this.validateFile(file));
-    
+
     validFiles.forEach(file => {
       this.uploadedFiles.push({
         file,
         id: uuidv4(),
-        progress: 0
+        progress: 0,
+        docType: this.config.docTypes && this.config.docTypes.length > 0 ? this.config.docTypes[0].id : 'en'
       });
     });
   }
@@ -179,12 +204,12 @@ export class FileUploadComponent {
       // Ajouter un message d'erreur
       return false;
     }
-    
+
     if (!this.config.allowedTypes.includes(file.type)) {
       // Ajouter un message d'erreur
       return false;
     }
-    
+
     return true;
   }
 
@@ -199,7 +224,24 @@ export class FileUploadComponent {
 
   onUpload() {
     if (this.uploadedFiles.length > 0) {
-      this.filesUploaded.emit(this.uploadedFiles.map(f => f.file));
+      // Group files by docType
+      const groups = new Map<string, File[]>();
+
+      this.uploadedFiles.forEach(f => {
+        const type = f.docType;
+        if (!groups.has(type)) {
+          groups.set(type, []);
+        }
+        groups.get(type)!.push(f.file);
+      });
+
+      // Emit array of groups
+      const emitData: { files: File[], docType: string }[] = [];
+      groups.forEach((files, docType) => {
+        emitData.push({ files, docType });
+      });
+
+      this.filesUploaded.emit(emitData);
     }
   }
 }

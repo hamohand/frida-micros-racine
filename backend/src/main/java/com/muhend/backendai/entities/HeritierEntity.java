@@ -42,12 +42,9 @@ public class HeritierEntity {
     private ExtraitNaissanceEntity extraitNaissance;
 
     // piece identite
-    /*
-     * @OneToOne(fetch = FetchType.LAZY)
-     * 
-     * @JoinColumn(name = "pieceIdentite_id")
-     * private PieceIdentiteEntity identite;
-     */
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pieceIdentite_id")
+    private PieceIdentiteEntity identite;
 
     // Relation vers FridaEntity avec clé étrangère
     /*

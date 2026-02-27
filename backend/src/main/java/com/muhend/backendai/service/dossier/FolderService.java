@@ -29,15 +29,12 @@ public class FolderService {
     @Getter
     public static Path folderPath;
 
-    /** Sous-dossiers créés automatiquement pour chaque catégorie d'identité */
-    private static final String[] SUB_FOLDERS = {
-            "1", // Défunt
-            "2", // Conjoint
-            "3", // Enfants
-            "4", // Parents du défunt
-            "5", // Frères et sœurs
-            "11" // Témoins
-    };
+    /**
+     * Sous-dossiers créés automatiquement : chaque catégorie × chaque type de
+     * document
+     */
+    private static final String[] CATEGORY_CODES = { "1", "2", "3", "4", "5", "11" };
+    private static final String[] DOC_TYPE_SUFFIXES = { "en", "cni", "pp" };
 
     public FolderResponse createFolder(CreateFolderRequest request) {
         String baseFolderName = generateBaseFolderName(request);
@@ -47,7 +44,7 @@ public class FolderService {
             Files.createDirectories(folderPath);
             log.info("Dossier créé avec succès folderPath: {}", folderPath);
 
-            // Création automatique des sous-dossiers pour chaque catégorie
+            // Création automatique des sous-dossiers pour chaque catégorie × type
             createSubFolders(folderPath);
 
             return FolderResponse.builder()
@@ -61,15 +58,17 @@ public class FolderService {
     }
 
     /**
-     * Crée les sous-dossiers pour chaque catégorie d'identité (défunt, conjoint,
-     * enfants, parents, fratrie, témoins).
+     * Crée les sous-dossiers pour chaque catégorie × type de document.
+     * Exemple: 1_en, 1_cni, 1_pp, 2_en, 2_cni, 2_pp, ...
      */
     private void createSubFolders(Path parentFolder) throws IOException {
-        for (String subFolder : SUB_FOLDERS) {
-            Path subPath = parentFolder.resolve(subFolder);
-            if (!Files.exists(subPath)) {
-                Files.createDirectories(subPath);
-                log.info("Sous-dossier créé: {}", subPath);
+        for (String category : CATEGORY_CODES) {
+            for (String docType : DOC_TYPE_SUFFIXES) {
+                Path subPath = parentFolder.resolve(category + "_" + docType);
+                if (!Files.exists(subPath)) {
+                    Files.createDirectories(subPath);
+                    log.info("Sous-dossier créé: {}", subPath);
+                }
             }
         }
     }

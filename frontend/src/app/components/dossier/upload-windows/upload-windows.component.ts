@@ -1,11 +1,12 @@
-import {Component, OnInit, Output} from '@angular/core';
+import { Component, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
-import { UploadConfig } from '../file-upload/file-upload.interface';
+import { UploadConfig, DocTypeOption } from '../file-upload/file-upload.interface';
 import { Router } from '@angular/router';
-import {LireaiEcrirebdService} from "../../../services/lireai-ecrirebd.service";
+import { LireaiEcrirebdService } from "../../../services/lireai-ecrirebd.service";
+import { forkJoin, Observable } from 'rxjs';
 
 @Component({
   selector: 'app-upload-windows',
@@ -200,33 +201,62 @@ export class UploadWindowsComponent implements OnInit {
   //numFrida: String = "";
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
-              private lireaiEcrirebdService: LireaiEcrirebdService) {}
+    private lireaiEcrirebdService: LireaiEcrirebdService) { }
 
   ngOnInit() {
   }
+
+  /** Types de documents disponibles pour le sélecteur */
+  docTypeOptions: DocTypeOption[] = [
+    { id: 'en', label: 'Extrait de naissance' },
+    { id: 'cni', label: 'Carte nationale d\'identité' },
+    { id: 'pp', label: 'Passeport' }
+  ];
 
   getUploadConfig(path: string, title: string): UploadConfig {
     return {
       maxFileSize: 5 * 1024 * 1024,
       allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
       uploadPath: path,
-      title: title
+      title: title,
+      docTypes: this.docTypeOptions
     };
   }
 
-  onFilesUploaded(window: string, files: File[]) {
+  onFilesUploaded(window: string, events: { files: File[], docType: string }[]) {
     const currentWindow = this.windows[window];
-    if (currentWindow) {
-      this.fileUploadService.uploadFiles(files, currentWindow.path).subscribe({
-        next: (progress) => {
-          if (progress === 100) {
-            currentWindow.hasFiles = true;
-            this.moveToNextWindow(window);
+    if (currentWindow && events.length > 0) {
+      currentWindow.hasFiles = true;
+
+      // Créer une liste de requêtes HTTP
+      // On utilise `uploadFiles` qui retourne un flux avec les events de progression.
+      // Pour attendre la fin de tous les flux avec `forkJoin`, nous devons capturer le résultat final.
+      // Le composant fileUploadService retourne un Observable<number> (progression de 0 à 100).
+      const uploadObservables = events.map(event => {
+        const uploadPath = currentWindow.path + '_' + event.docType;
+        return this.fileUploadService.uploadFiles(event.files, uploadPath);
+      });
+
+      // Lancer toutes les requêtes en parallèle et s'abonner pour suivre leur avancée
+      let completedUploads = 0;
+      let hasError = false;
+
+      uploadObservables.forEach(obs => {
+        obs.subscribe({
+          next: (progress) => {
+            if (progress === 100) {
+              completedUploads++;
+              // Vérifier si toutes les requêtes sont terminées
+              if (completedUploads === uploadObservables.length && !hasError) {
+                this.moveToNextWindow(window);
+              }
+            }
+          },
+          error: (err) => {
+            console.error('Erreur lors du téléversement d\'un groupe:', err);
+            hasError = true;
           }
-        },
-        error: (error) => {
-          console.error('Erreur lors du téléversement:', error);
-        }
+        });
       });
     }
   }
@@ -270,20 +300,20 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   onAfficheFrida() {
-   console.log('Processus onAfficheFrida !');
+    console.log('Processus onAfficheFrida !');
     //Avec passage de paramètre 'numFrida
-   this.router.navigate(['/frida'], { queryParams: { numFrida: this.numFrida } });
-   // Construire l'URL à partir du router
-   /*const url = this.router.serializeUrl(
-       this.router.createUrlTree(['/frida'], { queryParams: { numFrida: this.numFrida } }) // Chemin de destination
-   );
-   // Ouvrir dans un nouvel onglet
-   window.open(url, '_blank');*/
- }
- pageCreation(){
-   this.router.navigate(['/create']);
- }
-  accueil(){
+    this.router.navigate(['/frida'], { queryParams: { numFrida: this.numFrida } });
+    // Construire l'URL à partir du router
+    /*const url = this.router.serializeUrl(
+        this.router.createUrlTree(['/frida'], { queryParams: { numFrida: this.numFrida } }) // Chemin de destination
+    );
+    // Ouvrir dans un nouvel onglet
+    window.open(url, '_blank');*/
+  }
+  pageCreation() {
+    this.router.navigate(['/create']);
+  }
+  accueil() {
     this.router.navigate(['']);
   }
 }
