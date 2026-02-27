@@ -67,6 +67,7 @@ public class EcrireBdService {
     private List<HeritierEntity> listeHeritiers;
     private List<TemoinEntity> listeTemoins;
     private int nbConjoints, nbFilles, nbGarcons;
+    private int nbParents, nbFreres, nbSoeurs;
 
     /**
      * Point d'entrée principal pour traiter les documents d'héritiers.
@@ -164,6 +165,9 @@ public class EcrireBdService {
         nbConjoints = 0;
         nbFilles = 0;
         nbGarcons = 0;
+        nbParents = 0;
+        nbFreres = 0;
+        nbSoeurs = 0;
     }
 
     /**
@@ -185,6 +189,12 @@ public class EcrireBdService {
                     } else {
                         numerateur = calcul.getNumerateurFilles();
                     }
+                    break;
+                case "4": // Parents
+                case "5": // Fratrie
+                    // Les parts des parents et fratrie sont gérées par le service de calculs
+                    // On cherche le numérateur correspondant dans la réponse
+                    numerateur = 0; // Sera calculé par le service calculs-api
                     break;
             }
             float part = Math.round((float) numerateur / calcul.getDenominateur() * 100) / 100.0f;
@@ -241,7 +251,7 @@ public class EcrireBdService {
         heritier.setNumParente(tableauNumParente.get(indiceParente));
         heritier.setExtraitNaissance(extrait);
 
-        // Calcul de la répartition entre garçons, filles et conjoints
+        // Calcul de la répartition entre garçons, filles, conjoints, parents et fratrie
         if ("2".equals(heritier.getNumParente())) {
             nbConjoints++;
         } else if ("3".equals(heritier.getNumParente())) {
@@ -249,6 +259,15 @@ public class EcrireBdService {
                 nbGarcons++;
             } else {
                 nbFilles++;
+            }
+        } else if ("4".equals(heritier.getNumParente())) {
+            nbParents++;
+        } else if ("5".equals(heritier.getNumParente())) {
+            // Comptage frères/sœurs
+            if ("ذكر".equals(heritier.getExtraitNaissance().getSexe())) {
+                nbFreres++;
+            } else {
+                nbSoeurs++;
             }
         }
         return heritier;
@@ -445,10 +464,10 @@ public class EcrireBdService {
                 .nbConjoints(nbConjoints)
                 .nbFilles(nbFilles)
                 .nbGarcons(nbGarcons)
-                .pereVivant(false) // TODO: gérer l'extraction de ces infos
-                .mereVivante(false)
-                .nbSoeurs(0)
-                .nbFreres(0)
+                .pereVivant(nbParents > 0) // père vivant si au moins un parent détecté
+                .mereVivante(nbParents > 1) // mère vivante si 2 parents détectés
+                .nbSoeurs(nbSoeurs)
+                .nbFreres(nbFreres)
                 .build();
 
         CalculEntity calcul = new CalculEntity();
@@ -621,14 +640,9 @@ public class EcrireBdService {
         LocalDateTime maintenant = LocalDateTime.now();
 
         // Formater la date et l'heure pour les intégrer dans l'ID
-        DateTimeFormatter formatteur = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
+        DateTimeFormatter formatteur = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
 
-        // Générer un UUID pour ajouter à l'identifiant
-        // String uuid = UUID.randomUUID().toString().substring(0, 12); // Garder
-        // seulement les 12 premiers caractères (enlever les secondes)
-
-        // Construire l'identifiant
-        // return horodatage + "_" + uuid;
+        // Construire l'identifiant avec la date et l'heure jusqu'à la seconde
         return maintenant.format(formatteur);
     }
 }

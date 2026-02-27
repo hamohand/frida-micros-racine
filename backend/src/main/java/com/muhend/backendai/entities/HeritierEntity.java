@@ -6,8 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-
+@JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 
 @Entity
 @Getter
@@ -21,19 +20,19 @@ public class HeritierEntity {
 
     @Size(max = 255)
     @Column(name = "numFrida")
-    private String numFrida;
+    private String numFrida = "";
 
     @Size(max = 255)
     @Column(name = "numParente")
-    private String numParente;
+    private String numParente = "";
 
     @Size(max = 255)
     @Column(name = "adresse")
-    private String adresse;
+    private String adresse = "";
 
     @Size(max = 255)
     @Column(name = "profession")
-    private String profession;
+    private String profession = "";
 
     @Column(name = "coefPart")
     private Float coefPart;
@@ -42,20 +41,32 @@ public class HeritierEntity {
     @JoinColumn(name = "extraitNaissance_id")
     private ExtraitNaissanceEntity extraitNaissance;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pieceIdentite_id")
-    private PieceIdentiteEntity identite;
+    // piece identite
+    /*
+     * @OneToOne(fetch = FetchType.LAZY)
+     * 
+     * @JoinColumn(name = "pieceIdentite_id")
+     * private PieceIdentiteEntity identite;
+     */
 
     // Relation vers FridaEntity avec clé étrangère
-    /*@ManyToOne(optional = true)
-    @JoinColumn(name = "frida_id", nullable = true)  // "frida_id" correspond à la FK dans la table heritier
-    private FridaEntity fridaEntity;
-*/
-    /*@ManyToOne
-    @JoinColumn(name = "frida_id", nullable = false)
-    private FridaEntity fridaEntity;*/
+    /*
+     * @ManyToOne(optional = true)
+     * 
+     * @JoinColumn(name = "frida_id", nullable = true) // "frida_id" correspond à la
+     * FK dans la table heritier
+     * private FridaEntity fridaEntity;
+     */
+    /*
+     * @ManyToOne
+     * 
+     * @JoinColumn(name = "frida_id", nullable = false)
+     * private FridaEntity fridaEntity;
+     */
 
-    /*@ManyToOne(optional = true) // Relation obligatoire sans colonne explicite
-    private FridaEntity fridaEntity;*/
+    /*
+     * @ManyToOne(optional = true) // Relation obligatoire sans colonne explicite
+     * private FridaEntity fridaEntity;
+     */
 
 }

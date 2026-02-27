@@ -17,15 +17,15 @@ public class TemoinEntity {
 
     @Size(max = 255)
     @Column(name = "num_frida")
-    private String numFrida;
+    private String numFrida = "";
 
     @Size(max = 255)
     @Column(name = "adresse")
-    private String adresse;
+    private String adresse = "";
 
     @Size(max = 255)
     @Column(name = "profession")
-    private String profession;
+    private String profession = "";
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pieceIdentite_id")
@@ -34,7 +34,7 @@ public class TemoinEntity {
     // Provisoire
     @Size(max = 255)
     @Column(name = "numParente")
-    private String numParente;
+    private String numParente = "";
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "extraitNaissance_id")
     private ExtraitNaissanceEntity extraitNaissance;

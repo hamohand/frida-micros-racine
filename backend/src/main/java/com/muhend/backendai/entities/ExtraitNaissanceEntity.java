@@ -20,37 +20,49 @@ public class ExtraitNaissanceEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "num_frida")
-    private String numFrida;
+    private String numFrida = "";
     @Column(name = "nom")
-    private String nom;
+    private String nom = "";
     @Column(name = "prenom")
     private String prenom = "";
     @Column(name = "latines")
-    private String latines;
+    private String latines = "";
+    @Size(max = 255)
+    @Column(name = "prenom_latines")
+    private String prenomLatines = "";
     @Column(name = "date_naissance")
     private LocalDate dateNaissance;
     @Column(name = "lieu_naissance")
-    private String lieuNaissance;
+    private String lieuNaissance = "";
     @Column(name = "sexe", length = 10)
-    private String sexe;
+    private String sexe = "";
 
     @Size(max = 255)
     @Column(name = "nom_piece")
-    private String nomPiece;
+    private String nomPiece = "";
 
     @Column(name = "numero_piece")
-    private String numeroPiece;
+    private String numeroPiece = "";
 
     @Size(max = 255)
     @Column(name = "delivre_par")
-    private String delivrePar;
+    private String delivrePar = "";
 
-    //
-    private String dateNaissanceLettres;
-    private String baladia;
-    private String wilaya;
-    private String pere;
-    private String mere;
-    private String marge;
+    @Size(max = 255)
+    @Column(name = "delivre_le")
+    private String delivreLe = "";
+
+    // piece identite
+    @Size(max = 255)
+    @Column(name = "expire_le")
+    private String expireLe = "";
+
+    // extrait naissance
+    private String dateNaissanceLettres = "";
+    private String baladia = "";
+    private String wilaya = "";
+    private String pere = "";
+    private String mere = "";
+    private String marge = "";
 
 }
