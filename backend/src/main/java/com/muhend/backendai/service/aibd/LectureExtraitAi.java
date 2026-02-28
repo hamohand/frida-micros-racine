@@ -1,7 +1,7 @@
 package com.muhend.backendai.service.aibd;
 
 import com.google.cloud.documentai.v1.Document;
-import com.muhend.backendai.entities.ExtraitNaissanceEntity;
+import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.service.calculs_outils.MethodesChaine;
 import org.springframework.stereotype.Service;
 
@@ -29,10 +29,10 @@ public class LectureExtraitAi {
      */
 
     // Création d'une fiche Extrait de naissance champ par champ
-    public static ExtraitNaissanceEntity ficheExtraitNaissanceEntity(Document docPdfResponseAi) {
+    public static IdentitesEntity ficheExtraitNaissanceEntity(Document docPdfResponseAi) {
         String type;
         String mentionText;
-        ExtraitNaissanceEntity fiche = new ExtraitNaissanceEntity();
+        IdentitesEntity fiche = new IdentitesEntity();
         int nbChamps = docPdfResponseAi.getEntitiesCount(); // nombre de champs de la table
 
         for (int i_entitie = 0; i_entitie < nbChamps; i_entitie++) {

@@ -30,7 +30,7 @@ import java.util.Objects;
 public class EcrireBdService {
 
     private final LectureAiService lectureAiService;
-    private final ExtraitNaissanceRepo extraitNaissanceRepo;
+    private final IdentitesRepo identitesRepo;
     private final FridaRepo fridaRepo;
     private final HeritierRepo heritierRepo;
     private final DefuntRepo defuntRepo;
@@ -41,7 +41,7 @@ public class EcrireBdService {
 
     @Autowired
     public EcrireBdService(
-            ExtraitNaissanceRepo extraitNaissanceRepo,
+            IdentitesRepo identitesRepo,
             LectureAiService lectureAiService,
             FridaRepo fridaRepo,
             HeritierRepo heritierRepo,
@@ -50,7 +50,7 @@ public class EcrireBdService {
             TemoinRepo temoinRepo,
             com.muhend.backendai.client.calculs.CalculsApiClient calculsApiClient,
             com.muhend.backendai.client.ocr.OcrApiClient ocrApiClient) {
-        this.extraitNaissanceRepo = extraitNaissanceRepo;
+        this.identitesRepo = identitesRepo;
         this.lectureAiService = lectureAiService;
         this.fridaRepo = fridaRepo;
         this.heritierRepo = heritierRepo;
@@ -184,7 +184,7 @@ public class EcrireBdService {
                     numerateur = calcul.getNumerateurConjoint();
                     break;
                 case "3":
-                    if (Objects.equals(heritier.getExtraitNaissance().getSexe(), "ذكر")) {
+                    if (Objects.equals(heritier.getIdentite().getSexe(), "ذكر")) {
                         numerateur = calcul.getNumerateurGarcons();
                     } else {
                         numerateur = calcul.getNumerateurFilles();
@@ -211,51 +211,28 @@ public class EcrireBdService {
     }
 
     /**
-     * Crée les entités liées à un extrait, notamment le défunt ou héritiers.
-     */
-    private void creerEntitesAssociees(ExtraitNaissanceEntity extrait, int indiceParente) {
-        String typeParente = tableauNumParente.get(indiceParente);
-        if ("1".equals(typeParente)) { // 1 = Défunt
-            DefuntEntity defunt = ficheDefunt(extrait);
-            ficheFrida.setNumFrida(numFrida);
-            defunt.setNumFrida(numFrida);
-            defuntRepo.save(defunt);
-            ficheFrida.setDefunt(defunt);
-        } else if ("11".equals(typeParente)) { // témoins
-            TemoinEntity temoin = ficheTemoin(extrait, indiceParente);
-            temoinRepo.save(temoin);
-            listeTemoins.add(temoin);
-        } else { // Héritiers : conjoint ou enfants
-            HeritierEntity heritier = ficheHeritier(extrait, indiceParente);
-            heritierRepo.save(heritier);
-            listeHeritiers.add(heritier);
-        }
-    }
-
-    /**
      * Crée une entité représentant un défunt.
      */
-    private DefuntEntity ficheDefunt(ExtraitNaissanceEntity extrait) {
+    private DefuntEntity ficheDefunt(IdentitesEntity identite) {
         DefuntEntity defunt = new DefuntEntity();
-        // defunt.setNumFrida(numFrida);
-        defunt.setExtraitNaissance(extrait);
+        defunt.setIdentite(identite);
         return defunt;
     }
 
     /**
      * Crée une entité représentant un héritier.
      */
-    private HeritierEntity ficheHeritier(ExtraitNaissanceEntity extrait, int indiceParente) {
+    private HeritierEntity ficheHeritier(IdentitesEntity identite, int indiceParente) {
         HeritierEntity heritier = new HeritierEntity();
         heritier.setNumFrida(numFrida);
         heritier.setNumParente(tableauNumParente.get(indiceParente));
-        heritier.setExtraitNaissance(extrait);
+        heritier.setIdentite(identite);
 
         // Calcul de la répartition entre garçons, filles, conjoints, parents et fratrie
         if ("2".equals(heritier.getNumParente())) {
             nbConjoints++;
         } else if ("3".equals(heritier.getNumParente())) {
-            if ("ذكر".equals(heritier.getExtraitNaissance().getSexe())) {
+            if ("ذكر".equals(heritier.getIdentite().getSexe())) {
                 nbGarcons++;
             } else {
                 nbFilles++;
@@ -264,7 +241,7 @@ public class EcrireBdService {
             nbParents++;
         } else if ("5".equals(heritier.getNumParente())) {
             // Comptage frères/sœurs
-            if ("ذكر".equals(heritier.getExtraitNaissance().getSexe())) {
+            if ("ذكر".equals(heritier.getIdentite().getSexe())) {
                 nbFreres++;
             } else {
                 nbSoeurs++;
@@ -276,10 +253,10 @@ public class EcrireBdService {
     /**
      * Crée une entité représentant un témoin. //PROVISOIRE
      */
-    private TemoinEntity ficheTemoin(ExtraitNaissanceEntity extrait, int indiceParente) {
+    private TemoinEntity ficheTemoin(IdentitesEntity identite, int indiceParente) {
         TemoinEntity temoin = new TemoinEntity();
         temoin.setNumFrida(numFrida);
-        temoin.setExtraitNaissance(extrait);
+        temoin.setIdentite(identite);
         temoin.setNumParente(tableauNumParente.get(indiceParente));
 
         return temoin;
@@ -328,19 +305,16 @@ public class EcrireBdService {
         // 4. Map according to document type
         return switch (docType) {
             case EXTRAIT_NAISSANCE -> mapOcrResultToEntity(response);
-            case CNI, PASSEPORT -> mapOcrResultToPieceIdentite(response, docType);
+            case CNI, PASSEPORT -> mapOcrResultToIdentite(response, docType);
         };
     }
 
     /**
-     * Extrait la date de naissance d'une entité (ExtraitNaissance ou
-     * PieceIdentite).
+     * Extrait la date de naissance d'une entité (IdentitesEntity).
      */
     private String extractDateNaissance(Object entity) {
-        if (entity instanceof ExtraitNaissanceEntity en) {
-            return en.getDateNaissance() != null ? en.getDateNaissance().toString() : "";
-        } else if (entity instanceof PieceIdentiteEntity pi) {
-            return pi.getDateNaissance() != null ? pi.getDateNaissance().toString() : "";
+        if (entity instanceof IdentitesEntity id) {
+            return id.getDateNaissance() != null ? id.getDateNaissance().toString() : "";
         }
         return "";
     }
@@ -348,68 +322,43 @@ public class EcrireBdService {
     /**
      * Sauvegarde le document et l'associe à l'héritier/défunt/témoin approprié.
      */
-    private void sauvegarderDocument(Object entity, DocumentType docType, HeirCategory heirCategory,
+    private void sauvegarderDocument(Object entityObj, DocumentType docType, HeirCategory heirCategory,
             int indiceParente) {
-        // Si c'est un extrait de naissance
-        if (entity instanceof ExtraitNaissanceEntity extrait) {
-            extrait.setNumFrida(numFrida);
-            extraitNaissanceRepo.save(extrait);
-
-            switch (heirCategory) {
-                case DEFUNT -> {
-                    DefuntEntity defunt = ficheDefunt(extrait);
-                    ficheFrida.setNumFrida(numFrida);
-                    defunt.setNumFrida(numFrida);
-                    defuntRepo.save(defunt);
-                    ficheFrida.setDefunt(defunt);
-                }
-                case TEMOIN -> {
-                    TemoinEntity temoin = ficheTemoin(extrait, indiceParente);
-                    temoinRepo.save(temoin);
-                    listeTemoins.add(temoin);
-                }
-                default -> { // Héritiers: conjoint, enfant, parent, fratrie
-                    HeritierEntity heritier = ficheHeritier(extrait, indiceParente);
-                    heritierRepo.save(heritier);
-                    listeHeritiers.add(heritier);
-                }
-            }
+        if (!(entityObj instanceof IdentitesEntity)) {
+            return;
         }
-        // Si c'est une pièce d'identité (CNI ou Passeport)
-        else if (entity instanceof PieceIdentiteEntity pieceIdentite) {
-            pieceIdentite.setNumFrida(numFrida);
-            // TODO: Ajouter PieceIdentiteRepo et sauvegarder
-            // pieceIdentiteRepo.save(pieceIdentite);
+        IdentitesEntity identite = (IdentitesEntity) entityObj;
+        identite.setNumFrida(numFrida);
+        identitesRepo.save(identite);
 
-            // Pour l'instant, créer un héritier sans extrait mais avec pièce d'identité
-            HeritierEntity heritier = new HeritierEntity();
-            heritier.setNumFrida(numFrida);
-            heritier.setNumParente(String.valueOf(heirCategory.getCode()));
-            heritier.setIdentite(pieceIdentite);
-
-            // Comptage pour le calcul des parts
-            switch (heirCategory) {
-                case CONJOINT -> nbConjoints++;
-                case ENFANT -> {
-                    // On ne peut pas déterminer le sexe sans extrait de naissance
-                    // TODO: Ajouter le sexe dans PieceIdentiteEntity si possible
-                }
-                default -> {
-                    /* Autres catégories */ }
+        switch (heirCategory) {
+            case DEFUNT -> {
+                DefuntEntity defunt = ficheDefunt(identite);
+                ficheFrida.setNumFrida(numFrida);
+                defunt.setNumFrida(numFrida);
+                defuntRepo.save(defunt);
+                ficheFrida.setDefunt(defunt);
             }
-
-            heritierRepo.save(heritier);
-            listeHeritiers.add(heritier);
+            case TEMOIN -> {
+                TemoinEntity temoin = ficheTemoin(identite, indiceParente);
+                temoinRepo.save(temoin);
+                listeTemoins.add(temoin);
+            }
+            default -> { // Héritiers: conjoint, enfant, parent, fratrie
+                HeritierEntity heritier = ficheHeritier(identite, indiceParente);
+                heritierRepo.save(heritier);
+                listeHeritiers.add(heritier);
+            }
         }
     }
 
     /**
-     * Mappe le résultat OCR vers une PieceIdentiteEntity.
+     * Mappe le résultat OCR vers une IdentitesEntity.
      */
-    private PieceIdentiteEntity mapOcrResultToPieceIdentite(
+    private IdentitesEntity mapOcrResultToIdentite(
             com.muhend.backendai.client.ocr.dto.OcrAnalysisResponseDto response,
             DocumentType docType) {
-        PieceIdentiteEntity entity = new PieceIdentiteEntity();
+        IdentitesEntity entity = new IdentitesEntity();
         java.util.Map<String, com.muhend.backendai.client.ocr.dto.OcrResultDto> results = response.getResultats();
 
         if (results == null)
@@ -455,7 +404,7 @@ public class EcrireBdService {
      */
     private CalculEntity calculerParts() {
         // Mapping Sexe
-        String sexeArabe = ficheFrida.getDefunt().getExtraitNaissance().getSexe();
+        String sexeArabe = ficheFrida.getDefunt().getIdentite().getSexe();
         String sexe = "ذكر".equals(sexeArabe) ? "M" : "F";
 
         com.muhend.backendai.client.calculs.dto.CalculRequestDto request = com.muhend.backendai.client.calculs.dto.CalculRequestDto
@@ -521,7 +470,7 @@ public class EcrireBdService {
     /**
      * Traite un fichier spécifique avec le service OCR.
      */
-    private ExtraitNaissanceEntity processFileWithOcr(java.nio.file.Path file,
+    private IdentitesEntity processFileWithOcr(java.nio.file.Path file,
             com.muhend.backendai.client.ocr.dto.OcrEntityDefinitionDto entityDef) {
         // 1. Upload
         com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(file);
@@ -561,9 +510,9 @@ public class EcrireBdService {
         return mapOcrResultToEntity(response);
     }
 
-    private ExtraitNaissanceEntity mapOcrResultToEntity(
+    private IdentitesEntity mapOcrResultToEntity(
             com.muhend.backendai.client.ocr.dto.OcrAnalysisResponseDto response) {
-        ExtraitNaissanceEntity entity = new ExtraitNaissanceEntity();
+        IdentitesEntity entity = new IdentitesEntity();
         java.util.Map<String, com.muhend.backendai.client.ocr.dto.OcrResultDto> results = response.getResultats();
 
         if (results == null)

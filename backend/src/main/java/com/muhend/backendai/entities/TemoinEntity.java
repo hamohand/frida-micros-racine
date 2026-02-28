@@ -27,16 +27,12 @@ public class TemoinEntity {
     @Column(name = "profession")
     private String profession = "";
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pieceIdentite_id")
-    private PieceIdentiteEntity identite;
-
-    // Provisoire
     @Size(max = 255)
     @Column(name = "numParente")
     private String numParente = "";
+
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extraitNaissance_id")
-    private ExtraitNaissanceEntity extraitNaissance;
+    @JoinColumn(name = "identite_id")
+    private IdentitesEntity identite;
 
 }

@@ -17,13 +17,13 @@ public class DefuntEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     private String numFrida;
     private String adresse;
     private String profession;
     private LocalDate dateNaissance;
-    
+
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "extrait_naissance_id")
-    private ExtraitNaissanceEntity extraitNaissance;
+    @JoinColumn(name = "identite_id")
+    private IdentitesEntity identite;
 }

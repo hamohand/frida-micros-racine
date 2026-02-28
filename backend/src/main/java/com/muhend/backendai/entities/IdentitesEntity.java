@@ -2,7 +2,6 @@ package com.muhend.backendai.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -14,8 +13,8 @@ import java.time.LocalDate;
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
 
 @Entity
-@Table(name = "extrait_naissance")
-public class ExtraitNaissanceEntity {
+@Table(name = "identites")
+public class IdentitesEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -64,5 +63,4 @@ public class ExtraitNaissanceEntity {
     private String pere = "";
     private String mere = "";
     private String marge = "";
-
 }

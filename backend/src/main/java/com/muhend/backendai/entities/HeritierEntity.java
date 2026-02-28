@@ -38,13 +38,8 @@ public class HeritierEntity {
     private Float coefPart;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "extraitNaissance_id")
-    private ExtraitNaissanceEntity extraitNaissance;
-
-    // piece identite
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pieceIdentite_id")
-    private PieceIdentiteEntity identite;
+    @JoinColumn(name = "identite_id")
+    private IdentitesEntity identite;
 
     // Relation vers FridaEntity avec clé étrangère
     /*
