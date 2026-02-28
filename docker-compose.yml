@@ -81,7 +81,7 @@ services:
   # ===== Service Calculs (Spring Boot) =====
   calculs-api:
     build:
-      context: ../frida_calculs_api
+      context: ../frida_calculs_api/backend
       dockerfile: Dockerfile
     ports:
       - "8081:8081"
