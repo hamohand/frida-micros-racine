@@ -57,13 +57,8 @@ public class LectureExtraitAi {
                     break;
                 case "date":
                     // dateNaissance;
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-                    try {
-                        fiche.setDateNaissance(LocalDate.parse(mentionText, formatter));
-                    } catch (DateTimeParseException e) {
-                        System.err.println("Erreur lors du parsing de la date : " + mentionText);
-                        fiche.setDateNaissance(null); // ou gérer autrement
-                    }
+                    LocalDate parsedDate = MethodesChaine.parseOcrDate(mentionText);
+                    fiche.setDateNaissance(parsedDate);
                     break;
                 case "date-lettres":
                     // dateNaissanceLettres

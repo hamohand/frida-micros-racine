@@ -406,9 +406,10 @@ public class EcrireBdService {
         // Date de naissance
         try {
             String dateTxt = getText.apply("dateNaissance");
-            if (!dateTxt.isEmpty()) {
-                entity.setDateNaissance(
-                        java.time.LocalDate.parse(dateTxt, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            java.time.LocalDate dateParsed = com.muhend.backendai.service.calculs_outils.MethodesChaine
+                    .parseOcrDate(dateTxt);
+            if (dateParsed != null) {
+                entity.setDateNaissance(dateParsed);
             }
         } catch (Exception e) {
             // Parsing failed, leave null
@@ -583,9 +584,10 @@ public class EcrireBdService {
         try {
             // Si on avait une zone date numérique...
             String dateTxt = getText.apply("dateNaissance");
-            if (!dateTxt.isEmpty()) {
-                entity.setDateNaissance(
-                        java.time.LocalDate.parse(dateTxt, java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))); // Risqué
+            java.time.LocalDate parsedDate = com.muhend.backendai.service.calculs_outils.MethodesChaine
+                    .parseOcrDate(dateTxt);
+            if (parsedDate != null) {
+                entity.setDateNaissance(parsedDate);
             } else {
                 // Fallback: Date actuelle ? Non c'est mauvais.
                 // Laisser null et gérer dans le frontend ?
