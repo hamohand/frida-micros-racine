@@ -284,6 +284,10 @@ public class EcrireBdService {
             for (com.muhend.backendai.client.ocr.dto.OcrEntityZoneDto z : entityDef.getZones()) {
                 zones.put(z.getNom(), com.muhend.backendai.client.ocr.dto.OcrZoneConfigDto.builder()
                         .coords(z.getCoords())
+                        .lang(z.getLang())
+                        .type(z.getType())
+                        .preprocess(z.getPreprocess())
+                        .valeurs_attendues(z.getValeurs_attendues())
                         .build());
             }
         } else {
@@ -294,10 +298,24 @@ public class EcrireBdService {
                 .builder()
                 .filename(uploadResponse.getSaved_filename())
                 .zones(zones)
+                .cadre_reference(entityDef.getCadre_reference())
                 .build();
 
         // 3. Analyze
         com.muhend.backendai.client.ocr.dto.OcrAnalysisResponseDto response = ocrApiClient.analyze(request);
+
+        System.out.println("====== RÉPONSE DU SERVICE OCR ======");
+        System.out.println("Fichier analysé: " + request.getFilename());
+        if (response != null && response.getResultats() != null) {
+            response.getResultats().forEach((key, value) -> {
+                System.out.println(
+                        "Champ: " + key + " -> Valeur: '" + (value != null ? value.getTexte_final() : "null") + "'");
+            });
+        } else {
+            System.out.println("Aucun résultat retourné par le service OCR.");
+        }
+        System.out.println("====================================");
+
         if (!response.isSuccess()) {
             throw new RuntimeException("Echec analyse OCR: " + response.getError());
         }
@@ -502,6 +520,19 @@ public class EcrireBdService {
 
         // 3. Analyze
         com.muhend.backendai.client.ocr.dto.OcrAnalysisResponseDto response = ocrApiClient.analyze(request);
+
+        System.out.println("====== RÉPONSE DU SERVICE OCR ======");
+        System.out.println("Fichier analysé: " + request.getFilename());
+        if (response != null && response.getResultats() != null) {
+            response.getResultats().forEach((key, value) -> {
+                System.out.println(
+                        "Champ: " + key + " -> Valeur: '" + (value != null ? value.getTexte_final() : "null") + "'");
+            });
+        } else {
+            System.out.println("Aucun résultat retourné par le service OCR.");
+        }
+        System.out.println("====================================");
+
         if (!response.isSuccess()) {
             throw new RuntimeException("Echec analyse OCR: " + response.getError());
         }

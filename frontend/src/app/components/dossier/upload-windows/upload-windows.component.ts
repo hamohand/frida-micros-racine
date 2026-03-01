@@ -94,6 +94,13 @@ import { forkJoin, Observable } from 'rxjs';
             (filesUploaded)="onFilesUploaded('f_temoins', $event)"
             (uploadCancelled)="onUploadCancelled('f_temoins')"
         ></app-file-upload>
+        <button
+            *ngIf="!windows['f_temoins'].hasFiles"
+            class="btn btn-secondary continue-btn"
+            (click)="continueToNext('f_temoins')"
+        >
+          Continuer s'il n'y a pas de temoin
+        </button>
       </div>
     </div>
 

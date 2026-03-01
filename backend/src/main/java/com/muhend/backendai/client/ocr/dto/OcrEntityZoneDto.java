@@ -13,4 +13,8 @@ import java.util.List;
 public class OcrEntityZoneDto {
     private String nom;
     private List<Double> coords;
+    private String lang;
+    private String type;
+    private String preprocess;
+    private List<String> valeurs_attendues;
 }

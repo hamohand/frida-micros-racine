@@ -25,11 +25,23 @@ frida-ai/
 │   │   │   │   ├── dto/              # Data Transfer Objects
 │   │   │   │   ├── entities/         # JPA Entities
 │   │   │   │   │   ├── FridaEntity.java
+│   │   │   │   │   ├── DefuntEntity.java
 │   │   │   │   │   ├── HeritierEntity.java
-│   │   │   │   │   └── TemoinEntity.java
+│   │   │   │   │   ├── TemoinEntity.java
+│   │   │   │   │   ├── IdentitesEntity.java  # Table unifiée d'identités
+│   │   │   │   │   └── CalculEntity.java
+│   │   │   │   ├── enums/            # Enumerations
+│   │   │   │   │   ├── DocumentType.java      # EXTRAIT_NAISSANCE, CNI, PASSEPORT
+│   │   │   │   │   └── HeirCategory.java      # DEFUNT, CONJOINT, ENFANT...
 │   │   │   │   ├── repository/       # JPA Repositories
+│   │   │   │   ├── client/           # Clients HTTP vers microservices
+│   │   │   │   │   ├── ocr/          # Client OCR API (upload, analyse)
+│   │   │   │   │   └── calculs/      # Client Calculs API
 │   │   │   │   └── service/          # Business Logic
-│   │   │   │       ├── FridaService.java
+│   │   │   │       ├── aibd/         # Lecture AI & Écriture BD
+│   │   │   │       │   ├── EcrireBdService.java
+│   │   │   │       │   ├── LectureAiService.java
+│   │   │   │       │   └── LectureExtraitAi.java
 │   │   │   │       └── FileUploadService.java
 │   │   │   └── resources/
 │   │   │       ├── application.properties
@@ -115,14 +127,29 @@ frida-ai/
          │ Backend (Spring Boot) │
          │ - REST API Endpoints  │
          │ - Business Logic      │
-         └───────────┬───────────┘
-                     │ JDBC:5432
-                     ▼
-         ┌───────────────────────┐
-         │ PostgreSQL Database   │
-         │ - Données persistantes│
-         └───────────────────────┘
+         │ - OCR Client          │
+         │ - Calculs Client      │
+         └──┬────────┬────────┬──┘
+            │        │        │
+    JDBC:5432  HTTP:8082  HTTP:8081
+            │        │        │
+            ▼        ▼        ▼
+  ┌──────────┐ ┌──────────┐ ┌──────────────┐
+  │PostgreSQL│ │ OCR API  │ │ Calculs API  │
+  │  (DB)    │ │ (Python) │ │ (Spring Boot)│
+  │ :5432    │ │ :8082    │ │ :8081        │
+  └──────────┘ └──────────┘ └──────────────┘
 ```
+
+### Microservices
+
+| Service | Port | Technologie | Rôle |
+|---------|------|-------------|------|
+| **frontend** | 4200 | Angular + Nginx | Interface utilisateur |
+| **backend** | 8080 | Spring Boot (Java 21) | API REST, orchestration |
+| **db** | 5432 | PostgreSQL 16 | Base de données |
+| **calculs-api** | 8081 | Spring Boot | Calcul des parts successorales |
+| **ocr-api** | 8082 | Python Flask (EasyTess) | OCR / Extraction de texte |
 
 ## 🔐 Sécurité - Couches
 
@@ -146,31 +173,67 @@ Client Browser
 
 **FridaEntity** (Fiches de succession)
 ```sql
-├── numFrida (PK)
-├── dateDeclaration
-├── dateExecution
-├── defunt (FK → Defunt)
+├── id (PK, auto)
+├── numFrida (unique)
+├── dateCreation
+├── notaire
+├── defunt (OneToOne → DefuntEntity)
 ├── heritiers (OneToMany → HeritierEntity)
-└── temoins (OneToMany → TemoinEntity)
+├── temoins (OneToMany → TemoinEntity)
+└── calcul (OneToOne → CalculEntity)
+```
+
+**DefuntEntity**
+```sql
+├── id (PK)
+├── numFrida
+├── adresse
+├── profession
+├── dateNaissance
+└── identite (OneToOne → IdentitesEntity)     ⬅️ NOUVEAU
+```
+
+**IdentitesEntity** ⬅️ NOUVEAU (remplace ExtraitNaissanceEntity + PieceIdentiteEntity)
+```sql
+├── id (PK)
+├── numFrida
+├── nom, prenom
+├── latines, prenomLatines
+├── dateNaissance, dateNaissanceLettres
+├── lieuNaissance
+├── sexe
+├── pere, mere
+├── baladia, wilaya, marge
+├── nomPiece, numeroPiece         # Pièce d'identité (CNI/Passeport)
+├── delivrePar, delivreLe, expireLe
 ```
 
 **HeritierEntity**
 ```sql
 ├── id (PK)
-├── frida (FK → FridaEntity)
-├── nom
-├── prenom
-├── pourcentage
-└── dateAjout
+├── numFrida
+├── numParente (2=conjoint, 3=enfant, 4=parent, 5=fratrie)
+├── adresse, profession
+├── coefPart (Float)
+└── identite (OneToOne → IdentitesEntity)     ⬅️ NOUVEAU
 ```
 
 **TemoinEntity**
 ```sql
 ├── id (PK)
-├── frida (FK → FridaEntity)
-├── nom
-├── prenom
-└── dateAjout
+├── numFrida
+├── numParente (11=témoin)
+└── identite (OneToOne → IdentitesEntity)     ⬅️ NOUVEAU
+```
+
+### Diagramme des relations
+
+```
+FridaEntity
+    ├── 1:1 → DefuntEntity → 1:1 → IdentitesEntity
+    ├── 1:N → HeritierEntity → 1:1 → IdentitesEntity
+    ├── 1:N → TemoinEntity → 1:1 → IdentitesEntity
+    └── 1:1 → CalculEntity
 ```
 
 ## 🚀 Processus de Build & Déploiement
@@ -309,5 +372,5 @@ ng serve --disable-host-check
 
 ---
 
-**Dernière mise à jour**: Janvier 2026
-**Version**: 1.0.0
+**Dernière mise à jour**: Mars 2026
+**Version**: 2.0.0

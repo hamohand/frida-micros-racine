@@ -15,4 +15,6 @@ public class OcrEntityDefinitionDto {
     private String description;
     private List<OcrEntityZoneDto> zones;
     private String image_reference;
+    // Cadre de référence pour le recalage géométrique
+    private Object cadre_reference;
 }

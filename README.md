@@ -1,6 +1,6 @@
 # FridaAI - Application Full-Stack
 
-Application de gestion des fiches de succession avec Angular + Spring Boot + PostgreSQL, orchestrée avec Docker.
+Application de gestion des fiches de succession (**Frida**) avec Angular + Spring Boot + PostgreSQL + OCR (EasyTess) + Calculs des parts, orchestrée avec Docker.
 
 ## 📋 Architecture
 
@@ -128,11 +128,13 @@ FILE_UPLOAD_MAX_SIZE=10485760
 
 ### Services
 
-| Service | Port | Role |
+| Service | Port | Rôle |
 |---------|------|------|
 | **frontend** | 4200 | Angular + Nginx |
-| **backend** | 8080 | Spring Boot API |
-| **postgres** | 5432 | PostgreSQL Database |
+| **backend** | 8080 | Spring Boot API (orchestration) |
+| **db** | 5432 | PostgreSQL Database |
+| **calculs-api** | 8081 | Microservice de calcul des parts successorales (Spring Boot) |
+| **ocr-api** | 8082 | Microservice OCR / Extraction de texte (Python Flask / EasyTess) |
 
 ### Network & Volumes
 
@@ -168,13 +170,44 @@ spring.datasource.password=Mmk!030809?
 
 - `GET /api/frida` - Liste des fiches
 - `GET /api/frida/{numFrida}` - Détails d'une fiche
-- `GET /api/frida/listeHeritiers/{numFrida}` - Héritiers
-- `GET /api/frida/listeTemoins/{numFrida}` - Témoins
+- `GET /api/frida/listeHeritiers/{numFrida}` - Héritiers d'une fiche
+- `GET /api/frida/listeTemoins/{numFrida}` - Témoins d'une fiche
 - `POST /api/files/upload` - Upload de fichiers
+- `POST /api/folders/create` - Créer un dossier et lancer le traitement OCR
 
-### Documentation API
+### Convention de nommage des dossiers d'upload
 
-Swagger disponible sur: `http://localhost:8080/swagger-ui.html`
+Chaque fichier est placé dans un sous-dossier dont le nom définit la catégorie de personne et le type de document :
+
+| Dossier | Catégorie | Type de document |
+|---------|-----------|------------------|
+| `1_en`  | Défunt    | Extrait de naissance |
+| `2_cni` | Conjoint  | Carte d'identité |
+| `3_en`  | Enfant    | Extrait de naissance |
+| `4_en`  | Parent    | Extrait de naissance |
+| `5_en`  | Fratrie   | Extrait de naissance |
+| `11_pp` | Témoin    | Passeport |
+
+Format : `{code_catégorie}_{type_document}` (ex: `3_cni` = enfant avec CNI).
+
+### Entités OCR
+
+Les définitions d'entités OCR (zones + cadre de référence) sont stockées dans `easytess_ocr_api/entities/` :
+- `en01.json` → Extrait de naissance
+- `cni01.json` → Carte nationale d'identité
+- `pp01.json` → Passeport
+
+### Modèle de données (Entités principales)
+
+```
+FridaEntity
+  ├── 1:1 → DefuntEntity → 1:1 → IdentitesEntity
+  ├── 1:N → HeritierEntity → 1:1 → IdentitesEntity
+  ├── 1:N → TemoinEntity → 1:1 → IdentitesEntity
+  └── 1:1 → CalculEntity
+```
+
+> **Note :** `IdentitesEntity` est la table unifiée qui remplace les anciennes tables `ExtraitNaissanceEntity` et `PieceIdentiteEntity`. Elle stocke toutes les informations d'identité quel que soit le type de document (extrait, CNI, passeport).
 
 ## 🎨 Frontend (Angular)
 
@@ -391,5 +424,6 @@ Pour toute question ou problème, vérifiez:
 
 [Votre License]
 # easytess_ocr_api
-#   f r i d a - o c r - m i c r o s  
+#   f r i d a - o c r - m i c r o s 
+ 
  

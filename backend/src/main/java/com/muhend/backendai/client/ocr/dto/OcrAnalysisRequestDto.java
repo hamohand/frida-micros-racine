@@ -14,4 +14,6 @@ public class OcrAnalysisRequestDto {
     private String filename;
     // Map of zone name to zone configuration (coords)
     private Map<String, OcrZoneConfigDto> zones;
+    // Cadre de référence pour le recalage géométrique
+    private Object cadre_reference;
 }

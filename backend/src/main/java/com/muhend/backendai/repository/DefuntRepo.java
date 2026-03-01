@@ -14,7 +14,7 @@ public interface DefuntRepo extends JpaRepository<DefuntEntity, Long> {
             "f.numFrida, f.dateCreation, d.dateNaissance, e.nom) " +
             "FROM FridaEntity f " +
             "JOIN f.defunt d " +
-            "JOIN d.extraitNaissance e " +
+            "JOIN d.identite e " +
             "WHERE e.nom = :nom")
     List<FridaDetailsDTO> findByNom(@Param("nom") String nom);
 

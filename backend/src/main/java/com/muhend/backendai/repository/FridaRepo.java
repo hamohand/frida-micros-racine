@@ -23,7 +23,7 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
                     SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom)
                         FROM FridaEntity f
                         JOIN f.defunt d
-                        JOIN d.extraitNaissance e
+                        JOIN d.identite e
                         ORDER BY f.dateCreation DESC
             """)
     List<FridaDetailsDTO> findAllFridas();

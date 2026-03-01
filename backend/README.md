@@ -11,24 +11,40 @@ backend/
 │   │   ├── java/
 │   │   │   └── com/muhend/backendai/
 │   │   │       ├── BackendAiApplication.java
-│   │   │       ├── config/              # Configuration Spring
+│   │   │       ├── config/              # Configuration Spring (CORS, RestTemplate)
 │   │   │       ├── controller/          # Endpoints REST
 │   │   │       ├── dto/                 # Data Transfer Objects
+│   │   │       │   └── DocumentInfo.java  # Parse noms de dossiers ({code}_{type})
 │   │   │       ├── entities/            # JPA Entities
-│   │   │       ├── repository/          # Data Access
+│   │   │       │   ├── FridaEntity.java
+│   │   │       │   ├── DefuntEntity.java
+│   │   │       │   ├── HeritierEntity.java
+│   │   │       │   ├── TemoinEntity.java
+│   │   │       │   ├── IdentitesEntity.java    # Table unifiée d'identités
+│   │   │       │   └── CalculEntity.java
+│   │   │       ├── enums/               # Enumerations
+│   │   │       │   ├── DocumentType.java    # EXTRAIT_NAISSANCE, CNI, PASSEPORT
+│   │   │       │   └── HeirCategory.java    # DEFUNT(1), CONJOINT(2), etc.
+│   │   │       ├── repository/          # Data Access (JPA Repositories)
+│   │   │       ├── client/              # Clients HTTP vers microservices
+│   │   │       │   ├── ocr/             # Client OCR API
+│   │   │       │   │   ├── OcrApiClient.java
+│   │   │       │   │   └── dto/         # OcrAnalysisRequestDto, etc.
+│   │   │       │   └── calculs/         # Client Calculs API
 │   │   │       └── service/             # Business Logic
+│   │   │           ├── aibd/
+│   │   │           │   ├── EcrireBdService.java      # Orchestration OCR + BD
+│   │   │           │   ├── LectureAiService.java     # Lecture dossiers
+│   │   │           │   └── LectureExtraitAi.java     # Mapping Document AI
+│   │   │           └── FileUploadService.java
 │   │   └── resources/
 │   │       ├── application.properties   # Configuration
-│   │       ├── templates/
-│   │       └── static/
+│   │       └── application-docker.properties
 │   └── test/
 │       └── java/                        # Tests unitaires
-├── .mvn/
-│   └── wrapper/
 ├── pom.xml                              # Dépendances Maven
-├── Dockerfile                           # Build Docker
+├── Dockerfile                           # Multi-stage build Docker
 └── uploads/                             # Fichiers uploadés
-
 ```
 
 ## 🚀 Démarrage
@@ -72,8 +88,45 @@ docker-compose up backend
 
 - `GET /api/frida` - Liste des fiches
 - `GET /api/frida/{numFrida}` - Détails d'une fiche
+- `GET /api/frida/listeHeritiers/{numFrida}` - Héritiers d'une fiche
+- `GET /api/frida/listeTemoins/{numFrida}` - Témoins d'une fiche
 - `POST /api/files/upload` - Upload de fichiers
+- `POST /api/folders/create` - Créer un dossier et lancer le traitement OCR
 - `GET /swagger-ui.html` - Documentation API
+
+## 📄 Modèle de données
+
+### IdentitesEntity (table unifiée)
+
+Remplace les anciennes tables `ExtraitNaissanceEntity` et `PieceIdentiteEntity`.
+Stocke toutes les informations d'identité quel que soit le type de document :
+
+| Champ | Description |
+|-------|-------------|
+| nom, prenom | Nom et prénom |
+| latines, prenomLatines | En caractères latins |
+| dateNaissance | Date de naissance |
+| sexe | Sexe |
+| pere, mere | Nom du père et de la mère |
+| numeroPiece | Numéro du document |
+| delivrePar, delivreLe, expireLe | Info pièce d'identité |
+
+### Relations
+
+```
+FridaEntity
+  ├── 1:1 → DefuntEntity → 1:1 → IdentitesEntity
+  ├── 1:N → HeritierEntity → 1:1 → IdentitesEntity
+  ├── 1:N → TemoinEntity → 1:1 → IdentitesEntity
+  └── 1:1 → CalculEntity
+```
+
+## 🔗 Microservices appelés
+
+| Service | URL | Rôle |
+|---------|-----|------|
+| **OCR API** | `http://host.docker.internal:8082` | Extraction de texte (Tesseract + EasyOCR) |
+| **Calculs API** | `http://calculs-api:8081` | Calcul parts successorales |
 
 ## 📊 Configuration
 
