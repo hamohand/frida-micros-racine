@@ -21,6 +21,15 @@ import java.util.Map;
 public class LectureAiService {
     private static final Logger logger = LoggerFactory.getLogger(LectureAiService.class); // Utilisation du logger
 
+    @org.springframework.beans.factory.annotation.Value("${gcp.project.id:docai-419410}")
+    private String projectId;
+    
+    @org.springframework.beans.factory.annotation.Value("${gcp.location:eu}")
+    private String location;
+    
+    @org.springframework.beans.factory.annotation.Value("${gcp.processor.id:7e616fae24f40bf3}")
+    private String processorId;
+
     /**
      * Cette classe extrait les données des extraits de naissance en utilisant l'IA.
      */
@@ -143,11 +152,6 @@ public class LectureAiService {
      * @return Un document simulé.
      */
     private Document mockDocumentExtraction(Path filePath) throws IOException {
-        // Paramètres pour l'IA 'Document Ai'
-        String projectId = "docai-419410";
-        String location = "eu"; // Format is "us" or "eu".
-        String processorId = "7e616fae24f40bf3"; // extrait de naissance
-        // String processorId = "8f557d7383790093"; // facture
         String endpoint = String.format("%s-documentai.googleapis.com:443", location);
 
         DocumentProcessorServiceSettings settings = DocumentProcessorServiceSettings.newBuilder().setEndpoint(endpoint)

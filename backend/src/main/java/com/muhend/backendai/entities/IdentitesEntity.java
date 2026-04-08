@@ -20,6 +20,10 @@ public class IdentitesEntity {
     private Long id;
     @Column(name = "num_frida")
     private String numFrida = "";
+    
+    @Size(max = 18)
+    @Column(name = "nin", length = 18)
+    private String nin = "";
     @Column(name = "nom")
     private String nom = "";
     @Column(name = "prenom")

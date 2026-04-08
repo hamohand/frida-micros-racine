@@ -41,24 +41,7 @@ public class HeritierEntity {
     @JoinColumn(name = "identite_id")
     private IdentitesEntity identite;
 
-    // Relation vers FridaEntity avec clé étrangère
-    /*
-     * @ManyToOne(optional = true)
-     * 
-     * @JoinColumn(name = "frida_id", nullable = true) // "frida_id" correspond à la
-     * FK dans la table heritier
-     * private FridaEntity fridaEntity;
-     */
-    /*
-     * @ManyToOne
-     * 
-     * @JoinColumn(name = "frida_id", nullable = false)
-     * private FridaEntity fridaEntity;
-     */
-
-    /*
-     * @ManyToOne(optional = true) // Relation obligatoire sans colonne explicite
-     * private FridaEntity fridaEntity;
-     */
+    // La relation unidirectionnelle avec FridaEntity est gérée côté FridaEntity
+    // via @OneToMany + @JoinColumn(name = "frida_id").
 
 }

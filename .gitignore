@@ -50,3 +50,22 @@ node_modules/
 
 ### Visual Studio Code ###
 .vscode/
+
+# ========================
+# Logs and temporary files
+# ========================
+*.log
+*_logs.txt
+*_logs_*.txt
+logs_*.txt
+*.html
+!src/**/*.html
+# Ignore credentials
+*-credentials.json
+# Ignore git conflict temporary files
+[conflicted]*.gitignore
+[conflicted*]*.gitignore
+
+# Storage and uploads dir
+/frida-storage/
+/backend/uploads/

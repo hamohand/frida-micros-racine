@@ -1,7 +1,6 @@
 package com.muhend.backendai.entities;
 
 import jakarta.persistence.*;
-import lombok.Data;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -11,7 +10,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-
 @Entity
 @Getter
 @Setter
@@ -35,12 +33,12 @@ public class FridaEntity {
     @JoinColumn(name = "defunt_id", referencedColumnName = "id")
     private DefuntEntity defunt;
 
-    // @OneToMany(mappedBy = "fridaEntity", cascade = CascadeType.ALL, orphanRemoval
-    // = true)
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "frida_id")
     private List<HeritierEntity> heritiers;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "frida_id")
     private List<TemoinEntity> temoins;
 
 }
