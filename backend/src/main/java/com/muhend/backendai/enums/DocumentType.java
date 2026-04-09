@@ -9,7 +9,7 @@ import lombok.Getter;
 @Getter
 public enum DocumentType {
     EXTRAIT_NAISSANCE("en", "en01"),
-    CNI("cni", "cni01"),
+    CNI("cni", "cni_algo_recto_01"),
     PASSEPORT("pp", "pp01");
 
     private final String folderSuffix;

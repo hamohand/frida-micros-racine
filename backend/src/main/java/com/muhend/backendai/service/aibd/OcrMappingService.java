@@ -128,16 +128,16 @@ public class OcrMappingService {
 
         entity.setNom(getText.apply("nom"));
         entity.setPrenom(getText.apply("prenom"));
-        entity.setLieuNaissance(getText.apply("lieuNaissance"));
+        entity.setLieuNaissance(getText.apply("lieu_naissance"));
         entity.setSexe(getText.apply("sexe"));
-        entity.setNumeroPiece(getText.apply("numeroPiece"));
-        entity.setDelivrePar(getText.apply("delivrePar"));
-        entity.setDelivreLe(getText.apply("delivreLe"));
-        entity.setExpireLe(getText.apply("expireLe"));
+        entity.setNumeroPiece(getText.apply("numero_piece"));
+        entity.setDelivrePar(getText.apply("delivre_par"));
+        entity.setDelivreLe(getText.apply("delivre_le"));
+        entity.setExpireLe(getText.apply("expire_le"));
         entity.setNomPiece(docType == DocumentType.CNI
                 ? "Carte Nationale d'Identité" : "Passeport");
 
-        parseDateNaissance(entity, getText.apply("dateNaissance"));
+        parseDateNaissance(entity, getText.apply("date_naissance"));
         return entity;
     }
 
