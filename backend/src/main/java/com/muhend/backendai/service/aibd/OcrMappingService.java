@@ -129,6 +129,7 @@ public class OcrMappingService {
         entity.setNom(getText.apply("nom"));
         entity.setPrenom(getText.apply("prenom"));
         entity.setLieuNaissance(getText.apply("lieu_naissance"));
+        entity.setNin(getText.apply("nin"));
         entity.setSexe(getText.apply("sexe"));
         entity.setNumeroPiece(getText.apply("numero_piece"));
         entity.setDelivrePar(getText.apply("delivre_par"));

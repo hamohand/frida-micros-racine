@@ -90,6 +90,12 @@ import { v4 as uuidv4 } from 'uuid';
       color: inherit;
       font-size: 0.95rem;
     }
+
+    /* Correction du bug d'affichage blanc sur blanc pour les options */
+    .select-doc-type option {
+      background-color: #2c3e50; /* Couleur foncée par défaut pour s'assortir au thème sombre probable */
+      color: #ffffff;
+    }
     
     .drop-zone {
       border: 2px dashed var(--accent-color);
