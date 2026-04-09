@@ -73,7 +73,14 @@ public class OcrApiClient {
         log.info("Analyse OCR : {}", url);
 
         try {
-            return restTemplate.postForObject(url, request, OcrAnalysisResponseDto.class);
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            log.info("==> Payload envoyé à l'OCR Python : {}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(request));
+
+            OcrAnalysisResponseDto response = restTemplate.postForObject(url, request, OcrAnalysisResponseDto.class);
+
+            log.info("<== Résultat renvoyé par l'OCR Python : {}", mapper.writerWithDefaultPrettyPrinter().writeValueAsString(response));
+
+            return response;
         } catch (Exception e) {
             log.error("Erreur analyse OCR : {}", e.getMessage());
             throw new RuntimeException("Erreur lors de l'analyse OCR", e);

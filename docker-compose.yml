@@ -33,8 +33,6 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       BACKEND_PORT: ${BACKEND_PORT}
       SPRING_PROFILES_ACTIVE: docker
-      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
-      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
@@ -48,14 +46,11 @@ services:
         condition: service_healthy
       calculs-api:
         condition: service_healthy
-      # ocr-api est lancé en local, on ne l'attend plus ici
-      # ocr-api:
-      #   condition: service_healthy
     networks:
       - frida-network
     volumes:
       - ./backend/uploads:/app/uploads
-      - ${ROOT_PATH}:/frida-storage/ # On monte le dossier Windows C:/frida/ ici
+      - ${ROOT_PATH}:/frida-storage/
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/config/google-credentials.json:ro
     restart: unless-stopped
 

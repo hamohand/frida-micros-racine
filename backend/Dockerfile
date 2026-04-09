@@ -31,10 +31,6 @@ COPY --from=builder /app/target/backendAi-*.jar app.jar
 
 # Variables d'environnement par défaut (Spring les reconnaîtra automatiquement)
 ENV SERVER_PORT=8080
-ENV SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/fridaaidb
-ENV SPRING_DATASOURCE_USERNAME=postgres
-ENV SPRING_DATASOURCE_PASSWORD=password
-ENV SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
 EXPOSE ${SERVER_PORT}
 
