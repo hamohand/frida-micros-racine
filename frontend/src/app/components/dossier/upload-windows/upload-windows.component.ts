@@ -16,22 +16,28 @@ import { forkJoin, Observable } from 'rxjs';
     <div class="windows-container">
       <!-- Fenêtre Défunt -->
       <div *ngIf="windows['f1'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f1'].isUploading"
             [config]="getUploadConfig('1', 'Défunt')"
             (filesUploaded)="onFilesUploaded('f1', $event)"
             (uploadCancelled)="onUploadCancelled('f1')"
         ></app-file-upload>
+        <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
       </div>
 
       <!-- Fenêtre Conjoint -->
       <div *ngIf="windows['f2'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f2'].isUploading"
             [config]="getUploadConfig('2', 'Conjoint')"
             (filesUploaded)="onFilesUploaded('f2', $event)"
             (uploadCancelled)="onUploadCancelled('f2')"
         ></app-file-upload>
+        <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
         <button
-            *ngIf="!windows['f2'].hasFiles"
+            *ngIf="!windows['f2'].hasFiles && !windows['f2'].isUploading"
             class="btn btn-secondary continue-btn"
             (click)="continueToNext('f2')"
         >
@@ -41,13 +47,16 @@ import { forkJoin, Observable } from 'rxjs';
 
       <!-- Fenêtre Enfants -->
       <div *ngIf="windows['f3'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f3'].isUploading"
             [config]="getUploadConfig('3', 'Enfants')"
             (filesUploaded)="onFilesUploaded('f3', $event)"
             (uploadCancelled)="onUploadCancelled('f3')"
         ></app-file-upload>
+        <div *ngIf="windows['f3'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
         <button
-            *ngIf="!windows['f3'].hasFiles"
+            *ngIf="!windows['f3'].hasFiles && !windows['f3'].isUploading"
             class="btn btn-secondary continue-btn"
             (click)="continueToNext('f3')"
         >
@@ -57,13 +66,16 @@ import { forkJoin, Observable } from 'rxjs';
 
       <!-- Fenêtre Parents du défunt -->
       <div *ngIf="windows['f4'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f4'].isUploading"
             [config]="getUploadConfig('4', 'Parents du défunt')"
             (filesUploaded)="onFilesUploaded('f4', $event)"
             (uploadCancelled)="onUploadCancelled('f4')"
         ></app-file-upload>
+        <div *ngIf="windows['f4'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
         <button
-            *ngIf="!windows['f4'].hasFiles"
+            *ngIf="!windows['f4'].hasFiles && !windows['f4'].isUploading"
             class="btn btn-secondary continue-btn"
             (click)="continueToNext('f4')"
         >
@@ -73,13 +85,16 @@ import { forkJoin, Observable } from 'rxjs';
 
       <!-- Fenêtre Frères et sœurs du défunt -->
       <div *ngIf="windows['f5'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f5'].isUploading"
             [config]="getUploadConfig('5', 'Frères et sœurs du défunt')"
             (filesUploaded)="onFilesUploaded('f5', $event)"
             (uploadCancelled)="onUploadCancelled('f5')"
         ></app-file-upload>
+        <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
         <button
-            *ngIf="!windows['f5'].hasFiles"
+            *ngIf="!windows['f5'].hasFiles && !windows['f5'].isUploading"
             class="btn btn-secondary continue-btn"
             (click)="continueToNext('f5')"
         >
@@ -89,13 +104,16 @@ import { forkJoin, Observable } from 'rxjs';
 
       <!-- Fenêtre témoins -->
       <div *ngIf="windows['f_temoins'].isVisible" class="window-section">
-        <app-file-upload
+        <app-file-upload *ngIf="!windows['f_temoins'].isUploading"
             [config]="getUploadConfig('11', 'Témoins')"
             (filesUploaded)="onFilesUploaded('f_temoins', $event)"
             (uploadCancelled)="onUploadCancelled('f_temoins')"
         ></app-file-upload>
+        <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
+          <span class="spinner"></span> Sauvegarde en cours...
+        </div>
         <button
-            *ngIf="!windows['f_temoins'].hasFiles"
+            *ngIf="!windows['f_temoins'].hasFiles && !windows['f_temoins'].isUploading"
             class="btn btn-secondary continue-btn"
             (click)="continueToNext('f_temoins')"
         >
@@ -173,6 +191,16 @@ import { forkJoin, Observable } from 'rxjs';
       transition: var(--transition);
       background: rgba(78, 204, 163, 0.05);
     }
+    
+    .loading-zone {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      font-size: 1.2rem;
+      border: 2px solid transparent;
+    }
+    
     .windows-container {
       padding: var(--spacing-lg);
     }
@@ -189,16 +217,16 @@ import { forkJoin, Observable } from 'rxjs';
 export class UploadWindowsComponent implements OnInit {
   windows: Record<string, UploadWindowState> = {
     // Défunt
-    f1: { isVisible: true, hasFiles: false, path: '1' },
+    f1: { isVisible: true, hasFiles: false, isUploading: false, path: '1' },
     // Héritiers
-    f2: { isVisible: false, hasFiles: false, path: '2' },  // Conjoint
-    f3: { isVisible: false, hasFiles: false, path: '3' },  // Enfants
-    f4: { isVisible: false, hasFiles: false, path: '4' },  // Parents du défunt
-    f5: { isVisible: false, hasFiles: false, path: '5' },  // Frères et sœurs
+    f2: { isVisible: false, hasFiles: false, isUploading: false, path: '2' },  // Conjoint
+    f3: { isVisible: false, hasFiles: false, isUploading: false, path: '3' },  // Enfants
+    f4: { isVisible: false, hasFiles: false, isUploading: false, path: '4' },  // Parents du défunt
+    f5: { isVisible: false, hasFiles: false, isUploading: false, path: '5' },  // Frères et sœurs
     // Témoins
-    f_temoins: { isVisible: false, hasFiles: false, path: '11' },
+    f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '11' },
     // Lecture AI
-    f_ai: { isVisible: false, hasFiles: false, path: '' }
+    f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
   };
 
   isReading = false;
@@ -234,34 +262,34 @@ export class UploadWindowsComponent implements OnInit {
     const currentWindow = this.windows[window];
     if (currentWindow && events.length > 0) {
       currentWindow.hasFiles = true;
+      currentWindow.isUploading = true; // Début de l'envoi, affichage du spinner
 
-      // Créer une liste de requêtes HTTP
-      // On utilise `uploadFiles` qui retourne un flux avec les events de progression.
-      // Pour attendre la fin de tous les flux avec `forkJoin`, nous devons capturer le résultat final.
-      // Le composant fileUploadService retourne un Observable<number> (progression de 0 à 100).
       const uploadObservables = events.map(event => {
         const uploadPath = currentWindow.path + '_' + event.docType;
         return this.fileUploadService.uploadFiles(event.files, uploadPath);
       });
 
-      // Lancer toutes les requêtes en parallèle et s'abonner pour suivre leur avancée
       let completedUploads = 0;
       let hasError = false;
 
       uploadObservables.forEach(obs => {
         obs.subscribe({
-          next: (progress) => {
-            if (progress === 100) {
-              completedUploads++;
-              // Vérifier si toutes les requêtes sont terminées
-              if (completedUploads === uploadObservables.length && !hasError) {
-                this.moveToNextWindow(window);
-              }
-            }
+          next: () => {
+             // Nous pourrions afficher la progression ici (ex: progress-bar) si nécessaire
           },
           error: (err) => {
             console.error('Erreur lors du téléversement d\'un groupe:', err);
             hasError = true;
+            // En cas d'erreur, on laisse à l'utilisateur l'occasion de réessayer
+            currentWindow.isUploading = false;
+          },
+          complete: () => {
+            // "complete" garantit que la requête HTTP (200 OK) est terminée
+            completedUploads++;
+            if (completedUploads === uploadObservables.length && !hasError) {
+              currentWindow.isUploading = false; // Fin de l'envoi
+              this.moveToNextWindow(window); // Transition sûre
+            }
           }
         });
       });

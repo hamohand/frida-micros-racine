@@ -1,6 +1,7 @@
 export interface UploadWindowState {
   isVisible: boolean;
   hasFiles: boolean;
+  isUploading?: boolean;
   path: string;
 }
 
