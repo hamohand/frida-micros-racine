@@ -71,7 +71,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
           // Traitez les données comme attendu
           this.frida = data;
           console.log('numFrida: ', this.frida.numFrida);
-          console.log("Défunt -------- : " , this.frida.defunt.extraitNaissance.latines);
+          console.log("Défunt -------- : " , this.frida.defunt.identite.latines);
           // Calculs
           this.denominateur_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.denominateur);
           this.numerateurConjoint_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.numerateurConjoint);
@@ -103,7 +103,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
       next: data => {
         if (data){
           this.heritiers = data;
-          console.log("Conjoint -------- : ", this.heritiers[0].extraitNaissance.latines);
+          console.log("Conjoint -------- : ", this.heritiers[0].identite.latines);
           console.log("data heritiers : ",this.heritiers);
         } else {
           console.error('Données invalides reçues pour "heritiers" :', data);
