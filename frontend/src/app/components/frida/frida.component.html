@@ -27,8 +27,8 @@
                     <span>فريضة</span>&nbsp;
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span>
                     <ng-template #feminin>المرحومة</ng-template>
-                    &nbsp;:&nbsp;<span
-                        class="vert">{{frida?.defunt.identite.nom}}</span>&nbsp;<bdi>{{frida?.defunt.identite.sexe
+                    &nbsp;:&nbsp;<span class="vert">{{frida?.defunt.identite.nom}}
+                        {{frida?.defunt.identite.prenomnom}}</span>&nbsp;<bdi>{{frida?.defunt.identite.sexe
                         == 'ذكر'? 'بن' : 'بنت'}}</bdi>&nbsp;{{frida?.defunt.identite.pere}}
                 </div>
             </div>
@@ -51,7 +51,7 @@
             <div>
                 <span> {{ i + 1 }})&nbsp;-&nbsp;</span>&nbsp;<span>السيد</span><span
                     *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>&nbsp;
-                <span class="vert">{{temoin.identite.nom}}</span>&nbsp;،
+                <span class="vert">{{temoin.identite.nom}} {{temoin.identite.prenom}}</span>&nbsp;،
                 <span> من جنسية جزائرية.</span>
                 &nbsp;<span>المولود</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
                 &nbsp;<span>بتاريخ</span>&nbsp;<span>{{temoin.identite.dateNaissance}}</span>،
@@ -63,9 +63,9 @@
 
         <!-- Le défunt ------------------- -->
         <section class="defunt">
-            <span>بمعرفتهما معرفة تامة للمرحوم</span><span
-                *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span><span> : </span>
-            &nbsp;<span class="vert">{{frida?.defunt.identite.nom}}</span>
+            <span>بمعرفتهما معرفة تامة للمرحوم</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span><span> :
+            </span>
+            &nbsp;<span class="vert">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenomnom}}</span>
             &nbsp;<span>بن</span><span
                 *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ت</span>&nbsp;{{frida?.defunt.identite.pere}}
             &nbsp;<span>و</span>&nbsp;{{frida?.defunt.identite.mere}}،
@@ -94,7 +94,7 @@
                 <span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>&nbsp;
                 }
                 &nbsp;<span>السيد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                &nbsp;<span class="vert">{{heritier.identite.nom}}</span>،
+                &nbsp;<span class="vert">{{heritier.identite.nom}} {{heritier.identite.prenom}}</span>،
                 &nbsp;<span>المولود</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
                 &nbsp;{{heritier.identite.lieuNaissance}}
                 &nbsp;<span>ولاية</span>&nbsp;{{heritier.identite.wilaya}}
@@ -162,7 +162,7 @@
                 <span> المرحوم</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span><span> : </span>
                 ( @for (heritier of heritiers; track heritier.id) {
                 @if (heritier.numParente>2 && heritier.identite.sexe == 'ذكر') {
-                <span class="vert">{{heritier.identite.nom}}،&nbsp;</span>
+                <span class="vert">{{heritier.identite.nom}} {{heritier.identite.prenom}}،&nbsp;</span>
                 }
                 })
                 {{numerateurGarcons_L}}
@@ -177,7 +177,7 @@
                 <span> المرحوم</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span><span> : </span>
                 ( @for (heritier of heritiers; track heritier.id) {
                 @if (heritier.numParente>2 && heritier.identite.sexe != 'ذكر') {
-                <span class="vert">{{heritier.identite.nom}}،&nbsp;</span>
+                <span class="vert">{{heritier.identite.nom}} {{heritier.identite.prenom}}،&nbsp;</span>
                 }
                 })
                 {{numerateurFilles_L}}
