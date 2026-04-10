@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
@@ -52,12 +52,15 @@ import { v4 as uuidv4 } from 'uuid';
         </div>
       </div>
 
-      <div class="button-group" *ngIf="uploadedFiles.length > 0">
-        <button class="btn btn-secondary" (click)="onCancel()">
-          Annuler
+      <div class="button-group" *ngIf="uploadedFiles.length > 0 || config.allowPrevious">
+        <button class="btn btn-secondary" *ngIf="config.allowPrevious" (click)="onPrevious()">
+          Précédent
         </button>
-        <button class="btn btn-primary" (click)="onUpload()">
-          Enregistrer
+        <button class="btn btn-secondary" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
+          Vider
+        </button>
+        <button class="btn btn-primary" (click)="onUpload()" *ngIf="uploadedFiles.length > 0">
+          Suivant
         </button>
       </div>
     </div>
@@ -144,12 +147,20 @@ import { v4 as uuidv4 } from 'uuid';
     }
   `]
 })
-export class FileUploadComponent {
-  @Input() config!: UploadConfig;
-  @Output() filesUploaded = new EventEmitter<{ files: File[], docType: string }[]>();
+export class FileUploadComponent implements OnInit {
+  @Input() config!: UploadConfig & { allowPrevious?: boolean };
+  @Input() initialFiles: UploadedFile[] = [];
+  @Output() filesConfirmed = new EventEmitter<{rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string}[]}>();
+  @Output() previousClicked = new EventEmitter<void>();
   @Output() uploadCancelled = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
+
+  ngOnInit() {
+    if (this.initialFiles && this.initialFiles.length > 0) {
+      this.uploadedFiles = [...this.initialFiles];
+    }
+  }
 
   getFileSize(bytes: number): string {
     if (bytes === 0) return '0 B';
@@ -228,6 +239,10 @@ export class FileUploadComponent {
     this.uploadCancelled.emit();
   }
 
+  onPrevious() {
+    this.previousClicked.emit();
+  }
+
   onUpload() {
     if (this.uploadedFiles.length > 0) {
       // Group files by docType
@@ -247,7 +262,10 @@ export class FileUploadComponent {
         emitData.push({ files, docType });
       });
 
-      this.filesUploaded.emit(emitData);
+      this.filesConfirmed.emit({
+        rawFiles: [...this.uploadedFiles],
+        groupedFiles: emitData
+      });
     }
   }
 }

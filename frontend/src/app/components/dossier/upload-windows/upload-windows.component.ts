@@ -3,10 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
-import { UploadConfig, DocTypeOption } from '../file-upload/file-upload.interface';
+import { UploadConfig, DocTypeOption, UploadedFile } from '../file-upload/file-upload.interface';
 import { Router } from '@angular/router';
 import { LireaiEcrirebdService } from "../../../services/lireai-ecrirebd.service";
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 
 @Component({
   selector: 'app-upload-windows',
@@ -15,10 +15,11 @@ import { forkJoin, Observable } from 'rxjs';
   template: `
     <div class="windows-container">
       <!-- Fenêtre Défunt -->
-      <div *ngIf="windows['f1'].isVisible" class="window-section">
+      <div *ngIf="windows['f1'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f1'].isUploading"
-            [config]="getUploadConfig('1', 'Défunt')"
-            (filesUploaded)="onFilesUploaded('f1', $event)"
+            [config]="getUploadConfig('1', 'Défunt', false)"
+            [initialFiles]="windows['f1'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f1', $event)"
             (uploadCancelled)="onUploadCancelled('f1')"
         ></app-file-upload>
         <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
@@ -27,10 +28,12 @@ import { forkJoin, Observable } from 'rxjs';
       </div>
 
       <!-- Fenêtre Conjoint -->
-      <div *ngIf="windows['f2'].isVisible" class="window-section">
+      <div *ngIf="windows['f2'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f2'].isUploading"
             [config]="getUploadConfig('2', 'Conjoint')"
-            (filesUploaded)="onFilesUploaded('f2', $event)"
+            [initialFiles]="windows['f2'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f2', $event)"
+            (previousClicked)="moveToPreviousWindow('f2')"
             (uploadCancelled)="onUploadCancelled('f2')"
         ></app-file-upload>
         <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
@@ -46,10 +49,12 @@ import { forkJoin, Observable } from 'rxjs';
       </div>
 
       <!-- Fenêtre Enfants -->
-      <div *ngIf="windows['f3'].isVisible" class="window-section">
+      <div *ngIf="windows['f3'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f3'].isUploading"
             [config]="getUploadConfig('3', 'Enfants')"
-            (filesUploaded)="onFilesUploaded('f3', $event)"
+            [initialFiles]="windows['f3'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f3', $event)"
+            (previousClicked)="moveToPreviousWindow('f3')"
             (uploadCancelled)="onUploadCancelled('f3')"
         ></app-file-upload>
         <div *ngIf="windows['f3'].isUploading" class="drop-zone loading-zone">
@@ -65,10 +70,12 @@ import { forkJoin, Observable } from 'rxjs';
       </div>
 
       <!-- Fenêtre Parents du défunt -->
-      <div *ngIf="windows['f4'].isVisible" class="window-section">
+      <div *ngIf="windows['f4'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f4'].isUploading"
             [config]="getUploadConfig('4', 'Parents du défunt')"
-            (filesUploaded)="onFilesUploaded('f4', $event)"
+            [initialFiles]="windows['f4'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f4', $event)"
+            (previousClicked)="moveToPreviousWindow('f4')"
             (uploadCancelled)="onUploadCancelled('f4')"
         ></app-file-upload>
         <div *ngIf="windows['f4'].isUploading" class="drop-zone loading-zone">
@@ -84,10 +91,12 @@ import { forkJoin, Observable } from 'rxjs';
       </div>
 
       <!-- Fenêtre Frères et sœurs du défunt -->
-      <div *ngIf="windows['f5'].isVisible" class="window-section">
+      <div *ngIf="windows['f5'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f5'].isUploading"
             [config]="getUploadConfig('5', 'Frères et sœurs du défunt')"
-            (filesUploaded)="onFilesUploaded('f5', $event)"
+            [initialFiles]="windows['f5'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f5', $event)"
+            (previousClicked)="moveToPreviousWindow('f5')"
             (uploadCancelled)="onUploadCancelled('f5')"
         ></app-file-upload>
         <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
@@ -103,10 +112,12 @@ import { forkJoin, Observable } from 'rxjs';
       </div>
 
       <!-- Fenêtre témoins -->
-      <div *ngIf="windows['f_temoins'].isVisible" class="window-section">
+      <div *ngIf="windows['f_temoins'].isVisible" class="window-section animated-window">
         <app-file-upload *ngIf="!windows['f_temoins'].isUploading"
             [config]="getUploadConfig('11', 'Témoins')"
-            (filesUploaded)="onFilesUploaded('f_temoins', $event)"
+            [initialFiles]="windows['f_temoins'].rawFiles || []"
+            (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
+            (previousClicked)="moveToPreviousWindow('f_temoins')"
             (uploadCancelled)="onUploadCancelled('f_temoins')"
         ></app-file-upload>
         <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
@@ -123,24 +134,29 @@ import { forkJoin, Observable } from 'rxjs';
     </div>
 
     <!-- Fenêtre Lecture AI ---------------- -->
-    <div *ngIf="windows['f_ai'].isVisible" class="window-section"
-    >
+    <div *ngIf="windows['f_ai'].isVisible" class="window-section animated-window">
       <div class="drop-zone">
         <div class="upload-container">
-          <h2>Lecture des documents</h2>
+          <h2>Validation finale du dossier</h2>
           <div class="drop-zone">
             
             <button *ngIf="!endReading"
-                class="btn btn-primary continue-btn"
-                (click)="onLireAiEcrireBd()" [disabled]="isReading"
+                class="btn btn-secondary continue-btn"
+                (click)="moveToPreviousWindow('f_ai')" [disabled]="isReading || isUploadingFiles"
+                style="margin-right: 10px;"
             >
-<!--               <button *ngIf="!endReading"
-                          class="btn btn-primary continue-btn"
-                   (click)="onAfficheFrida()"
-                   >-->
-              <span *ngIf="!isReading">Lancer la lecture des documents</span>
-              <span *ngIf="isReading"><span class="spinner"></span> Lecture en cours...</span>
+              <span>Précédent</span>
             </button>
+
+            <button *ngIf="!endReading"
+                class="btn btn-primary continue-btn"
+                (click)="onLireAiEcrireBd()" [disabled]="isReading || isUploadingFiles"
+            >
+              <span *ngIf="!isReading && !isUploadingFiles">Transférer les documents et Lancer la lecture</span>
+              <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
+              <span *ngIf="isReading"><span class="spinner"></span> Lecture OCR en cours...</span>
+            </button>
+            
             <button *ngIf="endReading"
                 class="btn btn-primary continue-btn"
                 (click)="onAfficheFrida()" >
@@ -158,7 +174,6 @@ import { forkJoin, Observable } from 'rxjs';
             </button>
           </div>
         </div>
-
       </div>
     </div>
   `,
@@ -209,6 +224,21 @@ import { forkJoin, Observable } from 'rxjs';
       margin-bottom: var(--spacing-lg);
     }
 
+    .animated-window {
+      animation: slideFadeIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+    }
+
+    @keyframes slideFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     .continue-btn {
       margin-top: var(--spacing-md);
     }
@@ -229,11 +259,10 @@ export class UploadWindowsComponent implements OnInit {
     f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
   };
 
+  isUploadingFiles = false;
   isReading = false;
   endReading = false;
   numFrida: String = "1956010320250116";
-  //numFrida: String = "19560103202501171733";
-  //numFrida: String = "";
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
     private lireaiEcrirebdService: LireaiEcrirebdService) { }
@@ -248,51 +277,30 @@ export class UploadWindowsComponent implements OnInit {
     { id: 'pp', label: 'Passeport' }
   ];
 
-  getUploadConfig(path: string, title: string): UploadConfig {
+  getUploadConfig(path: string, title: string, allowPrevious: boolean = true): UploadConfig & { allowPrevious?: boolean } {
     return {
       maxFileSize: 5 * 1024 * 1024,
       allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
       uploadPath: path,
       title: title,
-      docTypes: this.docTypeOptions
+      docTypes: this.docTypeOptions,
+      allowPrevious: allowPrevious
     };
   }
 
-  onFilesUploaded(window: string, events: { files: File[], docType: string }[]) {
+  onFilesConfirmed(window: string, events: {rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string}[]}) {
     const currentWindow = this.windows[window];
-    if (currentWindow && events.length > 0) {
-      currentWindow.hasFiles = true;
-      currentWindow.isUploading = true; // Début de l'envoi, affichage du spinner
-
-      const uploadObservables = events.map(event => {
-        const uploadPath = currentWindow.path + '_' + event.docType;
-        return this.fileUploadService.uploadFiles(event.files, uploadPath);
-      });
-
-      let completedUploads = 0;
-      let hasError = false;
-
-      uploadObservables.forEach(obs => {
-        obs.subscribe({
-          next: () => {
-             // Nous pourrions afficher la progression ici (ex: progress-bar) si nécessaire
-          },
-          error: (err) => {
-            console.error('Erreur lors du téléversement d\'un groupe:', err);
-            hasError = true;
-            // En cas d'erreur, on laisse à l'utilisateur l'occasion de réessayer
-            currentWindow.isUploading = false;
-          },
-          complete: () => {
-            // "complete" garantit que la requête HTTP (200 OK) est terminée
-            completedUploads++;
-            if (completedUploads === uploadObservables.length && !hasError) {
-              currentWindow.isUploading = false; // Fin de l'envoi
-              this.moveToNextWindow(window); // Transition sûre
-            }
-          }
-        });
-      });
+    if (currentWindow) {
+      if (events.rawFiles.length > 0) {
+        currentWindow.hasFiles = true;
+        currentWindow.rawFiles = events.rawFiles;
+        currentWindow.groupedFiles = events.groupedFiles;
+      } else {
+        currentWindow.hasFiles = false;
+        currentWindow.rawFiles = [];
+        currentWindow.groupedFiles = [];
+      }
+      this.moveToNextWindow(window);
     }
   }
 
@@ -300,6 +308,8 @@ export class UploadWindowsComponent implements OnInit {
     const currentWindow = this.windows[window];
     if (currentWindow) {
       currentWindow.hasFiles = false;
+      currentWindow.rawFiles = [];
+      currentWindow.groupedFiles = [];
     }
   }
 
@@ -307,17 +317,66 @@ export class UploadWindowsComponent implements OnInit {
     this.moveToNextWindow(window);
   }
 
-  private moveToNextWindow(currentWindow: string) {
-    const windows = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
-    const currentIndex = windows.indexOf(currentWindow);
+  // Permet de reculer d'une fenêtre
+  moveToPreviousWindow(currentWindow: string) {
+    const windowKeys = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
+    const currentIndex = windowKeys.indexOf(currentWindow);
 
-    if (currentIndex < windows.length - 1) {
+    if (currentIndex > 0) {
       this.windows[currentWindow].isVisible = false;
-      this.windows[windows[currentIndex + 1]].isVisible = true;
+      this.windows[windowKeys[currentIndex - 1]].isVisible = true;
+    }
+  }
+
+  private moveToNextWindow(currentWindow: string) {
+    const windowKeys = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
+    const currentIndex = windowKeys.indexOf(currentWindow);
+
+    if (currentIndex < windowKeys.length - 1) {
+      this.windows[currentWindow].isVisible = false;
+      this.windows[windowKeys[currentIndex + 1]].isVisible = true;
     }
   }
 
   onLireAiEcrireBd(): void {
+    // Étape 1 : Upload de TOUS les fichiers accumulés (Asynchrone Backend)
+    this.isUploadingFiles = true;
+
+    const allUploadObservables: Observable<any>[] = [];
+
+    // On parcourt toutes les fenêtres pour récupérer les événements "groupedFiles"
+    Object.keys(this.windows).forEach(key => {
+      const win = this.windows[key];
+      if (win.groupedFiles && win.groupedFiles.length > 0) {
+        win.groupedFiles.forEach(group => {
+           const uploadPath = win.path + '_' + group.docType;
+           allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
+        });
+      }
+    });
+
+    if (allUploadObservables.length > 0) {
+       forkJoin(allUploadObservables).subscribe({
+         next: () => {
+           // Tous les uploads sont terminés avec succès
+           this.isUploadingFiles = false;
+           this.launchOcrProcess();
+         },
+         error: (err) => {
+           console.error('Erreur lors du transfert des dossiers au serveur :', err);
+           this.isUploadingFiles = false;
+           alert("Une erreur de réseau empêche le transfert des fichiers.");
+         }
+       });
+    } else {
+       // Aucun fichier à uploader (impossible en théorie vu que f1 est requis)
+       this.isUploadingFiles = false;
+       this.launchOcrProcess();
+    }
+  }
+
+  private launchOcrProcess() {
+    // Étape 2 : Lancement officiel de la lecture OCR + Traitement Frida
     this.isReading = true;
     this.lireaiEcrirebdService.lireAiEcrireBd().subscribe({
       next: (data) => {
@@ -330,24 +389,20 @@ export class UploadWindowsComponent implements OnInit {
       error: (error) => {
         console.error('Erreur lors de l’écriture UploadWindowsComponent:', error);
         this.isReading = false;
+        alert("L'analyse a échouée.");
       },
     });
   }
 
   onAfficheFrida() {
     console.log('Processus onAfficheFrida !');
-    //Avec passage de paramètre 'numFrida
     this.router.navigate(['/frida'], { queryParams: { numFrida: this.numFrida } });
-    // Construire l'URL à partir du router
-    /*const url = this.router.serializeUrl(
-        this.router.createUrlTree(['/frida'], { queryParams: { numFrida: this.numFrida } }) // Chemin de destination
-    );
-    // Ouvrir dans un nouvel onglet
-    window.open(url, '_blank');*/
   }
+
   pageCreation() {
     this.router.navigate(['/create']);
   }
+
   accueil() {
     this.router.navigate(['']);
   }
