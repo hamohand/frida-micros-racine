@@ -18,7 +18,7 @@ import { RouterLink, RouterOutlet } from "@angular/router";
 <!--        <a routerLink="/about" class="nav-link">À propos</a>-->
       </div>
     </nav>
-    <main>
+    <main style="padding-top: var(--nav-height);">
       <router-outlet></router-outlet>
     </main>
   `,

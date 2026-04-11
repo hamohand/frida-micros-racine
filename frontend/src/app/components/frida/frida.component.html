@@ -28,7 +28,7 @@
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span>
                     <ng-template #feminin>المرحومة</ng-template>
                     &nbsp;:&nbsp;<span class="vert">{{frida?.defunt.identite.nom}}
-                        {{frida?.defunt.identite.prenomnom}}</span>&nbsp;<bdi>{{frida?.defunt.identite.sexe
+                        {{frida?.defunt.identite.prenom}}</span>&nbsp;<bdi>{{frida?.defunt.identite.sexe
                         == 'ذكر'? 'بن' : 'بنت'}}</bdi>&nbsp;{{frida?.defunt.identite.pere}}
                 </div>
             </div>
@@ -65,7 +65,7 @@
         <section class="defunt">
             <span>بمعرفتهما معرفة تامة للمرحوم</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span><span> :
             </span>
-            &nbsp;<span class="vert">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenomnom}}</span>
+            &nbsp;<span class="vert">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
             &nbsp;<span>بن</span><span
                 *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ت</span>&nbsp;{{frida?.defunt.identite.pere}}
             &nbsp;<span>و</span>&nbsp;{{frida?.defunt.identite.mere}}،
@@ -123,11 +123,11 @@
             @if ((frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) && (heritiers?.[1])) {
             <!--s'il y a des enfants-->
             <span>و بطلب من السيد</span><span *ngIf="heritiers[1]?.identite.sexe != 'ذكر'">ة</span>
-            &nbsp;<span class="vert">{{heritiers[1]?.identite.nom}}</span>
+            &nbsp;<span class="vert">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
             } @else { <!--si uniquement conjoint-->
             @if (heritiers?.[0]) {
             &nbsp;<span>و بطلب من السيد</span><span *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</span>
-            &nbsp;<span class="vert">{{heritiers[0]?.identite.nom}}</span>
+            &nbsp;<span class="vert">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
             }}
             <span> احدى الورثة المذكورين اعلاه استعملت الفريضة فصحت بعد العمل و الحساب والاختزال </span>&nbsp;
             {{denominateur_L}}
@@ -148,7 +148,7 @@
                 <ng-template #femininConjoint>ارملها</ng-template>
                 @if (heritiers?.[0]) {
                 &nbsp;<span>السيد</span><span *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</span>
-                :&nbsp;<span class="vert">{{heritiers[0]?.identite.nom}}</span>
+                :&nbsp;<span class="vert">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
                 }
                 {{numerateurConjoint_L}}
                 <span>&nbsp;جزء او

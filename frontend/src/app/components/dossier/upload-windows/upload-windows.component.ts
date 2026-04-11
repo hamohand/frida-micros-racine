@@ -13,171 +13,184 @@ import { forkJoin, Observable, of } from 'rxjs';
   standalone: true,
   imports: [CommonModule, FileUploadComponent],
   template: `
-    <div class="windows-container">
-      <!-- Fenêtre Défunt -->
-      <div *ngIf="windows['f1'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f1'].isUploading"
-            [config]="getUploadConfig('1', 'Défunt', false)"
-            [initialFiles]="windows['f1'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f1', $event)"
-            (uploadCancelled)="onUploadCancelled('f1')"
-        ></app-file-upload>
-        <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-      </div>
-
-      <!-- Fenêtre Conjoint -->
-      <div *ngIf="windows['f2'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f2'].isUploading"
-            [config]="getUploadConfig('2', 'Conjoint')"
-            [initialFiles]="windows['f2'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f2', $event)"
-            (previousClicked)="moveToPreviousWindow('f2')"
-            (uploadCancelled)="onUploadCancelled('f2')"
-        ></app-file-upload>
-        <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-        <button
-            *ngIf="!windows['f2'].hasFiles && !windows['f2'].isUploading"
-            class="btn btn-secondary continue-btn"
-            (click)="continueToNext('f2')"
-        >
-          Continuer s'il n'y a pas de conjoint
-        </button>
-      </div>
-
-      <!-- Fenêtre Enfants -->
-      <div *ngIf="windows['f3'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f3'].isUploading"
-            [config]="getUploadConfig('3', 'Enfants')"
-            [initialFiles]="windows['f3'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f3', $event)"
-            (previousClicked)="moveToPreviousWindow('f3')"
-            (uploadCancelled)="onUploadCancelled('f3')"
-        ></app-file-upload>
-        <div *ngIf="windows['f3'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-        <button
-            *ngIf="!windows['f3'].hasFiles && !windows['f3'].isUploading"
-            class="btn btn-secondary continue-btn"
-            (click)="continueToNext('f3')"
-        >
-          Continuer s'il n'y a pas d'enfants
-        </button>
-      </div>
-
-      <!-- Fenêtre Parents du défunt -->
-      <div *ngIf="windows['f4'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f4'].isUploading"
-            [config]="getUploadConfig('4', 'Parents du défunt')"
-            [initialFiles]="windows['f4'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f4', $event)"
-            (previousClicked)="moveToPreviousWindow('f4')"
-            (uploadCancelled)="onUploadCancelled('f4')"
-        ></app-file-upload>
-        <div *ngIf="windows['f4'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-        <button
-            *ngIf="!windows['f4'].hasFiles && !windows['f4'].isUploading"
-            class="btn btn-secondary continue-btn"
-            (click)="continueToNext('f4')"
-        >
-          Continuer s'il n'y a pas de parents
-        </button>
-      </div>
-
-      <!-- Fenêtre Frères et sœurs du défunt -->
-      <div *ngIf="windows['f5'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f5'].isUploading"
-            [config]="getUploadConfig('5', 'Frères et sœurs du défunt')"
-            [initialFiles]="windows['f5'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f5', $event)"
-            (previousClicked)="moveToPreviousWindow('f5')"
-            (uploadCancelled)="onUploadCancelled('f5')"
-        ></app-file-upload>
-        <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-        <button
-            *ngIf="!windows['f5'].hasFiles && !windows['f5'].isUploading"
-            class="btn btn-secondary continue-btn"
-            (click)="continueToNext('f5')"
-        >
-          Continuer s'il n'y a pas de frères et sœurs
-        </button>
-      </div>
-
-      <!-- Fenêtre témoins -->
-      <div *ngIf="windows['f_temoins'].isVisible" class="window-section animated-window">
-        <app-file-upload *ngIf="!windows['f_temoins'].isUploading"
-            [config]="getUploadConfig('11', 'Témoins')"
-            [initialFiles]="windows['f_temoins'].rawFiles || []"
-            (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
-            (previousClicked)="moveToPreviousWindow('f_temoins')"
-            (uploadCancelled)="onUploadCancelled('f_temoins')"
-        ></app-file-upload>
-        <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
-          <span class="spinner"></span> Sauvegarde en cours...
-        </div>
-        <button
-            *ngIf="!windows['f_temoins'].hasFiles && !windows['f_temoins'].isUploading"
-            class="btn btn-secondary continue-btn"
-            (click)="continueToNext('f_temoins')"
-        >
-          Continuer s'il n'y a pas de temoin
-        </button>
-      </div>
-    </div>
-
-    <!-- Fenêtre Lecture AI ---------------- -->
-    <div *ngIf="windows['f_ai'].isVisible" class="window-section animated-window">
-      <div class="drop-zone">
-        <div class="upload-container">
-          <h2>Validation finale du dossier</h2>
-          <div class="drop-zone">
-            
-            <button *ngIf="!endReading"
-                class="btn btn-secondary continue-btn"
-                (click)="moveToPreviousWindow('f_ai')" [disabled]="isReading || isUploadingFiles"
-                style="margin-right: 10px;"
-            >
-              <span>Précédent</span>
-            </button>
-
-            <button *ngIf="!endReading"
-                class="btn btn-primary continue-btn"
-                (click)="onLireAiEcrireBd()" [disabled]="isReading || isUploadingFiles"
-            >
-              <span *ngIf="!isReading && !isUploadingFiles">Transférer les documents et Lancer la lecture</span>
-              <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
-              <span *ngIf="isReading"><span class="spinner"></span> Lecture OCR en cours...</span>
-            </button>
-            
-            <button *ngIf="endReading"
-                class="btn btn-primary continue-btn"
-                (click)="onAfficheFrida()" >
-                <span>Afficher la frida</span>
-            </button>
-            <button *ngIf="endReading"
-                    class="btn btn-primary continue-btn"
-                    (click)="pageCreation()" >
-              <span>Nouvelle frida</span>
-            </button>
-            <button *ngIf="endReading"
-                    class="btn btn-primary continue-btn"
-                    (click)="accueil()" >
-              <span>Accueil</span>
-            </button>
+    <div class="windows-container carousel-viewport">
+      <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
+        
+        <!-- Fenêtre Défunt -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f1'].isUploading"
+              [config]="getUploadConfig('1', 'Défunt', false)"
+              [initialFiles]="windows['f1'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f1', $event)"
+              (uploadCancelled)="onUploadCancelled('f1')"
+          ></app-file-upload>
+          <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
           </div>
         </div>
-      </div>
-    </div>
+
+        <!-- Fenêtre Conjoint -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f2'].isUploading"
+              [config]="getUploadConfig('2', 'Conjoint')"
+              [initialFiles]="windows['f2'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f2', $event)"
+              (previousClicked)="moveToPreviousWindow('f2')"
+              (uploadCancelled)="onUploadCancelled('f2')"
+          ></app-file-upload>
+          <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f2'].hasFiles && !windows['f2'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f2')"
+          >
+            Continuer s'il n'y a pas de conjoint
+          </button>
+        </div>
+
+        <!-- Fenêtre Enfants -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f3'].isUploading"
+              [config]="getUploadConfig('3', 'Enfants')"
+              [initialFiles]="windows['f3'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f3', $event)"
+              (previousClicked)="moveToPreviousWindow('f3')"
+              (uploadCancelled)="onUploadCancelled('f3')"
+          ></app-file-upload>
+          <div *ngIf="windows['f3'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f3'].hasFiles && !windows['f3'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f3')"
+          >
+            Continuer s'il n'y a pas d'enfants
+          </button>
+        </div>
+
+        <!-- Fenêtre Parents du défunt -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f4'].isUploading"
+              [config]="getUploadConfig('4', 'Parents du défunt')"
+              [initialFiles]="windows['f4'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f4', $event)"
+              (previousClicked)="moveToPreviousWindow('f4')"
+              (uploadCancelled)="onUploadCancelled('f4')"
+          ></app-file-upload>
+          <div *ngIf="windows['f4'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f4'].hasFiles && !windows['f4'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f4')"
+          >
+            Continuer s'il n'y a pas de parents
+          </button>
+        </div>
+
+        <!-- Fenêtre Frères et sœurs du défunt -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f5'].isUploading"
+              [config]="getUploadConfig('5', 'Frères et sœurs du défunt')"
+              [initialFiles]="windows['f5'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f5', $event)"
+              (previousClicked)="moveToPreviousWindow('f5')"
+              (uploadCancelled)="onUploadCancelled('f5')"
+          ></app-file-upload>
+          <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f5'].hasFiles && !windows['f5'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f5')"
+          >
+            Continuer s'il n'y a pas de frères et sœurs
+          </button>
+        </div>
+
+        <!-- Fenêtre témoins -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f_temoins'].isUploading"
+              [config]="getUploadConfig('11', 'Témoins')"
+              [initialFiles]="windows['f_temoins'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
+              (previousClicked)="moveToPreviousWindow('f_temoins')"
+              (uploadCancelled)="onUploadCancelled('f_temoins')"
+          ></app-file-upload>
+          <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f_temoins'].hasFiles && !windows['f_temoins'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f_temoins')"
+          >
+            Continuer s'il n'y a pas de temoin
+          </button>
+        </div>
+
+        <!-- Fenêtre Lecture AI ---------------- -->
+        <div class="window-section">
+          <div class="drop-zone">
+            <div class="upload-container">
+              <h2>Validation finale du dossier</h2>
+              <div class="drop-zone">
+                <button *ngIf="!endReading"
+                    class="btn btn-secondary continue-btn"
+                    (click)="moveToPreviousWindow('f_ai')" [disabled]="isReading || isUploadingFiles"
+                    style="margin-right: 10px;"
+                >
+                  <span>Précédent</span>
+                </button>
+
+                <button *ngIf="!endReading"
+                    class="btn btn-primary continue-btn"
+                    (click)="onLireAiEcrireBd()" [disabled]="isReading || isUploadingFiles"
+                >
+                  <span *ngIf="!isReading && !isUploadingFiles">Transférer les documents et Lancer la lecture</span>
+                  <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
+                  <span *ngIf="isReading"><span class="spinner"></span> Lecture OCR en cours...</span>
+                </button>
+                
+                <button *ngIf="endReading"
+                    class="btn btn-primary continue-btn"
+                    (click)="onAfficheFrida()" >
+                    <span>Afficher la frida</span>
+                </button>
+                <button *ngIf="endReading"
+                        class="btn btn-primary continue-btn"
+                        (click)="pageCreation()" >
+                  <span>Nouvelle frida</span>
+                </button>
+                <button *ngIf="endReading"
+                        class="btn btn-primary continue-btn"
+                        (click)="accueil()" >
+                  <span>Accueil</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- End Carousel Track -->
+    </div> <!-- End Windows Container -->
   `,
   styles: [`
+    h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: var(--accent-color);
+      margin-bottom: var(--spacing-sm);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
+
     /* Ajout du style pour le spinner */
     .spinner {
       width: 16px;
@@ -216,27 +229,30 @@ import { forkJoin, Observable, of } from 'rxjs';
       border: 2px solid transparent;
     }
     
-    .windows-container {
-      padding: var(--spacing-lg);
+    .carousel-viewport {
+      overflow-x: hidden; /* Hide horizontal overflow for sliding */
+      overflow-y: auto;   /* Allow vertical scrolling if the content is too tall */
+      width: 100%;
+      height: 100%;
+      max-height: 85vh;   /* Prevent the component from exceeding the screen height and being clipped by central flexbox */
+      padding-top: 20px;
+      padding-bottom: 20px;
+    }
+    
+    .carousel-track {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+      width: 100%;
+      align-items: flex-start; /* Prevent children from stretching to match tallest item */
     }
 
     .window-section {
-      margin-bottom: var(--spacing-lg);
-    }
-
-    .animated-window {
-      animation: slideFadeIn 0.35s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
-    }
-
-    @keyframes slideFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
+      min-width: 100%;
+      flex: 0 0 100%;
+      padding: 0 var(--spacing-sm);
+      box-sizing: border-box;
     }
 
     .continue-btn {
@@ -263,6 +279,12 @@ export class UploadWindowsComponent implements OnInit {
   isReading = false;
   endReading = false;
   numFrida: String = "1956010320250116";
+
+  getCurrentIndex(): number {
+    const windowKeys = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
+    const activeKey = windowKeys.find(key => this.windows[key].isVisible);
+    return windowKeys.indexOf(activeKey || 'f1');
+  }
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
     private lireaiEcrirebdService: LireaiEcrirebdService) { }

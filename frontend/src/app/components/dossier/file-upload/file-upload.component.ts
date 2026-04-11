@@ -77,6 +77,16 @@ import { v4 as uuidv4 } from 'uuid';
     .upload-container {
       padding: var(--spacing-xs);
     }
+    
+    .upload-container h2 {
+      text-align: center;
+      font-size: 1.8rem;
+      color: var(--accent-color);
+      margin-bottom: var(--spacing-sm);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: bold;
+    }
 
     .doc-type-selector {
       display: flex;
