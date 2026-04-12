@@ -1,20 +1,127 @@
-main {
-    direction: rtl;
-    font-size: 12pt;
-    margin: 0;
-    padding: 20px;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
-.vert {
-    color: springgreen;
+.frida-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 40px 20px;
+  background-color: var(--background-gradient-start, #0a1f0f);
+  min-height: 100vh;
 }
 
-@media print {
-    button {
-        display: none; /* Masque les boutons d'impression */
-    }
+.a4-paper {
+  background: white;
+  width: 21cm;
+  min-height: 29.7cm;
+  padding: 2.5cm;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  border-radius: 4px;
+  color: black;
+  direction: rtl;
+  font-family: 'Amiri', serif;
+  font-size: 16pt;
+  line-height: 1.8;
+  position: relative;
+}
 
-    mat-card {
-        page-break-inside: avoid; /* Assure une bonne mise en page */
-    }
+/* En-tête officiel */
+.header-officiel {
+  text-align: center;
+  font-weight: bold;
+  font-size: 18pt;
+  margin-bottom: 2cm;
+}
+
+.header-titre-principal {
+  font-size: 24pt;
+  text-decoration: underline;
+  margin-bottom: 10px;
+}
+
+/* Classes utilitaires */
+.vert {
+  font-weight: bold;
+  color: black; /* Optionnel: on le garde noir pour le style officiel / impression */
+}
+
+.souligne {
+  text-decoration: underline;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+/* Sections */
+.section {
+  margin-bottom: 1.5cm;
+  text-align: justify;
+}
+
+.section-titre {
+  font-weight: bold;
+  font-size: 18pt;
+  margin-bottom: 0.5cm;
+  border-bottom: 1px solid #ccc;
+  display: inline-block;
+}
+
+.liste-temoins, .liste-heritiers, .liste-parts {
+  margin-right: 1cm; /* Indentation à droite en RTL */
+}
+
+.fraction-box {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  vertical-align: middle;
+  font-weight: bold;
+  margin: 0 5px;
+}
+.fraction-box .num {
+  border-bottom: 1px solid black;
+  padding: 0 5px;
+  line-height: 1.2;
+}
+.fraction-box .den {
+  padding: 0 5px;
+  line-height: 1.2;
+}
+
+
+/* Signature area */
+.signature-area {
+  margin-top: 2cm;
+  display: flex;
+  justify-content: flex-end; /* En RTL, flex-end va à gauche */
+  font-weight: bold;
+  font-size: 18pt;
+}
+
+.signature-box {
+  text-align: center;
+  width: 6cm;
+}
+
+/* Média Print */
+@media print {
+  .frida-wrapper {
+    padding: 0;
+    background: transparent;
+  }
+  
+  .a4-paper {
+    box-shadow: none;
+    border-radius: 0;
+    width: 100%;
+    min-height: auto;
+    padding: 0; /* Les marges de l'imprimante feront le travail */
+  }
+
+  body {
+    background: white;
+  }
+  
+  header {
+    display: none !important;
+  }
 }

@@ -73,14 +73,20 @@ export class FridaComponent implements OnInit, AfterViewInit {
           console.log('numFrida: ', this.frida.numFrida);
           console.log("Défunt -------- : " , this.frida.defunt.identite.latines);
           // Calculs
-          this.denominateur_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.denominateur);
-          this.numerateurConjoint_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.numerateurConjoint);
-          this.numerateurGarcons_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.numerateurGarcons);
-          this.numerateurFilles_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.numerateurFilles);
+          // Calculs sécurisés (le backend peut renvoyer du null pour les parts inexistantes)
+          const numConjoint = this.frida.calcul.numerateurConjoint || 0;
+          const numGarcons = this.frida.calcul.numerateurGarcons || 0;
+          const numFilles = this.frida.calcul.numerateurFilles || 0;
+
+          this.denominateur_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.denominateur || 1);
+          this.numerateurConjoint_L = this.traductionArabeService.nombreVersArabe(numConjoint);
+          this.numerateurGarcons_L = this.traductionArabeService.nombreVersArabe(numGarcons);
+          this.numerateurFilles_L = this.traductionArabeService.nombreVersArabe(numFilles);
+          
           //Vérification
-          this.numerateurVerif = this.frida.calcul.numerateurConjoint * this.frida.calcul.nbConjoints
-              + this.frida.calcul.numerateurGarcons * this.frida.calcul.nbGarcons
-              + this.frida.calcul.numerateurFilles * this.frida.calcul.nbFilles;
+          this.numerateurVerif = numConjoint * (this.frida.calcul.nbConjoints || 0)
+              + numGarcons * (this.frida.calcul.nbGarcons || 0)
+              + numFilles * (this.frida.calcul.nbFilles || 0);
           this.numerateurVerif_L = this.traductionArabeService.nombreVersArabe(this.numerateurVerif);
           console.log("Notaire : "+this.frida.notaire);
         } else {
@@ -169,20 +175,46 @@ export class FridaComponent implements OnInit, AfterViewInit {
         printWindow.document.write(`
           <html>
             <head>
-              <title>Impression du contenu</title>
+              <title>Impression du document Frida</title>
               <style>
+                @import url('https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+                
                 body {
-                  font-family: Arial, sans-serif;
+                  font-family: 'Amiri', serif;
                   color: black;
-                  font-size: 12pt;
+                  font-size: 16pt;
                   direction: rtl;
-                  padding: 60px;
+                  padding: 40px;
+                  line-height: 1.8;
                 }
-                mat-card {
-                  border: 1px solid #ccc;
-                  padding: 10px;
-                  margin: 0;
+                
+                .header-officiel { text-align: center; font-weight: bold; font-size: 18pt; margin-bottom: 1.5cm; }
+                .header-titre-principal { font-size: 24pt; text-decoration: underline; margin-bottom: 10px; }
+                .vert { font-weight: bold; color: black; }
+                .bold { font-weight: bold; }
+                
+                .section { margin-bottom: 1.5cm; text-align: justify; }
+                .liste-temoins, .liste-heritiers, .liste-parts { margin-right: 1cm; }
+                
+                .fraction-box {
+                  display: inline-flex;
+                  flex-direction: column;
+                  align-items: center;
+                  vertical-align: middle;
+                  font-weight: bold;
+                  margin: 0 5px;
                 }
+                .fraction-box .num { border-bottom: 1px solid black; padding: 0 5px; line-height: 1.2; }
+                .fraction-box .den { padding: 0 5px; line-height: 1.2; }
+                
+                .signature-area {
+                  margin-top: 2cm;
+                  display: flex;
+                  justify-content: flex-end;
+                  font-weight: bold;
+                  font-size: 18pt;
+                }
+                .signature-box { text-align: center; width: 6cm; }
               </style>
             </head>
             <body onload="window.print(); window.close();">
