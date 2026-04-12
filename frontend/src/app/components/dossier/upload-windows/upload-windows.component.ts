@@ -140,23 +140,39 @@ import { forkJoin, Observable, of } from 'rxjs';
             <div class="upload-container">
               <h2>Validation finale du dossier</h2>
               <div class="drop-zone">
-                <button *ngIf="!endReading"
+                <button *ngIf="!endReading && !isReading"
                     class="btn btn-secondary continue-btn"
-                    (click)="moveToPreviousWindow('f_ai')" [disabled]="isReading || isUploadingFiles"
+                    (click)="moveToPreviousWindow('f_ai')" [disabled]="isUploadingFiles"
                     style="margin-right: 10px;"
                 >
                   <span>Précédent</span>
                 </button>
 
-                <button *ngIf="!endReading"
+                <!-- Bouton de lancement -->
+                <button *ngIf="!endReading && !isReading"
                     class="btn btn-primary continue-btn"
-                    (click)="onLireAiEcrireBd()" [disabled]="isReading || isUploadingFiles"
+                    (click)="onLireAiEcrireBd()" [disabled]="isUploadingFiles"
                 >
-                  <span *ngIf="!isReading && !isUploadingFiles">Transférer les documents et Lancer la lecture</span>
+                  <span *ngIf="!isUploadingFiles">Transférer les documents et Lancer la lecture</span>
                   <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
-                  <span *ngIf="isReading"><span class="spinner"></span> Lecture OCR en cours...</span>
                 </button>
+
+                <!-- Vue en mode asynchrone (Pendant l'OCR) -->
+                <div *ngIf="isReading && !endReading" style="margin-top: 15px; text-align: center; width: 100%;">
+                   <p style="color: springgreen; font-weight: bold; margin-bottom: 5px;"><span class="spinner" style="margin-right: 8px;"></span> L'Intelligence Artificielle analyse vos documents en arrière-plan...</p>
+                   <p style="color: #a0aec0; font-size: 0.9em; margin-bottom: 20px;">Vous n'êtes pas obligé de patienter ici ! Le document apparaîtra automatiquement dans vos archives une fois terminé.</p>
+                   
+                   <div style="display: flex; gap: 10px; justify-content: center;">
+                       <button class="btn btn-secondary continue-btn" (click)="pageCreation()">
+                         Créer un nouveau dossier (Client Suivant)
+                       </button>
+                       <button class="btn btn-secondary continue-btn" (click)="accueil()">
+                         Retour à l'Accueil
+                       </button>
+                   </div>
+                </div>
                 
+                <!-- Vue terminée -->
                 <button *ngIf="endReading"
                     class="btn btn-primary continue-btn"
                     (click)="onAfficheFrida()" >
