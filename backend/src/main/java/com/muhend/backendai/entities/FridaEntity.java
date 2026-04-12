@@ -25,6 +25,10 @@ public class FridaEntity {
     private LocalDate dateCreation;
     private String notaire;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean requiresCorrection = false;
+
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "calcul_id", referencedColumnName = "id")
     private CalculEntity calcul;

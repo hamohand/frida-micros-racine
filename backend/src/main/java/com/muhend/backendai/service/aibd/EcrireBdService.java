@@ -174,6 +174,11 @@ public class EcrireBdService {
         identite.setNumFrida(ctx.getNumFrida());
         identitesRepo.save(identite);
 
+        // Si l'identité nécessite une correction, marquer toute la Frida comme nécessitant correction
+        if (identite.getRequiresCorrection() != null && identite.getRequiresCorrection()) {
+            ctx.getFicheFrida().setRequiresCorrection(true);
+        }
+
         switch (heirCategory) {
             case DEFUNT -> {
                 DefuntEntity defunt = creerDefunt(ctx, identite);

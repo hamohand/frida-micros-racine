@@ -30,13 +30,19 @@ import { Router } from '@angular/router';
             </thead>
             <tbody>
               <tr *ngFor="let frida of filteredList">
-                <td class="font-mono"><strong>{{ frida?.numFrida }}</strong></td>
-                <td>{{ frida?.nom }}</td>
+                <td class="font-mono">
+                  <strong>{{ frida?.numFrida }}</strong>
+                  <span *ngIf="frida?.requiresCorrection" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
+                </td>
+                <td>{{ frida?.nom }} {{ frida?.prenom }}</td>
                 <td><span class="badge">{{ frida?.dateCreation }}</span></td>
                 <td>
-                  <button class="btn-action" (click)="voirFrida(frida.numFrida)" title="Consulter l'acte">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-                    Ouvrir
+                  <button class="btn-action" 
+                          (click)="voirFrida(frida.numFrida, frida.requiresCorrection)" 
+                          [title]="frida.requiresCorrection ? 'Corriger les données' : 'Consulter l\\'acte'">
+                    <svg *ngIf="!frida.requiresCorrection" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                    <svg *ngIf="frida.requiresCorrection" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                    <span>{{ frida.requiresCorrection ? 'Corriger' : 'Ouvrir' }}</span>
                   </button>
                 </td>
               </tr>
@@ -176,6 +182,16 @@ import { Router } from '@angular/router';
       font-weight: 500;
     }
 
+    .badge-warning {
+      background: rgba(237, 137, 54, 0.15);
+      color: #ed8936;
+      border: 1px solid rgba(237, 137, 54, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
     .btn-action {
       display: flex;
       align-items: center;
@@ -204,8 +220,8 @@ import { Router } from '@angular/router';
   `]
 })
 export class FridaListComponent implements OnInit {
-  fridaList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string }[] = [];
-  filteredList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string }[] = [];
+  fridaList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string; prenom?: string; requiresCorrection?: boolean }[] = [];
+  filteredList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string; prenom?: string; requiresCorrection?: boolean }[] = [];
   url: string = 'http://localhost:8080/api/frida/';
 
   constructor(private fridaService: FridaService, private router: Router) { }
@@ -216,7 +232,7 @@ export class FridaListComponent implements OnInit {
         if (data && Array.isArray(data)) {
           this.fridaList = data.filter(f => f != null);
           // Trier par date du plus récent au plus ancien (si besoin)
-          this.fridaList.sort((a,b) => b.numFrida.localeCompare(a.numFrida));
+          this.fridaList.sort((a, b) => b.numFrida.localeCompare(a.numFrida));
           this.filteredList = [...this.fridaList];
         }
       }
@@ -225,11 +241,11 @@ export class FridaListComponent implements OnInit {
 
   onSearch(event: any) {
     const term = event.target.value.toLowerCase();
-    
+
     if (!term) {
       this.filteredList = [...this.fridaList];
     } else {
-      this.filteredList = this.fridaList.filter(frida => 
+      this.filteredList = this.fridaList.filter(frida =>
         (frida.nom && frida.nom.toLowerCase().includes(term)) ||
         (frida.numFrida && frida.numFrida.toLowerCase().includes(term)) ||
         (frida.dateCreation && frida.dateCreation.includes(term))
@@ -237,7 +253,11 @@ export class FridaListComponent implements OnInit {
     }
   }
 
-  voirFrida(num: string) {
-    this.router.navigate(['/frida'], { queryParams: { numFrida: num } });
+  voirFrida(num: string, requiresCorrection?: boolean) {
+    if (requiresCorrection) {
+       this.router.navigate(['/edit', num]);
+    } else {
+       this.router.navigate(['/frida'], { queryParams: { numFrida: num } });
+    }
   }
 }

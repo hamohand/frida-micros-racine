@@ -12,5 +12,5 @@ public class FridaDetailsDTO {
     private LocalDate dateCreation; // frida
     private LocalDate dateNaissance; // extrait de naissance du défunt
     private String nom; // extrait de naissance du défunt
-
+    private Boolean requiresCorrection;
 }

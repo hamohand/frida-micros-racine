@@ -11,7 +11,7 @@ import java.util.List;
 public interface DefuntRepo extends JpaRepository<DefuntEntity, Long> {
     // recherche avec 'nomPrenm'
     @Query("SELECT new com.muhend.backendai.dto.FridaDetailsDTO(" +
-            "f.numFrida, f.dateCreation, d.dateNaissance, e.nom) " +
+            "f.numFrida, f.dateCreation, d.dateNaissance, e.nom, f.requiresCorrection) " +
             "FROM FridaEntity f " +
             "JOIN f.defunt d " +
             "JOIN d.identite e " +

@@ -45,6 +45,19 @@ public class FridaController {
         return fridaEntity.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    /**
+     * Endpoint pour corriger une Frida, et relancer le calcul des parts.
+     */
+    @PutMapping("/corrections/{numFrida}")
+    public ResponseEntity<FridaEntity> corrigerFrida(@PathVariable String numFrida, @RequestBody FridaEntity corrections) {
+        try {
+            FridaEntity updatedFrida = fridaService.corrigerEtRecalculerFrida(numFrida, corrections);
+            return ResponseEntity.ok(updatedFrida);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     // Affichage de certains champs (voir FridaDetailsDTO) de toutes les fridas
     @GetMapping("/fridas")
     public ResponseEntity<List<FridaDetailsDTO>> getFridas() {

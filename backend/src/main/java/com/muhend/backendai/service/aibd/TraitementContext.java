@@ -37,4 +37,31 @@ public class TraitementContext {
     public void incrementParents() { nbParents++; }
     public void incrementFreres() { nbFreres++; }
     public void incrementSoeurs() { nbSoeurs++; }
+
+    public static TraitementContext reconstruireContexte(FridaEntity frida) {
+        TraitementContext ctx = new TraitementContext();
+        ctx.setFicheFrida(frida);
+        ctx.setNumFrida(frida.getNumFrida());
+        
+        if (frida.getHeritiers() != null) {
+            for (HeritierEntity heritier : frida.getHeritiers()) {
+                String numParente = heritier.getNumParente();
+                String sexe = heritier.getIdentite().getSexe();
+                if (numParente == null) continue;
+                switch (numParente) {
+                    case "2" -> ctx.incrementConjoints();
+                    case "3" -> {
+                        if ("ذكر".equals(sexe)) ctx.incrementGarcons();
+                        else ctx.incrementFilles();
+                    }
+                    case "4" -> ctx.incrementParents();
+                    case "5" -> {
+                        if ("ذكر".equals(sexe)) ctx.incrementFreres();
+                        else ctx.incrementSoeurs();
+                    }
+                }
+            }
+        }
+        return ctx;
+    }
 }

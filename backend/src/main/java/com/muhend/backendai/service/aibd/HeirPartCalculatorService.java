@@ -23,13 +23,28 @@ public class HeirPartCalculatorService {
     }
 
     /**
-     * Calcule les parts des héritiers en appelant le microservice calculs-api.
+     * Calcule les parts des héritiers en appelant le microservice calculs-api à partir d'un contexte.
      *
      * @param ctx Contexte du traitement contenant les compteurs d'héritiers.
      * @return L'entité CalculEntity peuplée avec les résultats.
      * @throws RuntimeException si l'appel au microservice échoue.
      */
     public CalculEntity calculerParts(TraitementContext ctx) {
+        return executerCalcul(ctx);
+    }
+
+    /**
+     * Re-calcule les parts (ex: après une correction manuelle du Sexe) depuis l'entité.
+     *
+     * @param frida L'entité avec ses listes d'héritiers complètes.
+     * @return CalculEntity mise à jour.
+     */
+    public CalculEntity recalculerParts(FridaEntity frida) {
+        TraitementContext ctx = TraitementContext.reconstruireContexte(frida);
+        return executerCalcul(ctx);
+    }
+
+    private CalculEntity executerCalcul(TraitementContext ctx) {
         FridaEntity ficheFrida = ctx.getFicheFrida();
 
         // Mapping du sexe du défunt

@@ -112,6 +112,17 @@ public class OcrMappingService {
         entity.setMere(getText.apply("mere"));
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
+
+        // Vérification de la confiance (< 65%)
+        boolean hasLowConfidence = results.values().stream()
+                .filter(res -> res != null && res.getConfiance() != null)
+                .anyMatch(res -> res.getConfiance() < 0.65);
+        
+        if (hasLowConfidence) {
+            entity.setRequiresCorrection(true);
+            log.warn("Extrait de Naissance ({} {}) scanné avec une fiabilité < 65%", prenom, nom);
+        }
+
         return entity;
     }
 
@@ -139,6 +150,17 @@ public class OcrMappingService {
                 ? "Carte Nationale d'Identité" : "Passeport");
 
         parseDateNaissance(entity, getText.apply("date_naissance"));
+
+        // Vérification de la confiance (< 65%)
+        boolean hasLowConfidence = results.values().stream()
+                .filter(res -> res != null && res.getConfiance() != null)
+                .anyMatch(res -> res.getConfiance() < 0.65);
+        
+        if (hasLowConfidence) {
+            entity.setRequiresCorrection(true);
+            log.warn("Pièce d'Identité scannée avec une fiabilité < 65%");
+        }
+
         return entity;
     }
 

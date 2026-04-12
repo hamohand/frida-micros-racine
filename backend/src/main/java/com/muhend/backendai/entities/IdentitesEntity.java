@@ -11,10 +11,13 @@ import java.time.LocalDate;
 @Setter
 @Getter
 @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
-
 @Entity
 @Table(name = "identites")
 public class IdentitesEntity {
+    
+    @Transient
+    private Boolean requiresCorrection = false;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
