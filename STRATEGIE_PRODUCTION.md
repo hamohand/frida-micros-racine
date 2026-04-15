@@ -49,3 +49,30 @@ Afin de pallier la lourdeur du traitement logiciel des cartes d'identité ou liv
 *   **L'approche :** Différer le moteur de l'OCR pour qu'il soit asynchrone (l'utilisateur prépare ses dizaines de pièces jointes le jour, le logiciel les lira pendant la nuit).
 *   **Architecturalement :** L'employé met en "File d'attente". Le backend Java planifie (via une annotation `@Scheduled`) un réveil nocturne (ex: 2h00 du matin), contacte le microservice Python, fait analyser les dizaines d'images, et met à jour PostgreSQL.
 *   **Le Bénéfice :** Aucune baisse de vitesse de l'ordinateur durant les heures de travail bureautique ; Un écran unique de type "Bilan analytique" à l'arrivée de l'employé le lendemain matin (ex: "45 traités dont 2 échecs à finir à la main").
+
+---
+
+## 5. La Stratégie de Sauvegarde (Le Backup)
+
+L'application possédant toutes les données sensibles (légales, photos d'identité), la perte de données n'est pas permise en cas de panne de la machine du client.
+
+*   **La Base de données Unique :** Le client utilise une seule base de données (PostgreSQL) qui s'enrichit avec le temps. L'objectif est d'en "photographier" le contenu régulièrement.
+*   **L'Assistant de Backup Dockerisé :** Un conteneur autonome (ex: `postgres-backup-local`) est greffé au module de production.
+    *   **Le Rôle :** Tous les soirs à l'heure prévue (ex: minuit), le conteneur interroge la base, génère un fichier archive `.sql.gz` contenant toutes les données historiques, puis efface automatiquement les sauvegardes vieilles de plus de 7 jours (concept de "Fenêtre de rétention" évitant de saturer le disque dur).
+*   **Le Principe des Zones Miroirs (Volumes) :** L'écriture d'une telle sauvegarde dans le conteneur est inutile si elle n'est pas accessible. En utilisant la formulation de montage `C:\FridaSauvegardes:/backups`, on "téléporte" physiquement les archives SQL hors de la bulle Docker pour les poser directement sur le disque (vrai bureau) du client.
+*   *Note cruciale:* Le dossier regroupant les fichiers d'images scannées (photos CNI téléchargées, etc.) doit lui-aussi faire l'objet de sauvegardes par le client car la base de données SQL n'en conserve qu'un chemin symbolique.
+
+---
+
+## 6. Politique de Commercialisation : Le rôle exclusif du "Setup.exe"
+
+Déployer un stack technique avancé via du personnel de vente sur le terrain peut vite être intimidant s'il n'est pas maitrisé.
+
+*   **Les responsabilités du Vendeur (Commercial) :**
+    *   Ce qu'il DOIT faire : Diagnostiquer si le PC est apte, activer la virtualisation processeur si nécessaire (Intel VT-x), double-cliquer sur le fichier livreur `Setup.exe`, montrer au client son nouveau raccourci de mise en route, et faire concrètement le lien pour que le dossier des sauvegardes automatiques atterrisse sur une clé USB / DDE / Clé Google Cloud.
+    *   Ce qu'il NE DOIT PAS faire : Taper des lignes de commande, gérer ou configurer manuellement Docker ni éditer le code des scripts.
+*   **La création du "Setup.exe" :**
+    Il sera généré par des outils fiables comme **Inno Setup**. Et comportera tout le socle technologique pour automatiser les pré-requis : installer de façon silencieuse et aveuglément le WSL 2 (Noyau Linux Windows), Docker Desktop, importer les bons fichiers `docker-compose.prod.yml`, initier ou importer les images pré-existantes du registre ("load docker"), puis générer le grand raccourci localisant l'accès à `http://localhost:4200/`.
+*   **Installation On-line vs Off-line :**
+    *   *Option Connectée :* L'exécutable (`Setup.exe`) est léger (ex: < 500Mo) et tire en arrière-plan les Go de la base Docker directement à partir du "Docker Hub" privé ou une source lointaine. Dépendant de la connexion locale.
+    *   *Option Air-gapped (Déconnectée):* Privilégiée face aux cabinets administratifs mal équipés. L'installeur porte localement les +3 Go d'images sur sa clé dans un conteneur compressé. Durée d'installation drastiquement rapide face aux limitations internet.
