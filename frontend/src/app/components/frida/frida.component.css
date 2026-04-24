@@ -37,10 +37,9 @@
   margin-bottom: 10px;
 }
 
-/* Classes utilitaires */
-.vert {
+.ocr-data {
   font-weight: bold;
-  color: black; /* Optionnel: on le garde noir pour le style officiel / impression */
+  color: #0056b3; /* Bleu pour faciliter la vérification */
 }
 
 .souligne {
@@ -123,5 +122,5 @@
   
   header {
     display: none !important;
-  }
+    .ocr-data { color: black !important; }
 }

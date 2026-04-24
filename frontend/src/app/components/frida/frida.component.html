@@ -45,15 +45,15 @@
                     <span>، الموثق(ة)، لإثبات فريضة </span>
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template #feminin>المرحومة</ng-template>
                     <span> : </span>
-                    <span class="vert">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
+                    <span class="ocr-data">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
                     <span>، </span>
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'">بن</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">بنت</span>
-                    <span> {{frida?.defunt.identite.pere}} و {{frida?.defunt.identite.mere}}، </span>
+                    <span> <span class="ocr-data">{{frida?.defunt.identite.pere}}</span> و <span class="ocr-data">{{frida?.defunt.identite.mere}}</span>، </span>
                     <span>المولود</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
-                    <span> بتاريخ {{frida?.defunt.identite.dateNaissance}} بـ {{frida?.defunt.identite.lieuNaissance}} (ولاية {{frida?.defunt.identite.wilaya}})، </span>
+                    <span> بتاريخ <span class="ocr-data">{{frida?.defunt.identite.dateNaissance}}</span> بـ <span class="ocr-data">{{frida?.defunt.identite.lieuNaissance}}</span> (ولاية <span class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
                     <span>من جنسية جزائرية،</span>
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
-                    <span> رقم {{frida?.defunt.identite.numeroPiece}}.</span>
+                    <span> رقم <span class="ocr-data">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
                 </div>
             </section>
 
@@ -64,12 +64,12 @@
                     @for (temoin of temoins; track temoin; let i = $index) {
                     <div style="margin-bottom: 10px;">
                         <span> {{ i + 1 }}) - السيد</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span class="vert"> {{temoin.identite.nom}} {{temoin.identite.prenom}}</span>،
+                        <span class="ocr-data"> {{temoin.identite.nom}} {{temoin.identite.prenom}}</span>،
                         <span> جزائري</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
                         <span> المولود</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span> بتاريخ {{temoin.identite.dateNaissance}}، </span>
+                        <span> بتاريخ <span class="ocr-data">{{temoin.identite.dateNaissance}}</span>، </span>
                         <span> الساكن</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span> بـ {{temoin.adresse}}.</span>
+                        <span> بـ <span class="ocr-data">{{temoin.adresse}}</span>.</span>
                     </div>
                     }
                 </div>
@@ -95,9 +95,9 @@
                         }
                         
                         <span> السيد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span class="vert"> {{heritier.identite.nom}} {{heritier.identite.prenom}}</span>،
+                        <span class="ocr-data"> {{heritier.identite.nom}} {{heritier.identite.prenom}}</span>،
                         <span> المولود</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span> بتاريخ {{heritier.identite.dateNaissance}} بـ {{heritier.identite.lieuNaissance}} (ولاية {{heritier.identite.wilaya}})،</span>
+                        <span> بتاريخ <span class="ocr-data">{{heritier.identite.dateNaissance}}</span> بـ <span class="ocr-data">{{heritier.identite.lieuNaissance}}</span> (ولاية <span class="ocr-data">{{heritier.identite.wilaya}}</span>)،</span>
                         <span> جزائري</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span><span> الجنسية.</span>
                     </div>
                     }
@@ -113,11 +113,11 @@
                     <span>وبناءً على طلب 
                         @if ((frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) && (heritiers?.[1])) {
                              السيد<ng-container *ngIf="heritiers[1]?.identite.sexe != 'ذكر'">ة</ng-container> 
-                            <span class="vert">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
+                            <span class="ocr-data">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
                         } @else {
                             @if (heritiers?.[0]) {
                                  السيد<ng-container *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</ng-container> 
-                                <span class="vert">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
+                                <span class="ocr-data">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
                             }
                         }
                     ، إحدى الورثة المذكورين أعلاه، تم إعداد هذه الفريضة. وقد صحت بعد العمل والحساب من أصل </span>
@@ -147,7 +147,7 @@
                         <span>- للأبناء الذكور (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
                             @if (heritier.numParente>2 && heritier.identite.sexe == 'ذكر') {
-                                <span class="vert">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
+                                <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
                             }
                         }
                         <span>) : </span>
@@ -167,7 +167,7 @@
                         <span>- للبنات (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
                             @if (heritier.numParente>2 && heritier.identite.sexe != 'ذكر') {
-                                <span class="vert">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
+                                <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
                             }
                         }
                         <span>) : </span>
