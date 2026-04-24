@@ -39,6 +39,7 @@ services:
       SERVICES_CALCULS_URL: http://calculs-api:8081
       # SERVICES_OCR_URL pointe vers le serveur Python local (host Windows)
       SERVICES_OCR_URL: http://host.docker.internal:8082
+      MAX_PARALLEL_FOLDERS: ${MAX_PARALLEL_FOLDERS:-2}
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:

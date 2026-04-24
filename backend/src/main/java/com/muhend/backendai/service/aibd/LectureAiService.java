@@ -33,63 +33,49 @@ public class LectureAiService {
     /**
      * Cette classe extrait les données des extraits de naissance en utilisant l'IA.
      */
-    @Getter
-    private String folderPath; // Chemin du dossier à analyser
-    private Path directoryName; // nom du dossier courant
-    private final List<String> tableauNumParente = new ArrayList<>(); // tableau des parentés (codes: 0=témoin,
-                                                                      // 1=défunt, etc.)
-    @Getter
-    private final List<Path> pdfFiles = new ArrayList<>(); // Liste des fichiers détectés
-    @Getter
-    private final Map<Path, DocumentInfo> fileDocumentInfoMap = new HashMap<>(); // Mapping fichier -> info document
+    
+    public static class FolderScanResult {
+        private final List<String> tableauNumParente = new ArrayList<>();
+        private final List<Path> pdfFiles = new ArrayList<>();
+        private final Map<Path, DocumentInfo> fileDocumentInfoMap = new HashMap<>();
 
-    /**
-     * Définit le chemin du dossier pour le traitement.
-     *
-     * @param folderPath Chemin vers le dossier à configurer.
-     * @throws IllegalArgumentException Si le chemin est null ou vide.
-     */
-    public void setFolderPath(String folderPath) {
-        if (folderPath == null || folderPath.trim().isEmpty()) {
-            logger.error("Le chemin fourni pour le dossier est null ou vide.");
-            throw new IllegalArgumentException("Le chemin du dossier ne peut pas être null ou vide.");
-        }
-        this.folderPath = folderPath;
-        logger.info("Chemin du dossier configuré : {}", folderPath);
+        public List<String> getTableauNumParente() { return tableauNumParente; }
+        public List<Path> getPdfFiles() { return pdfFiles; }
+        public Map<Path, DocumentInfo> getFileDocumentInfoMap() { return fileDocumentInfoMap; }
     }
+
+    // La méthode setFolderPath a été supprimée pour rendre le service stateless
 
     /**
      * Liste les fichiers du dossier configuré de manière récursive.
      *
-     * @throws IllegalStateException Si le dossier n'est pas configuré ou
-     *                               inexistant.
      * @throws IOException           En cas d'erreur d'accès au système de fichiers.
      */
-    public List<String> listFolderContents() throws IOException {
-        pdfFiles.clear();
-        tableauNumParente.clear();
-        fileDocumentInfoMap.clear();
+    public FolderScanResult listFolderContents(String folderPath) throws IOException {
+        FolderScanResult result = new FolderScanResult();
         logger.info("Analyse des fichiers dans le dossier : {}", folderPath);
 
         try {
+            // Un tableau à 1 élément pour stocker le nom du dossier courant dans le foreach (lambda)
+            final Path[] directoryName = new Path[1];
             Files.walk(Paths.get(folderPath))
                     .forEach(filePath -> {
                         if (Files.isDirectory(filePath)) {
-                            directoryName = filePath;
+                            directoryName[0] = filePath;
                             logger.info("Dossier détecté : {}", filePath.getFileName());
                         } else if (Files.isRegularFile(filePath)) {
                             String fileName = filePath.getFileName().toString().toLowerCase();
                             if (fileName.endsWith(".pdf") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")
                                     || fileName.endsWith(".png")) {
-                                pdfFiles.add(filePath);
-                                String folderName = directoryName.getFileName().toString();
+                                result.getPdfFiles().add(filePath);
+                                String folderName = directoryName[0] != null ? directoryName[0].getFileName().toString() : filePath.getParent().getFileName().toString();
                                 logger.info("Fichier détecté : {} dans dossier {}", filePath.getFileName(), folderName);
 
                                 // Parse folder name format: "{code}_{type}" (ex: "2_cni")
                                 try {
                                     DocumentInfo docInfo = DocumentInfo.fromFolderName(folderName);
-                                    fileDocumentInfoMap.put(filePath, docInfo);
-                                    tableauNumParente.add(String.valueOf(docInfo.getHeirCategory().getCode()));
+                                    result.getFileDocumentInfoMap().put(filePath, docInfo);
+                                    result.getTableauNumParente().add(String.valueOf(docInfo.getHeirCategory().getCode()));
                                     logger.info("Document: {} -> catégorie={}, type={}",
                                             filePath.getFileName(),
                                             docInfo.getHeirCategory(),
@@ -99,20 +85,20 @@ public class LectureAiService {
                                     logger.warn(
                                             "Format de dossier non reconnu '{}', utilisation comme numéro de parenté",
                                             folderName);
-                                    tableauNumParente.add(folderName);
+                                    result.getTableauNumParente().add(folderName);
                                 }
                             } else {
                                 logger.debug("Fichier ignoré : {}", filePath.getFileName());
                             }
                         }
                     });
-            logger.info("Analyse terminée : {} fichiers détectés.", pdfFiles.size());
+            logger.info("Analyse terminée : {} fichiers détectés.", result.getPdfFiles().size());
         } catch (IOException e) {
             logger.error("Erreur d'accès aux fichiers du dossier : {}", folderPath, e);
             throw e;
         }
-        logger.debug("tableauNumParente : {}", tableauNumParente);
-        return tableauNumParente;
+        logger.debug("tableauNumParente : {}", result.getTableauNumParente());
+        return result;
     }
 
     /**
@@ -121,7 +107,7 @@ public class LectureAiService {
      *
      * @return Une liste de documents extraits.
      */
-    public List<Document> lecturePdfsAi() {
+    public List<Document> lecturePdfsAi(List<Path> pdfFiles) {
         if (pdfFiles.isEmpty()) {
             logger.warn("Aucun fichier disponible dans la liste des fichiers pour le traitement.");
             return new ArrayList<>();
@@ -178,15 +164,5 @@ public class LectureAiService {
         }
     }
 
-    /**
-     * Valide que le chemin du dossier est correctement configuré.
-     *
-     * @throws IllegalStateException Si le chemin du dossier est null ou vide.
-     */
-    private void validateFolderPath() {
-        if (folderPath == null || folderPath.trim().isEmpty()) {
-            logger.error("Le chemin du dossier n'est pas configuré.");
-            throw new IllegalStateException("Le chemin vers le dossier est invalide ou non configuré.");
-        }
-    }
+    // validateFolderPath supprimée car plus besoin d'état
 }

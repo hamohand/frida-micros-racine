@@ -48,15 +48,24 @@ class EcrireBdServiceTest {
     private String folderPath = "/frida-storage/test_folder";
     private Map<Path, DocumentInfo> fileDocInfoMap;
     private List<Path> pdfFiles;
+    private LectureAiService.FolderScanResult scanResult;
 
     @BeforeEach
     void setUp() throws Exception {
         fileDocInfoMap = new HashMap<>();
         pdfFiles = new ArrayList<>();
+        scanResult = new LectureAiService.FolderScanResult();
+
+        // Initialisation manuelle du Semaphore pour le test unitaire
+        org.springframework.test.util.ReflectionTestUtils.setField(ecrireBdService, "maxParallelFolders", 2);
+        ecrireBdService.init();
 
         // Préparation du dossier mocké
         List<String> mockNumParente = List.of("1", "2", "3");
-        when(lectureAiService.listFolderContents()).thenReturn((ArrayList<String>) new ArrayList<>(mockNumParente));
+        scanResult.getTableauNumParente().addAll(mockNumParente);
+        
+        // Configuration lenient pour le cas où le test "WhenNoFiles" n'utilise pas le paramètre
+        lenient().when(lectureAiService.listFolderContents(anyString())).thenReturn(scanResult);
     }
 
     @Test
@@ -80,8 +89,8 @@ class EcrireBdServiceTest {
         fileDocInfoMap.put(fileGarcon, docGarcon);
         pdfFiles.add(fileGarcon);
 
-        when(lectureAiService.getFileDocumentInfoMap()).thenReturn(fileDocInfoMap);
-        when(lectureAiService.getPdfFiles()).thenReturn(pdfFiles);
+        scanResult.getFileDocumentInfoMap().putAll(fileDocInfoMap);
+        scanResult.getPdfFiles().addAll(pdfFiles);
 
         // Mocks OCR Mapping
         OcrEntityDefinitionDto entityDef = new OcrEntityDefinitionDto();
@@ -136,7 +145,7 @@ class EcrireBdServiceTest {
 
     @Test
     void traiterExtraitsNaissance_WhenNoFiles_ShouldReturnNull() throws Exception {
-        when(lectureAiService.getPdfFiles()).thenReturn(new ArrayList<>());
+        scanResult.getPdfFiles().clear();
 
         FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath);
 

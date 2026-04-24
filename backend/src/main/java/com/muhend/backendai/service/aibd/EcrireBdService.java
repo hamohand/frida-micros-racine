@@ -16,6 +16,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.Semaphore;
+
+import org.springframework.beans.factory.annotation.Value;
+import jakarta.annotation.PostConstruct;
 
 /**
  * Orchestrateur principal pour le traitement des documents d'héritiers.
@@ -44,6 +48,17 @@ public class EcrireBdService {
     private final DefuntRepo defuntRepo;
     private final CalculRepo calculRepo;
     private final TemoinRepo temoinRepo;
+
+    @Value("${MAX_PARALLEL_FOLDERS:2}")
+    private int maxParallelFolders;
+
+    private Semaphore maxConcurrentFoldersSemaphore;
+
+    @PostConstruct
+    public void init() {
+        log.info("Initialisation du Semaphore pour les dossiers parallèles. Max: {}", maxParallelFolders);
+        maxConcurrentFoldersSemaphore = new Semaphore(maxParallelFolders);
+    }
 
     public EcrireBdService(
             LectureAiService lectureAiService,
@@ -80,11 +95,16 @@ public class EcrireBdService {
      */
     public FridaEntity traiterExtraitsNaissance(String folderPath) {
         try {
-            TraitementContext ctx = initialiserContext(folderPath);
+            // Blocage si le nombre max de dossiers simultanés est atteint
+            maxConcurrentFoldersSemaphore.acquire();
+            log.info("Début traitement dossier (thread libéré/acquis). Dossier: {}", folderPath);
 
-            Map<Path, DocumentInfo> fileDocInfoMap = lectureAiService.getFileDocumentInfoMap();
+            LectureAiService.FolderScanResult scanResult = lectureAiService.listFolderContents(folderPath);
+            TraitementContext ctx = initialiserContext(scanResult);
+
+            Map<Path, DocumentInfo> fileDocInfoMap = scanResult.getFileDocumentInfoMap();
             Map<String, OcrEntityDefinitionDto> entityDefCache = new HashMap<>();
-            List<Path> files = lectureAiService.getPdfFiles();
+            List<Path> files = scanResult.getPdfFiles();
 
             if (files.isEmpty()) {
                 log.warn("Aucun document trouvé dans le dossier : {}", folderPath);
@@ -107,9 +127,16 @@ public class EcrireBdService {
 
             return ctx.getFicheFrida();
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Le traitement a été interrompu en attendant le Semaphore : {}", e.getMessage(), e);
+            return null;
         } catch (IOException e) {
             log.error("Erreur lors de la lecture des fichiers : {}", e.getMessage(), e);
             return null;
+        } finally {
+            maxConcurrentFoldersSemaphore.release();
+            log.info("Fin traitement dossier (thread libéré). Dossier: {}", folderPath);
         }
     }
 
@@ -157,10 +184,9 @@ public class EcrireBdService {
 
     // ======================= Initialisation =======================
 
-    private TraitementContext initialiserContext(String folderPath) throws IOException {
+    private TraitementContext initialiserContext(LectureAiService.FolderScanResult scanResult) {
         TraitementContext ctx = new TraitementContext();
-        lectureAiService.setFolderPath(folderPath);
-        ctx.setTableauNumParente(lectureAiService.listFolderContents());
+        ctx.setTableauNumParente(scanResult.getTableauNumParente());
         return ctx;
     }
 
