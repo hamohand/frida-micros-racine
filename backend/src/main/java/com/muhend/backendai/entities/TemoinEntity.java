@@ -31,7 +31,7 @@ public class TemoinEntity {
     @Column(name = "numParente")
     private String numParente = "";
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "identite_id")
     private IdentitesEntity identite;
 

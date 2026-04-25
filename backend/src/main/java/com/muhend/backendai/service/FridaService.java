@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -77,5 +78,17 @@ public class FridaService {
         }
 
         return fridaRepo.save(corrections);
+    }
+
+    @Transactional
+    public boolean deleteFrida(String numFrida) {
+        Optional<FridaEntity> fridaOpt = fridaRepo.findByNumFrida(numFrida);
+        if (fridaOpt.isPresent()) {
+            fridaRepo.delete(fridaOpt.get());
+            log.info("Frida supprimée avec succès: {}", numFrida);
+            return true;
+        }
+        log.warn("Tentative de suppression échouée : Frida {} introuvable", numFrida);
+        return false;
     }
 }

@@ -37,7 +37,7 @@ public class HeritierEntity {
     @Column(name = "coefPart")
     private Float coefPart;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "identite_id")
     private IdentitesEntity identite;
 

@@ -13,7 +13,7 @@
   width: 21cm;
   min-height: 29.7cm;
   padding: 2.5cm;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   color: black;
   direction: rtl;
@@ -33,13 +33,13 @@
 
 .header-titre-principal {
   font-size: 24pt;
-  text-decoration: underline;
   margin-bottom: 10px;
 }
 
 .ocr-data {
   font-weight: bold;
-  color: #0056b3; /* Bleu pour faciliter la vérification */
+  color: #0056b3;
+  /* Bleu pour faciliter la vérification */
 }
 
 .souligne {
@@ -64,8 +64,11 @@
   display: inline-block;
 }
 
-.liste-temoins, .liste-heritiers, .liste-parts {
-  margin-right: 1cm; /* Indentation à droite en RTL */
+.liste-temoins,
+.liste-heritiers,
+.liste-parts {
+  margin-right: 1cm;
+  /* Indentation à droite en RTL */
 }
 
 .fraction-box {
@@ -76,11 +79,13 @@
   font-weight: bold;
   margin: 0 5px;
 }
+
 .fraction-box .num {
   border-bottom: 1px solid black;
   padding: 0 5px;
   line-height: 1.2;
 }
+
 .fraction-box .den {
   padding: 0 5px;
   line-height: 1.2;
@@ -91,7 +96,8 @@
 .signature-area {
   margin-top: 2cm;
   display: flex;
-  justify-content: flex-end; /* En RTL, flex-end va à gauche */
+  justify-content: flex-end;
+  /* En RTL, flex-end va à gauche */
   font-weight: bold;
   font-size: 18pt;
 }
@@ -107,20 +113,24 @@
     padding: 0;
     background: transparent;
   }
-  
+
   .a4-paper {
     box-shadow: none;
     border-radius: 0;
     width: 100%;
     min-height: auto;
-    padding: 0; /* Les marges de l'imprimante feront le travail */
+    padding: 0;
+    /* Les marges de l'imprimante feront le travail */
   }
 
   body {
     background: white;
   }
-  
+
   header {
     display: none !important;
-    .ocr-data { color: black !important; }
-}
+
+    .ocr-data {
+      color: black !important;
+    }
+  }

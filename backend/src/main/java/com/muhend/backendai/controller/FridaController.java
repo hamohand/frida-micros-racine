@@ -99,4 +99,19 @@ public class FridaController {
         return fridaService.getAllFridaEntities();
     }
 
+    /**
+     * Endpoint pour supprimer une Frida et tous ses composants liés.
+     * 
+     * @param numFrida Le numéro de la frida à supprimer
+     * @return 204 No Content si succès, 404 Not Found sinon
+     */
+    @DeleteMapping("/{numFrida}")
+    public ResponseEntity<Void> deleteFrida(@PathVariable String numFrida) {
+        boolean deleted = fridaService.deleteFrida(numFrida);
+        if (deleted) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

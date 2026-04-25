@@ -1,8 +1,10 @@
 <!-- Bouton d'impression (Exclu de l'impression via CSS) -->
 <header style="padding: 20px; text-align: center;">
-    <button class="btn btn-primary" (click)="printNgContainer()" style="display: inline-flex; align-items: center; gap: 8px;">
+    <button class="btn btn-primary" (click)="printNgContainer()"
+        style="display: inline-flex; align-items: center; gap: 8px;">
         <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="currentColor">
-            <path d="M648-624v-120H312v120h-72v-192h480v192h-72Zm-480 72h625-625Zm539.79 96q15.21 0 25.71-10.29t10.5-25.5q0-15.21-10.29-25.71t-25.5-10.5q-15.21 0-25.71 10.29t-10.5 25.5q0 15.21 10.29 25.71t25.5 10.5ZM648-216v-144H312v144h336Zm72 72H240v-144H96v-240q0-40 28-68t68-28h576q40 0 68 28t28 68v240H720v144Zm73-216v-153.67Q793-530 781-541t-28-11H206q-16.15 0-27.07 11.04Q168-529.92 168-513.6V-360h72v-72h480v72h73Z" />
+            <path
+                d="M648-624v-120H312v120h-72v-192h480v192h-72Zm-480 72h625-625Zm539.79 96q15.21 0 25.71-10.29t10.5-25.5q0-15.21-10.29-25.71t-25.5-10.5q-15.21 0-25.71 10.29t-10.5 25.5q0 15.21 10.29 25.71t25.5 10.5ZM648-216v-144H312v144h336Zm72 72H240v-144H96v-240q0-40 28-68t68-28h576q40 0 68 28t28 68v240H720v144Zm73-216v-153.67Q793-530 781-541t-28-11H206q-16.15 0-27.07 11.04Q168-529.92 168-513.6V-360h72v-72h480v72h73Z" />
         </svg>
         Imprimer le document
     </button>
@@ -19,7 +21,7 @@
         <div class="header-officiel">
             <div style="font-size: 14pt;">الجمهورية الجزائرية الديمقراطية الشعبية</div>
             <div style="font-size: 14pt; margin-bottom: 20px;">وزارة العدل</div>
-            
+
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div style="text-align: right; line-height: 1.4;">
                     مكتب التوثيق<br>
@@ -30,9 +32,14 @@
                     بتاريخ : {{frida?.dateCreation}}
                 </div>
             </div>
-            
+
             <div style="margin-top: 1cm;">
                 <div class="header-titre-principal">فـريـضـة</div>
+                <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template
+                    #feminin>المرحومة</ng-template>
+                <span> : </span>
+                <span class="ocr-data">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
+
             </div>
         </div>
 
@@ -43,14 +50,19 @@
                     <span>بناءً على طلب المعنيين، حضر أمامنا نحن الأستاذ(ة) </span>
                     <span class="bold">{{frida?.notaire}}</span>
                     <span>، الموثق(ة)، لإثبات فريضة </span>
-                    <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template #feminin>المرحومة</ng-template>
+                    <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template
+                        #feminin>المرحومة</ng-template>
                     <span> : </span>
                     <span class="ocr-data">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
                     <span>، </span>
-                    <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'">بن</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">بنت</span>
-                    <span> <span class="ocr-data">{{frida?.defunt.identite.pere}}</span> و <span class="ocr-data">{{frida?.defunt.identite.mere}}</span>، </span>
+                    <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'">بن</span><span
+                        *ngIf="frida?.defunt.identite.sexe != 'ذكر'">بنت</span>
+                    <span> <span class="ocr-data">{{frida?.defunt.identite.pere}}</span> و <span
+                            class="ocr-data">{{frida?.defunt.identite.mere}}</span>، </span>
                     <span>المولود</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
-                    <span> بتاريخ <span class="ocr-data">{{frida?.defunt.identite.dateNaissance}}</span> بـ <span class="ocr-data">{{frida?.defunt.identite.lieuNaissance}}</span> (ولاية <span class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
+                    <span> بتاريخ <span class="ocr-data">{{frida?.defunt.identite.dateNaissance}}</span> بـ <span
+                            class="ocr-data">{{frida?.defunt.identite.lieuNaissance}}</span> (ولاية <span
+                            class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
                     <span>من جنسية جزائرية،</span>
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                     <span> رقم <span class="ocr-data">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
@@ -74,7 +86,8 @@
                     }
                 </div>
                 <div style="margin-top: 10px;">
-                    <span>اللذان صرحا بمعرفتهما التامة للمرحوم</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
+                    <span>اللذان صرحا بمعرفتهما التامة للمرحوم</span><span
+                        *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
                     <span>، وأقرا بأن ورثته شرعاً وقانوناً هم المذكورون أسفله :</span>
                 </div>
             </section>
@@ -87,17 +100,22 @@
                     <div style="margin-bottom: 10px;">
                         <!-- Conjoint -->
                         @if (heritier.numParente==2) {
-                        <span>1) - </span><span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femininConjoint">أرملته</span><ng-template #femininConjoint>أرملها</ng-template>
-                        } 
+                        <span>1) - </span><span
+                            *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femininConjoint">أرملته</span><ng-template
+                            #femininConjoint>أرملها</ng-template>
+                        }
                         <!-- Enfants -->
                         @else if (heritier.numParente==3) {
-                        <span>ابن</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
+                        <span>ابن</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ت</span><span>ه</span><span
+                            *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                         }
-                        
+
                         <span> السيد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
                         <span class="ocr-data"> {{heritier.identite.nom}} {{heritier.identite.prenom}}</span>،
                         <span> المولود</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span> بتاريخ <span class="ocr-data">{{heritier.identite.dateNaissance}}</span> بـ <span class="ocr-data">{{heritier.identite.lieuNaissance}}</span> (ولاية <span class="ocr-data">{{heritier.identite.wilaya}}</span>)،</span>
+                        <span> بتاريخ <span class="ocr-data">{{heritier.identite.dateNaissance}}</span> بـ <span
+                                class="ocr-data">{{heritier.identite.lieuNaissance}}</span> (ولاية <span
+                                class="ocr-data">{{heritier.identite.wilaya}}</span>)،</span>
                         <span> جزائري</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span><span> الجنسية.</span>
                     </div>
                     }
@@ -107,20 +125,20 @@
             <!-- Calcul et Parts -->
             <section class="section">
                 <div class="bold" style="margin-bottom: 10px;">الـقـسـمـة :</div>
-                
+
                 @if (frida?.calcul.nbConjoints!=0 || frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) {
                 <div>
-                    <span>وبناءً على طلب 
+                    <span>وبناءً على طلب
                         @if ((frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) && (heritiers?.[1])) {
-                             السيد<ng-container *ngIf="heritiers[1]?.identite.sexe != 'ذكر'">ة</ng-container> 
-                            <span class="ocr-data">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
+                        السيد<ng-container *ngIf="heritiers[1]?.identite.sexe != 'ذكر'">ة</ng-container>
+                        <span class="ocr-data">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
                         } @else {
-                            @if (heritiers?.[0]) {
-                                 السيد<ng-container *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</ng-container> 
-                                <span class="ocr-data">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
-                            }
+                        @if (heritiers?.[0]) {
+                        السيد<ng-container *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</ng-container>
+                        <span class="ocr-data">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
                         }
-                    ، إحدى الورثة المذكورين أعلاه، تم إعداد هذه الفريضة. وقد صحت بعد العمل والحساب من أصل </span>
+                        }
+                        ، إحدى الورثة المذكورين أعلاه، تم إعداد هذه الفريضة. وقد صحت بعد العمل والحساب من أصل </span>
                     <span class="bold">{{denominateur_L}}</span>
                     <span> حصة </span>
                     <span dir="ltr" style="display:inline-block;">( {{frida?.calcul.denominateur}} )</span>
@@ -131,7 +149,9 @@
                     <!-- Part conjoint -->
                     @if (frida?.calcul.nbConjoints != 0) {
                     <div style="margin-bottom: 15px;">
-                        <span>- ل<span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femPartConj">لأرملة</span><ng-template #femPartConj>لأرمل</ng-template> : </span>
+                        <span>- ل<span
+                                *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femPartConj">لأرملة</span><ng-template
+                                #femPartConj>لأرمل</ng-template> : </span>
                         <span class="bold">{{numerateurConjoint_L}}</span>
                         <span> حصة، أي </span>
                         <div class="fraction-box">
@@ -146,9 +166,9 @@
                     <div style="margin-bottom: 15px;">
                         <span>- للأبناء الذكور (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
-                            @if (heritier.numParente>2 && heritier.identite.sexe == 'ذكر') {
-                                <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
-                            }
+                        @if (heritier.numParente>2 && heritier.identite.sexe == 'ذكر') {
+                        <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
+                        }
                         }
                         <span>) : </span>
                         <span class="bold">{{numerateurGarcons_L}}</span>
@@ -166,9 +186,9 @@
                     <div style="margin-bottom: 15px;">
                         <span>- للبنات (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
-                            @if (heritier.numParente>2 && heritier.identite.sexe != 'ذكر') {
-                                <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
-                            }
+                        @if (heritier.numParente>2 && heritier.identite.sexe != 'ذكر') {
+                        <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
+                        }
                         }
                         <span>) : </span>
                         <span class="bold">{{numerateurFilles_L}}</span>
