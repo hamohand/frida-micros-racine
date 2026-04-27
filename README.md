@@ -122,6 +122,9 @@ CORS_ORIGINS=http://localhost:4200,http://localhost:3000
 
 # Fichiers
 FILE_UPLOAD_MAX_SIZE=10485760
+
+# Parallélisme OCR (nombre de dossiers traités simultanément)
+MAX_PARALLEL_FOLDERS=2
 ```
 
 ## 🐳 Structure Docker
@@ -134,7 +137,7 @@ FILE_UPLOAD_MAX_SIZE=10485760
 | **backend** | 8080 | Spring Boot API (orchestration) |
 | **db** | 5432 | PostgreSQL Database |
 | **calculs-api** | 8081 | Microservice de calcul des parts successorales (Spring Boot) |
-| **ocr-api** | 8082 | Microservice OCR / Extraction de texte (Python Flask / EasyTess) |
+| **ocr-api** | 8082 | Microservice OCR / Extraction de texte (Python Flask / EasyTess) — **Natif sur l'hôte, jamais dans Docker** |
 
 ### Network & Volumes
 
@@ -170,6 +173,8 @@ spring.datasource.password=Mmk!030809?
 
 - `GET /api/frida` - Liste des fiches
 - `GET /api/frida/{numFrida}` - Détails d'une fiche
+- `DELETE /api/frida/{numFrida}` - Supprimer une fiche et tous ses composants
+- `PUT /api/frida/corrections/{numFrida}` - Corriger une fiche et recalculer les parts
 - `GET /api/frida/listeHeritiers/{numFrida}` - Héritiers d'une fiche
 - `GET /api/frida/listeTemoins/{numFrida}` - Témoins d'une fiche
 - `POST /api/files/upload` - Upload de fichiers
@@ -423,7 +428,6 @@ Pour toute question ou problème, vérifiez:
 ## 📄 License
 
 [Votre License]
-# easytess_ocr_api
 #   f r i d a - o c r - m i c r o s 
  
  

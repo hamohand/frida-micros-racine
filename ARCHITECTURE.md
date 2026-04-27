@@ -141,15 +141,25 @@ frida-ai/
   └──────────┘ └──────────┘ └──────────────┘
 ```
 
+### ⚠️ Règle d'or : Le service OCR est TOUJOURS externe à Docker
+
+> **Jamais de service OCR dans Docker, le laisser comme service externe.**
+>
+> Tesseract/OpenCV sont massivement multithreadés (OpenMP). Dans un conteneur Docker
+> sous WSL2/Windows, la contention des threads, les limites mémoire (OOM Killer) et
+> la latence I/O des volumes partagés provoquent une dégradation silencieuse de la
+> qualité OCR lors du traitement parallèle. L'exécution native sur l'OS hôte élimine
+> ces problèmes. Le backend l'appelle via `host.docker.internal:8082`.
+
 ### Microservices
 
-| Service | Port | Technologie | Rôle |
-|---------|------|-------------|------|
-| **frontend** | 4200 | Angular + Nginx | Interface utilisateur |
-| **backend** | 8080 | Spring Boot (Java 21) | API REST, orchestration |
-| **db** | 5432 | PostgreSQL 16 | Base de données |
-| **calculs-api** | 8081 | Spring Boot | Calcul des parts successorales |
-| **ocr-api** | 8082 | Python Flask (EasyTess) | OCR / Extraction de texte |
+| Service | Port | Technologie | Rôle | Hébergement |
+|---------|------|-------------|------|-------------|
+| **frontend** | 4200 | Angular + Nginx | Interface utilisateur | Docker |
+| **backend** | 8080 | Spring Boot (Java 21) | API REST, orchestration | Docker |
+| **db** | 5432 | PostgreSQL 16 | Base de données | Docker |
+| **calculs-api** | 8081 | Spring Boot | Calcul des parts successorales | Docker |
+| **ocr-api** | 8082 | Python Flask (EasyTess) | OCR / Extraction de texte | **Natif (hôte)** |
 
 ## 🔐 Sécurité - Couches
 
@@ -215,7 +225,7 @@ Client Browser
 ├── numParente (2=conjoint, 3=enfant, 4=parent, 5=fratrie)
 ├── adresse, profession
 ├── coefPart (Float)
-└── identite (OneToOne → IdentitesEntity)     ⬅️ NOUVEAU
+└── identite (OneToOne → IdentitesEntity, CASCADE ALL)
 ```
 
 **TemoinEntity**
@@ -223,18 +233,22 @@ Client Browser
 ├── id (PK)
 ├── numFrida
 ├── numParente (11=témoin)
-└── identite (OneToOne → IdentitesEntity)     ⬅️ NOUVEAU
+└── identite (OneToOne → IdentitesEntity, CASCADE ALL)
 ```
 
 ### Diagramme des relations
 
 ```
-FridaEntity
-    ├── 1:1 → DefuntEntity → 1:1 → IdentitesEntity
-    ├── 1:N → HeritierEntity → 1:1 → IdentitesEntity
-    ├── 1:N → TemoinEntity → 1:1 → IdentitesEntity
-    └── 1:1 → CalculEntity
+FridaEntity (CASCADE ALL sur toutes les relations)
+    ├── 1:1 → DefuntEntity → 1:1 → IdentitesEntity (CASCADE ALL)
+    ├── 1:N → HeritierEntity → 1:1 → IdentitesEntity (CASCADE ALL)
+    ├── 1:N → TemoinEntity → 1:1 → IdentitesEntity (CASCADE ALL)
+    └── 1:1 → CalculEntity (CASCADE ALL)
 ```
+
+> **Suppression :** La suppression d'une `FridaEntity` (via `DELETE /api/frida/{numFrida}`)
+> supprime automatiquement en cascade : le défunt, les héritiers, les témoins, le calcul,
+> et toutes les `IdentitesEntity` associées. Aucun enregistrement orphelin ne subsiste.
 
 ## 🚀 Processus de Build & Déploiement
 
@@ -283,12 +297,25 @@ src/ → Maven Build → target/app.jar
 - **Repository Pattern** (Data Access)
 - **Singleton** (Spring Beans)
 - **Observer** (RxJS)
+- **Map-Reduce / Scatter-Gather** (Parallélisme OCR)
+- **Semaphore** (Contrôle de concurrence)
+
+### Parallélisme OCR
+
+Le traitement des dossiers est protégé par un `java.util.concurrent.Semaphore`
+initialisé via la variable d'environnement `MAX_PARALLEL_FOLDERS` (défaut : 2).
+
+- `LectureAiService` est **stateless** : chaque appel retourne un `FolderScanResult`
+  indépendant, ce qui élimine tout risque de collision entre dossiers traités en parallèle.
+- Si le nombre maximum de dossiers simultanés est atteint, les nouveaux dossiers
+  sont **bloqués** en file d'attente (et non rejetés) jusqu'à libération d'un slot.
 
 ### Principes appliqués
 - **SOLID**: Single Responsibility, Open/Closed
 - **DRY**: Don't Repeat Yourself
 - **Clean Code**: Lisibilité et maintenabilité
 - **Docker Best Practices**: Multi-stage builds, Alpine images
+- **Thread-Safety**: État local par requête, Semaphore pour les limites de concurrence
 
 ## 🔄 Intégration Continue (CI/CD) - À implémenter
 
@@ -372,5 +399,5 @@ ng serve --disable-host-check
 
 ---
 
-**Dernière mise à jour**: Mars 2026
-**Version**: 2.0.0
+**Dernière mise à jour**: Avril 2026
+**Version**: 2.1.0
