@@ -13,7 +13,8 @@ public class OcrResultDto {
     private String texte_final;
     private String texte_corrige_manuel;
     private String statut;
-    private Double confiance;
+    private Double confiance_auto;
+    private Integer marge_utilisee;
     private String moteur;
     private String temps_execution;
 }

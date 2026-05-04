@@ -19,6 +19,12 @@ public class OcrZoneConfigDto {
     private String type;
     // Mode de prétraitement (ex: "arabic_textured", "latin_simple")
     private String preprocess;
+    // Format attendu pour la regex
+    private String expected_format;
+    // Filtre de caractères post-OCR
+    private String char_filter;
+    // Marge ajoutée au recadrage
+    private Integer margin;
     // Valeurs attendues pour correction OCR
     private List<String> valeurs_attendues;
 }

@@ -305,8 +305,8 @@ export class UploadWindowsComponent implements OnInit {
 
   /** Types de documents disponibles pour le sélecteur */
   docTypeOptions: DocTypeOption[] = [
-    { id: 'en', label: 'Extrait de naissance' },
     { id: 'cni', label: 'Carte nationale d\'identité' },
+    { id: 'en', label: 'Extrait de naissance' },
     { id: 'pp', label: 'Passeport' }
   ];
 
@@ -321,7 +321,7 @@ export class UploadWindowsComponent implements OnInit {
     };
   }
 
-  onFilesConfirmed(window: string, events: {rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string}[]}) {
+  onFilesConfirmed(window: string, events: { rawFiles: UploadedFile[], groupedFiles: { files: File[], docType: string }[] }) {
     const currentWindow = this.windows[window];
     if (currentWindow) {
       if (events.rawFiles.length > 0) {
@@ -382,29 +382,29 @@ export class UploadWindowsComponent implements OnInit {
       const win = this.windows[key];
       if (win.groupedFiles && win.groupedFiles.length > 0) {
         win.groupedFiles.forEach(group => {
-           const uploadPath = win.path + '_' + group.docType;
-           allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
+          const uploadPath = win.path + '_' + group.docType;
+          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
         });
       }
     });
 
     if (allUploadObservables.length > 0) {
-       forkJoin(allUploadObservables).subscribe({
-         next: () => {
-           // Tous les uploads sont terminés avec succès
-           this.isUploadingFiles = false;
-           this.launchOcrProcess();
-         },
-         error: (err) => {
-           console.error('Erreur lors du transfert des dossiers au serveur :', err);
-           this.isUploadingFiles = false;
-           alert("Une erreur de réseau empêche le transfert des fichiers.");
-         }
-       });
+      forkJoin(allUploadObservables).subscribe({
+        next: () => {
+          // Tous les uploads sont terminés avec succès
+          this.isUploadingFiles = false;
+          this.launchOcrProcess();
+        },
+        error: (err) => {
+          console.error('Erreur lors du transfert des dossiers au serveur :', err);
+          this.isUploadingFiles = false;
+          alert("Une erreur de réseau empêche le transfert des fichiers.");
+        }
+      });
     } else {
-       // Aucun fichier à uploader (impossible en théorie vu que f1 est requis)
-       this.isUploadingFiles = false;
-       this.launchOcrProcess();
+      // Aucun fichier à uploader (impossible en théorie vu que f1 est requis)
+      this.isUploadingFiles = false;
+      this.launchOcrProcess();
     }
   }
 

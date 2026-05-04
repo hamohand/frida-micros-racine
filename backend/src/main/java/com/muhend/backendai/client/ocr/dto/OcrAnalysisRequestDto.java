@@ -12,6 +12,7 @@ import java.util.Map;
 @AllArgsConstructor
 public class OcrAnalysisRequestDto {
     private String filename;
+    private String mode;
     // Map of zone name to zone configuration (coords)
     private Map<String, OcrZoneConfigDto> zones;
     // Cadre de référence pour le recalage géométrique

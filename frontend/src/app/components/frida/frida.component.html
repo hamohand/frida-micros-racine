@@ -64,6 +64,8 @@
                             class="ocr-data">{{frida?.defunt.identite.lieuNaissance}}</span> (ولاية <span
                             class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
                     <span>من جنسية جزائرية،</span>
+                    <span> الحامل</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
+                    <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data">{{frida?.defunt.identite.nin}}</span>، </span>
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                     <span> رقم <span class="ocr-data">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
                 </div>
@@ -96,18 +98,24 @@
             <section class="section">
                 <div class="bold" style="margin-bottom: 10px;">الـورثـة :</div>
                 <div class="liste-heritiers">
-                    @for (heritier of heritiers; track heritier) {
+                    @for (heritier of heritiers; track heritier; let i = $index) {
                     <div style="margin-bottom: 10px;">
+                        <span>{{ i + 1 }}) - </span>
                         <!-- Conjoint -->
                         @if (heritier.numParente==2) {
-                        <span>1) - </span><span
-                            *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femininConjoint">أرملته</span><ng-template
-                            #femininConjoint>أرملها</ng-template>
+                        <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femininConjoint">أرملته</span><ng-template #femininConjoint>أرملها</ng-template>
                         }
                         <!-- Enfants -->
                         @else if (heritier.numParente==3) {
-                        <span>ابن</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ت</span><span>ه</span><span
-                            *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
+                        <span>ابن</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
+                        }
+                        <!-- Parents -->
+                        @else if (heritier.numParente==4) {
+                        <span *ngIf="heritier.identite.sexe == 'ذكر'">والد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">والدت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
+                        }
+                        <!-- Fratrie -->
+                        @else if (heritier.numParente==5) {
+                        <span *ngIf="heritier.identite.sexe == 'ذكر'">أخو</span><span *ngIf="heritier.identite.sexe != 'ذكر'">أخت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                         }
 
                         <span> السيد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
@@ -116,7 +124,9 @@
                         <span> بتاريخ <span class="ocr-data">{{heritier.identite.dateNaissance}}</span> بـ <span
                                 class="ocr-data">{{heritier.identite.lieuNaissance}}</span> (ولاية <span
                                 class="ocr-data">{{heritier.identite.wilaya}}</span>)،</span>
-                        <span> جزائري</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span><span> الجنسية.</span>
+                        <span> جزائري</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
+                        <span> الحامل</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
+                        <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data">{{heritier.identite.nin}}</span>.</span>
                     </div>
                     }
                 </div>

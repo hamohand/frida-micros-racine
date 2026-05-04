@@ -7,6 +7,7 @@ import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.service.calculs_outils.MethodesChaine;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -22,6 +23,9 @@ import java.util.function.Function;
 public class OcrMappingService {
 
     private final OcrApiClient ocrApiClient;
+
+    @Value("${services.ocr.mode:rapide}")
+    private String defaultOcrMode;
 
     public OcrMappingService(OcrApiClient ocrApiClient) {
         this.ocrApiClient = ocrApiClient;
@@ -69,6 +73,7 @@ public class OcrMappingService {
 
         OcrAnalysisRequestDto request = OcrAnalysisRequestDto.builder()
                 .filename(uploadResponse.getSaved_filename())
+                .mode(defaultOcrMode)
                 .zones(zones)
                 .cadre_reference(entityDef.getCadre_reference())
                 .build();
@@ -113,14 +118,14 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
-        // Vérification de la confiance (< 65%)
+        // Vérification du statut
         boolean hasLowConfidence = results.values().stream()
-                .filter(res -> res != null && res.getConfiance() != null)
-                .anyMatch(res -> res.getConfiance() < 0.65);
+                .filter(res -> res != null && res.getStatut() != null)
+                .anyMatch(res -> res.getStatut().equals("faible_confiance") || res.getStatut().equals("echec"));
         
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);
-            log.warn("Extrait de Naissance ({} {}) scanné avec une fiabilité < 65%", prenom, nom);
+            log.warn("Extrait de Naissance ({} {}) scanné avec statut faible_confiance ou echec", prenom, nom);
         }
 
         return entity;
@@ -151,14 +156,14 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("date_naissance"));
 
-        // Vérification de la confiance (< 65%)
+        // Vérification du statut
         boolean hasLowConfidence = results.values().stream()
-                .filter(res -> res != null && res.getConfiance() != null)
-                .anyMatch(res -> res.getConfiance() < 0.65);
+                .filter(res -> res != null && res.getStatut() != null)
+                .anyMatch(res -> res.getStatut().equals("faible_confiance") || res.getStatut().equals("echec"));
         
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);
-            log.warn("Pièce d'Identité scannée avec une fiabilité < 65%");
+            log.warn("Pièce d'Identité scannée avec statut faible_confiance ou echec");
         }
 
         return entity;
@@ -177,6 +182,9 @@ public class OcrMappingService {
                     .lang(z.getLang())
                     .type(z.getType())
                     .preprocess(z.getPreprocess())
+                    .expected_format(z.getExpected_format())
+                    .char_filter(z.getChar_filter())
+                    .margin(z.getMargin())
                     .valeurs_attendues(z.getValeurs_attendues())
                     .build());
         }

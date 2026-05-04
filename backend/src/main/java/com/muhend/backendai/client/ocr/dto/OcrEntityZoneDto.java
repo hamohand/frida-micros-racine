@@ -16,5 +16,8 @@ public class OcrEntityZoneDto {
     private String lang;
     private String type;
     private String preprocess;
+    private String expected_format;
+    private String char_filter;
+    private Integer margin;
     private List<String> valeurs_attendues;
 }
