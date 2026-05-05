@@ -1,5 +1,6 @@
 import { Component, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
@@ -11,7 +12,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 @Component({
   selector: 'app-upload-windows',
   standalone: true,
-  imports: [CommonModule, FileUploadComponent],
+  imports: [CommonModule, FormsModule, FileUploadComponent],
   template: `
     <div class="windows-container carousel-viewport">
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
@@ -140,7 +141,7 @@ import { forkJoin, Observable, of } from 'rxjs';
             <div class="upload-container">
               <h2>Validation finale du dossier</h2>
               <div class="drop-zone">
-                <button *ngIf="!endReading && !isReading"
+                <button *ngIf="!endReading && !isReading && !isBatchUploaded"
                     class="btn btn-secondary continue-btn"
                     (click)="moveToPreviousWindow('f_ai')" [disabled]="isUploadingFiles"
                     style="margin-right: 10px;"
@@ -148,12 +149,35 @@ import { forkJoin, Observable, of } from 'rxjs';
                   <span>Précédent</span>
                 </button>
 
+                <!-- UI de sélection du mode -->
+                <div *ngIf="!endReading && !isReading && !isBatchUploaded" class="mode-selector" style="margin-bottom: 20px; text-align: left; padding: 15px; border: 1px solid var(--accent-color); border-radius: 8px;">
+                  <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--accent-color);">Mode de traitement :</h3>
+                  <div style="margin-bottom: 8px;">
+                    <label style="cursor: pointer;">
+                      <input type="radio" name="ocrMode" value="rapide" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
+                      <strong>Rapide</strong> - Lecture immédiate des données
+                    </label>
+                  </div>
+                  <div style="margin-bottom: 8px;">
+                    <label style="cursor: pointer;">
+                      <input type="radio" name="ocrMode" value="approfondi" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
+                      <strong>Approfondi</strong> - Qualité maximale immédiate
+                    </label>
+                  </div>
+                  <div>
+                    <label style="cursor: pointer;">
+                      <input type="radio" name="ocrMode" value="batch" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
+                      <strong>Batch (Différé)</strong> - Uploader seulement (pour traitement de nuit)
+                    </label>
+                  </div>
+                </div>
+
                 <!-- Bouton de lancement -->
-                <button *ngIf="!endReading && !isReading"
+                <button *ngIf="!endReading && !isReading && !isBatchUploaded"
                     class="btn btn-primary continue-btn"
                     (click)="onLireAiEcrireBd()" [disabled]="isUploadingFiles"
                 >
-                  <span *ngIf="!isUploadingFiles">Transférer les documents et Lancer la lecture</span>
+                  <span *ngIf="!isUploadingFiles">Valider et Lancer</span>
                   <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
                 </button>
 
@@ -165,6 +189,19 @@ import { forkJoin, Observable, of } from 'rxjs';
                          Retour à l'Accueil
                        </button>
                    </div>
+                </div>
+                
+                <!-- Vue terminée - Batch -->
+                <div *ngIf="isBatchUploaded" style="margin-top: 15px; text-align: center; width: 100%;">
+                    <p style="color: springgreen; font-weight: bold; margin-bottom: 15px;">Les documents ont bien été sauvegardés pour un traitement par lot différé.</p>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                       <button class="btn btn-primary continue-btn" (click)="pageCreation()">
+                         Nouveau dossier
+                       </button>
+                       <button class="btn btn-secondary continue-btn" (click)="accueil()">
+                         Retour à l'Accueil
+                       </button>
+                    </div>
                 </div>
                 
                 <!-- Vue terminée -->
@@ -289,7 +326,9 @@ export class UploadWindowsComponent implements OnInit {
   isUploadingFiles = false;
   isReading = false;
   endReading = false;
+  isBatchUploaded = false;
   numFrida: String = "1956010320250116";
+  ocrMode: 'rapide' | 'approfondi' | 'batch' = 'rapide';
 
   getCurrentIndex(): number {
     const windowKeys = ['f1', 'f2', 'f3', 'f4', 'f5', 'f_temoins', 'f_ai'];
@@ -393,7 +432,11 @@ export class UploadWindowsComponent implements OnInit {
         next: () => {
           // Tous les uploads sont terminés avec succès
           this.isUploadingFiles = false;
-          this.launchOcrProcess();
+          if (this.ocrMode === 'batch') {
+            this.isBatchUploaded = true;
+          } else {
+            this.launchOcrProcess();
+          }
         },
         error: (err) => {
           console.error('Erreur lors du transfert des dossiers au serveur :', err);
@@ -404,14 +447,18 @@ export class UploadWindowsComponent implements OnInit {
     } else {
       // Aucun fichier à uploader (impossible en théorie vu que f1 est requis)
       this.isUploadingFiles = false;
-      this.launchOcrProcess();
+      if (this.ocrMode === 'batch') {
+        this.isBatchUploaded = true;
+      } else {
+        this.launchOcrProcess();
+      }
     }
   }
 
   private launchOcrProcess() {
     // Étape 2 : Lancement officiel de la lecture OCR + Traitement Frida
     this.isReading = true;
-    this.lireaiEcrirebdService.lireAiEcrireBd().subscribe({
+    this.lireaiEcrirebdService.lireAiEcrireBd(this.ocrMode).subscribe({
       next: (data) => {
         console.log('Réponse du serveur UploadWindowsComponent: ', data);
         console.log('numFrida: ', data.numFrida);

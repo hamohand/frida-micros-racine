@@ -93,7 +93,7 @@ public class EcrireBdService {
      *                   au format {code}_{type} (ex: 1_en, 2_cni).
      * @return La fiche Frida créée, ou {@code null} si aucun document traité.
      */
-    public FridaEntity traiterExtraitsNaissance(String folderPath) {
+    public FridaEntity traiterExtraitsNaissance(String folderPath, String mode) {
         try {
             // Blocage si le nombre max de dossiers simultanés est atteint
             maxConcurrentFoldersSemaphore.acquire();
@@ -115,7 +115,7 @@ public class EcrireBdService {
             for (Path file : files) {
                 try {
                     indiceParente = traiterFichier(ctx, file, fileDocInfoMap,
-                            entityDefCache, indiceParente);
+                            entityDefCache, indiceParente, mode);
                 } catch (Exception e) {
                     log.error("Erreur traitement fichier OCR : {} - {}", file, e.getMessage(), e);
                 }
@@ -150,7 +150,8 @@ public class EcrireBdService {
     private int traiterFichier(TraitementContext ctx, Path file,
                                Map<Path, DocumentInfo> fileDocInfoMap,
                                Map<String, OcrEntityDefinitionDto> entityDefCache,
-                               int indiceParente) {
+                               int indiceParente,
+                               String mode) {
 
         DocumentInfo docInfo = fileDocInfoMap.get(file);
         DocumentType docType = (docInfo != null) ? docInfo.getDocumentType() : DocumentType.EXTRAIT_NAISSANCE;
@@ -165,7 +166,7 @@ public class EcrireBdService {
         log.info("Traitement: {} -> type={}, catégorie={}", file.getFileName(), docType, heirCategory);
 
         // OCR + mapping
-        IdentitesEntity identite = ocrMappingService.processFile(file, entityDef, docType);
+        IdentitesEntity identite = ocrMappingService.processFile(file, entityDef, docType, mode);
 
         if (identite != null) {
             // Générer l'identifiant au premier document (défunt)

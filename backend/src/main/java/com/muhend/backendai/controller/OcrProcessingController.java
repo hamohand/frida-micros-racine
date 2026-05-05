@@ -26,13 +26,13 @@ public class OcrProcessingController {
      * Enregistrement des données extraites dans la BD.
      */
     @GetMapping("/lireai-ecrirebd")
-    public FridaEntity ecrireBd() throws IOException {
+    public FridaEntity ecrireBd(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "rapide") String mode) throws IOException {
         java.nio.file.Path path = FolderService.getFolderPath();
         if (path == null) {
             path = pathResolver.getLatestFolder();
         }
         String cheminDossierBase = path.toString();
         System.out.println("cheminDossierBase : " + cheminDossierBase + "");
-        return ecrireBdService.traiterExtraitsNaissance(cheminDossierBase);
+        return ecrireBdService.traiterExtraitsNaissance(cheminDossierBase, mode);
     }
 }

@@ -100,15 +100,15 @@ class EcrireBdServiceTest {
         IdentitesEntity idDefunt = new IdentitesEntity();
         idDefunt.setSexe("ذكر"); // Homme
         idDefunt.setDateNaissance(LocalDate.of(1950, 1, 1));
-        when(ocrMappingService.processFile(eq(fileDefunt), any(), eq(DocumentType.EXTRAIT_NAISSANCE))).thenReturn(idDefunt);
+        when(ocrMappingService.processFile(eq(fileDefunt), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idDefunt);
 
         IdentitesEntity idConjoint = new IdentitesEntity();
         idConjoint.setSexe("أنثى"); // Femme
-        when(ocrMappingService.processFile(eq(fileConjoint), any(), eq(DocumentType.CNI))).thenReturn(idConjoint);
+        when(ocrMappingService.processFile(eq(fileConjoint), any(), eq(DocumentType.CNI), eq("rapide"))).thenReturn(idConjoint);
 
         IdentitesEntity idGarcon = new IdentitesEntity();
         idGarcon.setSexe("ذكر"); // Garçon
-        when(ocrMappingService.processFile(eq(fileGarcon), any(), eq(DocumentType.EXTRAIT_NAISSANCE))).thenReturn(idGarcon);
+        when(ocrMappingService.processFile(eq(fileGarcon), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idGarcon);
 
         // Mock Identifiant
         when(fridaIdentifierService.genererIdentifiant(anyString())).thenReturn("FRIDA-12345");
@@ -122,7 +122,7 @@ class EcrireBdServiceTest {
         when(heirPartCalculatorService.calculerCoefficient(anyInt(), anyInt())).thenReturn(0.125f);
 
         // ---- Act ----
-        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath);
+        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath, "rapide");
 
         // ---- Assert ----
         assertNotNull(result, "La fiche Frida ne doit pas être null");
@@ -147,7 +147,7 @@ class EcrireBdServiceTest {
     void traiterExtraitsNaissance_WhenNoFiles_ShouldReturnNull() throws Exception {
         scanResult.getPdfFiles().clear();
 
-        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath);
+        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath, "rapide");
 
         assertNull(result);
         verify(identitesRepo, never()).save(any());

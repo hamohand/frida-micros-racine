@@ -10,8 +10,8 @@ export class LireaiEcrirebdService {
 
     constructor(private http: HttpClient) {}
 
-    // Nouvelle méthode pour appeler le contrôleur `lireAiEcrireBd`
-    lireAiEcrireBd(): Observable<any> {
-        return this.http.get(`${this.apiUrl}/lireai-ecrirebd`);
+    // Nouvelle méthode pour appeler le contrôleur `lireAiEcrireBd` avec paramètre de mode
+    lireAiEcrireBd(mode: string = 'rapide'): Observable<any> {
+        return this.http.get(`${this.apiUrl}/lireai-ecrirebd?mode=${mode}`);
     }
 }

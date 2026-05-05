@@ -61,11 +61,17 @@ public class OcrMappingService {
      * @param docType   Type de document.
      * @return L'entité IdentitesEntity peuplée, ou {@code null} en cas d'erreur.
      */
-    public IdentitesEntity processFile(Path file, OcrEntityDefinitionDto entityDef, DocumentType docType) {
+    public IdentitesEntity processFile(Path file, OcrEntityDefinitionDto entityDef, DocumentType docType, String mode) {
         // 1. Upload du fichier
         OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(file);
         if (!uploadResponse.isSuccess()) {
             throw new RuntimeException("Echec upload OCR: " + uploadResponse.getError());
+        }
+
+        // Gestion du mode
+        String finalMode = (mode != null && !mode.isEmpty()) ? mode : defaultOcrMode;
+        if ("batch".equals(finalMode)) {
+            finalMode = "approfondi";
         }
 
         // 2. Préparer les zones d'analyse
@@ -73,7 +79,7 @@ public class OcrMappingService {
 
         OcrAnalysisRequestDto request = OcrAnalysisRequestDto.builder()
                 .filename(uploadResponse.getSaved_filename())
-                .mode(defaultOcrMode)
+                .mode(finalMode)
                 .zones(zones)
                 .cadre_reference(entityDef.getCadre_reference())
                 .build();
