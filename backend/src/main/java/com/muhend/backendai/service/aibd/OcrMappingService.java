@@ -39,8 +39,10 @@ public class OcrMappingService {
      * @return La définition d'entité, ou {@code null} si introuvable.
      */
     public OcrEntityDefinitionDto getOrCacheEntityDef(
-            Map<String, OcrEntityDefinitionDto> cache, DocumentType docType) {
-        String ocrEntityId = docType.getOcrEntityId();
+            Map<String, OcrEntityDefinitionDto> cache, DocumentType docType, String customEntityName) {
+        String ocrEntityId = (customEntityName != null && !customEntityName.isEmpty()) 
+                ? customEntityName 
+                : docType.getOcrEntityId();
         OcrEntityDefinitionDto entityDef = cache.get(ocrEntityId);
         if (entityDef == null) {
             entityDef = ocrApiClient.getEntityDefinition(ocrEntityId);

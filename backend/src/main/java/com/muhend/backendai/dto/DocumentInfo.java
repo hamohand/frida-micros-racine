@@ -9,27 +9,63 @@ import lombok.Data;
  * Information sur un document : catégorie d'héritier et type de pièce.
  */
 @Data
-@AllArgsConstructor
 public class DocumentInfo {
     private HeirCategory heirCategory;
     private DocumentType documentType;
+    private String entityName; // Custom OCR entity name
+
+    public DocumentInfo(HeirCategory heirCategory, DocumentType documentType) {
+        this.heirCategory = heirCategory;
+        this.documentType = documentType;
+        this.entityName = null;
+    }
+
+    public DocumentInfo(HeirCategory heirCategory, DocumentType documentType, String entityName) {
+        this.heirCategory = heirCategory;
+        this.documentType = documentType;
+        this.entityName = entityName;
+    }
 
     /**
-     * Parse un nom de dossier au format "{code}_{type}".
-     * Exemple: "2_cni" -> DocumentInfo(CONJOINT, CNI)
+     * Parse un nom de dossier au format "{code}_{type}" ou "{code}_{type}_{entityName}".
+     * Exemple: "2_cni" -> DocumentInfo(CONJOINT, CNI, null)
+     * Exemple: "2_cni_cni_algo_recto_01" -> DocumentInfo(CONJOINT, CNI, "cni_algo_recto_01")
      */
     public static DocumentInfo fromFolderName(String folderName) {
-        if (folderName == null || !folderName.contains("_")) {
+        if (folderName == null) {
+            throw new IllegalArgumentException("Format de dossier invalide: null");
+        }
+        folderName = folderName.trim();
+        if (!folderName.contains("_")) {
             throw new IllegalArgumentException("Format de dossier invalide: " + folderName);
         }
-        String[] parts = folderName.split("_", 2);
-        if (parts.length < 2) {
-            throw new IllegalArgumentException("Format de dossier invalide: " + folderName);
+        
+        // Split par le premier underscore pour obtenir le code
+        int firstUnderscore = folderName.indexOf('_');
+        String codePart = folderName.substring(0, firstUnderscore).trim();
+        String rest = folderName.substring(firstUnderscore + 1).trim(); // ex: "cni" ou "cni_cni_algo_recto_01"
+        
+        HeirCategory category = HeirCategory.fromString(codePart);
+        
+        // Trouver le DocumentType qui correspond au début de "rest"
+        DocumentType docType = null;
+        String entityName = null;
+        
+        for (DocumentType type : DocumentType.values()) {
+            if (rest.equals(type.getFolderSuffix())) {
+                docType = type;
+                break;
+            } else if (rest.startsWith(type.getFolderSuffix() + "_")) {
+                docType = type;
+                entityName = rest.substring(type.getFolderSuffix().length() + 1);
+                break;
+            }
+        }
+        
+        if (docType == null) {
+            throw new IllegalArgumentException("Suffixe de document inconnu dans: " + folderName);
         }
 
-        HeirCategory category = HeirCategory.fromString(parts[0]);
-        DocumentType docType = DocumentType.fromFolderSuffix(parts[1]);
-
-        return new DocumentInfo(category, docType);
+        return new DocumentInfo(category, docType, entityName);
     }
 }

@@ -83,8 +83,8 @@ public class LectureAiService {
                                 } catch (IllegalArgumentException e) {
                                     // Fallback: ancien format (juste le numéro de parenté)
                                     logger.warn(
-                                            "Format de dossier non reconnu '{}', utilisation comme numéro de parenté",
-                                            folderName);
+                                            "Format de dossier non reconnu '{}', utilisation comme numéro de parenté. Erreur: ",
+                                            folderName, e);
                                     result.getTableauNumParente().add(folderName);
                                 }
                             } else {

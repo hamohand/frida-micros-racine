@@ -33,4 +33,8 @@ export class FileUploadService {
         return 0;
     }
   }
+
+  getEntities(): Observable<any[]> {
+    return this.http.get<any[]>('http://localhost:8082/api/entites');
+  }
 }

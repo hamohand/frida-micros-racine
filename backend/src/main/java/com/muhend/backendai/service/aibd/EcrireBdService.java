@@ -158,7 +158,8 @@ public class EcrireBdService {
         HeirCategory heirCategory = (docInfo != null) ? docInfo.getHeirCategory() : HeirCategory.DEFUNT;
 
         // Récupérer la définition OCR (avec cache)
-        OcrEntityDefinitionDto entityDef = ocrMappingService.getOrCacheEntityDef(entityDefCache, docType);
+        String entityName = (docInfo != null) ? docInfo.getEntityName() : null;
+        OcrEntityDefinitionDto entityDef = ocrMappingService.getOrCacheEntityDef(entityDefCache, docType, entityName);
         if (entityDef == null) {
             return indiceParente;
         }

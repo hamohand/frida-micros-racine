@@ -360,7 +360,7 @@ export class UploadWindowsComponent implements OnInit {
     };
   }
 
-  onFilesConfirmed(window: string, events: { rawFiles: UploadedFile[], groupedFiles: { files: File[], docType: string }[] }) {
+  onFilesConfirmed(window: string, events: { rawFiles: UploadedFile[], groupedFiles: { files: File[], docType: string, entityName: string }[] }) {
     const currentWindow = this.windows[window];
     if (currentWindow) {
       if (events.rawFiles.length > 0) {
@@ -421,7 +421,10 @@ export class UploadWindowsComponent implements OnInit {
       const win = this.windows[key];
       if (win.groupedFiles && win.groupedFiles.length > 0) {
         win.groupedFiles.forEach(group => {
-          const uploadPath = win.path + '_' + group.docType;
+          let uploadPath = win.path + '_' + group.docType;
+          if (group.entityName && group.entityName.trim() !== '') {
+            uploadPath += '_' + group.entityName;
+          }
           allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
         });
       }

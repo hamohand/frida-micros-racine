@@ -6,7 +6,7 @@ export interface UploadWindowState {
   isUploading?: boolean;
   path: string;
   rawFiles?: UploadedFile[];
-  groupedFiles?: {files: File[], docType: string}[];
+  groupedFiles?: {files: File[], docType: string, entityName: string}[];
 }
 
 export interface UploadConfig {

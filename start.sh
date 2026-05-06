@@ -17,7 +17,7 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Vérifier si Docker Compose est installé
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker compose &> /dev/null; then
     echo "❌ Docker Compose n'est pas installé. Merci d'installer Docker Compose."
     exit 1
 fi
@@ -39,17 +39,41 @@ fi
 # Afficher les versions
 echo "📋 Vérifications des versions:"
 docker --version
-docker-compose --version
+docker compose --version
 echo ""
+
+# ----- HYBRID ENVIRONMENT (WSL to Windows) -----
+if grep -qi microsoft /proc/version; then
+    echo "🐧 Environnement WSL détecté. Configuration de la connexion avec l'hôte Windows..."
+    
+    # 1. Obtenir l'IP de l'hôte Windows depuis WSL
+    WIN_IP=$(ip route show default | awk '{print $3}')
+    echo "🌐 IP de l'hôte Windows détectée : $WIN_IP"
+    
+    # 2. Mettre à jour ou ajouter WINDOWS_HOST_IP dans .env
+    if grep -q "WINDOWS_HOST_IP=" .env; then
+        sed -i "s/^WINDOWS_HOST_IP=.*/WINDOWS_HOST_IP=$WIN_IP/" .env
+    else
+        echo "WINDOWS_HOST_IP=$WIN_IP" >> .env
+    fi
+    echo "✅ IP $WIN_IP configurée dans .env"
+    
+    # 3. Lancer l'OCR côté Windows via powershell.exe
+    echo "🐍 Démarrage du micro-service OCR natif (Python) sur Windows..."
+    powershell.exe -Command "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd ..\easytess_ocr_api\backend\app_ocr; & ''..\..\.venv\Scripts\python.exe'' run.py' -WindowStyle Normal"
+    echo "✅ Fenêtre OCR lancée sous Windows."
+    echo ""
+fi
+# -----------------------------------------------
 
 # Build des images
 echo "🔨 Construction des images Docker..."
-docker-compose build
+docker compose build
 
 # Démarrer les services
 echo ""
 echo "⚡ Démarrage des services..."
-docker-compose up -d
+docker compose up -d
 
 # Attendre que le backend soit prêt
 echo ""

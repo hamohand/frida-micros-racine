@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
 import { v4 as uuidv4 } from 'uuid';
+import { FileUploadService } from '../../../services/file-upload.service';
 
 @Component({
   selector: 'app-file-upload',
@@ -38,8 +39,13 @@ import { v4 as uuidv4 } from 'uuid';
           <div class="file-info">
             <span class="material-icons">Document :</span>
             <span class="file-name">{{ file.file.name }}</span>
-            <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" class="select-doc-type file-select">
+            <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" (change)="onDocTypeChange(file)" class="select-doc-type file-select">
               <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
+            </select>
+            <select *ngIf="getEntitiesForDocType(file.docType).length > 0" [(ngModel)]="file.entityName" class="select-doc-type file-select">
+              <option *ngFor="let ent of getEntitiesForDocType(file.docType)" [value]="ent">
+                {{ ent }} {{ ent === file.docType + '_01' ? '(par défaut)' : '' }}
+              </option>
             </select>
           </div>
           <button 
@@ -160,16 +166,39 @@ import { v4 as uuidv4 } from 'uuid';
 export class FileUploadComponent implements OnInit {
   @Input() config!: UploadConfig & { allowPrevious?: boolean };
   @Input() initialFiles: UploadedFile[] = [];
-  @Output() filesConfirmed = new EventEmitter<{rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string}[]}>();
+  @Output() filesConfirmed = new EventEmitter<{rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string, entityName: string}[]}>();
   @Output() previousClicked = new EventEmitter<void>();
   @Output() uploadCancelled = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
 
+  availableEntities: Record<string, string[]> = {
+    'cni': [],
+    'en': [],
+    'pp': []
+  };
+
+  constructor(private fileUploadService: FileUploadService) {}
+
+  getEntitiesForDocType(docType: string): string[] {
+    return this.availableEntities[docType] || [];
+  }
+
   ngOnInit() {
     if (this.initialFiles && this.initialFiles.length > 0) {
       this.uploadedFiles = [...this.initialFiles];
     }
+    
+    // Charger dynamiquement les entités OCR depuis l'API Python
+    this.fileUploadService.getEntities().subscribe({
+      next: (entities) => {
+        const cni = entities.filter(e => e.nom && e.nom.startsWith('cni_')).map(e => e.nom);
+        const en = entities.filter(e => e.nom && e.nom.startsWith('en_')).map(e => e.nom);
+        const pp = entities.filter(e => e.nom && e.nom.startsWith('pp_')).map(e => e.nom);
+        this.availableEntities = { 'cni': cni, 'en': en, 'pp': pp };
+      },
+      error: (err) => console.error("Erreur de chargement des entités OCR", err)
+    });
   }
 
   getFileSize(bytes: number): string {
@@ -217,13 +246,19 @@ export class FileUploadComponent implements OnInit {
     const validFiles = newFiles.filter(file => this.validateFile(file));
 
     validFiles.forEach(file => {
+      const docType = this.config.docTypes && this.config.docTypes.length > 0 ? this.config.docTypes[0].id : 'en';
       this.uploadedFiles.push({
         file,
         id: uuidv4(),
         progress: 0,
-        docType: this.config.docTypes && this.config.docTypes.length > 0 ? this.config.docTypes[0].id : 'en'
+        docType: docType,
+        entityName: docType + '_01'
       });
     });
+  }
+
+  onDocTypeChange(file: UploadedFile) {
+    file.entityName = file.docType + '_01';
   }
 
   validateFile(file: File): boolean {
@@ -255,21 +290,21 @@ export class FileUploadComponent implements OnInit {
 
   onUpload() {
     if (this.uploadedFiles.length > 0) {
-      // Group files by docType
-      const groups = new Map<string, File[]>();
+      // Group files by docType and entityName
+      const groups = new Map<string, {files: File[], docType: string, entityName: string}>();
 
       this.uploadedFiles.forEach(f => {
-        const type = f.docType;
-        if (!groups.has(type)) {
-          groups.set(type, []);
+        const key = f.docType + '_' + (f.entityName || '');
+        if (!groups.has(key)) {
+          groups.set(key, {files: [], docType: f.docType, entityName: f.entityName || ''});
         }
-        groups.get(type)!.push(f.file);
+        groups.get(key)!.files.push(f.file);
       });
 
       // Emit array of groups
-      const emitData: { files: File[], docType: string }[] = [];
-      groups.forEach((files, docType) => {
-        emitData.push({ files, docType });
+      const emitData: { files: File[], docType: string, entityName: string }[] = [];
+      groups.forEach((groupData, key) => {
+        emitData.push(groupData);
       });
 
       this.filesConfirmed.emit({

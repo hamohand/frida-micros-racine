@@ -3,6 +3,7 @@ export interface UploadedFile {
   id: string;
   progress: number;
   docType: string;
+  entityName?: string;
   error?: string;
 }
 

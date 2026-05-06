@@ -8,9 +8,9 @@ import lombok.Getter;
  */
 @Getter
 public enum DocumentType {
-    EXTRAIT_NAISSANCE("en", "en01"),
-    CNI("cni", "cni_algo_recto_01"),
-    PASSEPORT("pp", "pp01");
+    EXTRAIT_NAISSANCE("en", "en_01"),
+    CNI("cni", "cni_01"),
+    PASSEPORT("pp", "pp_01");
 
     private final String folderSuffix;
     private final String ocrEntityId;

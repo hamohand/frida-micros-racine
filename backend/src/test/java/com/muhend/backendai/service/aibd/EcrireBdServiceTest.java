@@ -94,7 +94,7 @@ class EcrireBdServiceTest {
 
         // Mocks OCR Mapping
         OcrEntityDefinitionDto entityDef = new OcrEntityDefinitionDto();
-        when(ocrMappingService.getOrCacheEntityDef(any(), any())).thenReturn(entityDef);
+        when(ocrMappingService.getOrCacheEntityDef(any(), any(), any())).thenReturn(entityDef);
 
         // Mock Identités
         IdentitesEntity idDefunt = new IdentitesEntity();

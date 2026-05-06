@@ -22,8 +22,8 @@ else
 fi
 
 # Vérifier Docker Compose
-if command -v docker-compose &> /dev/null; then
-    COMPOSE_VERSION=$(docker-compose --version)
+if command -v docker compose &> /dev/null; then
+    COMPOSE_VERSION=$(docker compose --version)
     echo "✅ Docker Compose installé: $COMPOSE_VERSION"
 else
     echo "❌ Docker Compose n'est pas installé"
@@ -101,8 +101,8 @@ case $choice in
         echo ""
         echo "🐳 Construction et démarrage avec Docker Compose..."
         echo ""
-        docker-compose build
-        docker-compose up -d
+        docker compose build
+        docker compose up -d
         echo ""
         echo "✅ Services démarrés avec Docker Compose!"
         ;;
@@ -152,10 +152,10 @@ if [ "$HAS_MAKE" = true ]; then
     echo "  make clean          → Supprimer tout"
     echo ""
 fi
-echo "  docker-compose ps              → État des services"
-echo "  docker-compose logs -f         → Logs en temps réel"
-echo "  docker-compose exec backend bash    → Shell backend"
-echo "  docker-compose exec postgres psql   → Shell DB"
+echo "  docker compose ps              → État des services"
+echo "  docker compose logs -f         → Logs en temps réel"
+echo "  docker compose exec backend bash    → Shell backend"
+echo "  docker compose exec postgres psql   → Shell DB"
 echo ""
 echo "Documentation:"
 echo "  📖 README.md        → Guide complet"
