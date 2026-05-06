@@ -66,9 +66,13 @@ if grep -qi microsoft /proc/version; then
 fi
 # -----------------------------------------------
 
-# Build des images
-echo "🔨 Construction des images Docker..."
-docker compose build
+# Build des images (uniquement si --build est passé)
+if [ "$1" = "--build" ]; then
+    echo "🔨 Construction des images Docker..."
+    docker compose build
+else
+    echo "⏭️  Saut de la construction des images (utilisez ./start.sh --build pour forcer le build)"
+fi
 
 # Démarrer les services
 echo ""
