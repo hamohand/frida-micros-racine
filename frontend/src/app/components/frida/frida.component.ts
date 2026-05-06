@@ -142,6 +142,57 @@ export class FridaComponent implements OnInit, AfterViewInit {
     console.log("numFrida frida.ts: ",this.numFrida);
   }
 
+  getRelationArabe(heritier: any): string {
+    const isMaleDefunt = this.frida?.defunt?.identite?.sexe === 'ذكر';
+    const numParente = heritier.numParente;
+    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+
+    if (numParente == 2) {
+      return isMaleDefunt ? 'أرملته' : 'أرملها';
+    } else if (numParente == 3) {
+      if (isMaleDefunt) return isMaleHeritier ? 'ابنه' : 'بنته';
+      else return isMaleHeritier ? 'ابنها' : 'بنتها';
+    } else if (numParente == 4) {
+      if (isMaleDefunt) return isMaleHeritier ? 'والده' : 'والدته';
+      else return isMaleHeritier ? 'والدها' : 'والدتها';
+    } else if (numParente == 5) {
+      if (isMaleDefunt) return isMaleHeritier ? 'أخوه' : 'أخته';
+      else return isMaleHeritier ? 'أخوها' : 'أختها';
+    }
+    return '';
+  }
+
+  getTexteHeritier(heritier: any): string {
+    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+    
+    // Nom et prénom tels quels (pas de formatage majuscule en arabe)
+    const identite = `${heritier.identite?.nom || ''} ${heritier.identite?.prenom || ''}`;
+    
+    // Phrase de naissance et NIN avec accord du genre
+    const ne_le = isMaleHeritier ? 'المولود في' : 'المولودة في';
+    const titulaire_nin = isMaleHeritier ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني';
+    
+    return `${identite} ${ne_le} ${heritier.identite?.dateNaissance || ''} ${titulaire_nin} ${heritier.identite?.nin || ''}`;
+  }
+
+  getHeritierPart(heritier: any): {num: number, den: number} | null {
+    if (!this.frida || !this.frida.calcul) return null;
+    const den = this.frida.calcul.denominateur || 1;
+    
+    // Récupération de la part selon la parenté
+    if (heritier.numParente == 2) {
+      return { num: this.frida.calcul.numerateurConjoint || 0, den: den };
+    } else if (heritier.numParente == 3) {
+      if (heritier.identite?.sexe === 'ذكر') {
+         return { num: this.frida.calcul.numerateurGarcons || 0, den: den };
+      } else {
+         return { num: this.frida.calcul.numerateurFilles || 0, den: den };
+      }
+    }
+    // Ajouter père/mère ou frères/sœurs si leurs numérateurs sont ajoutés au backend plus tard
+    return null;
+  }
+
   /* -------------- IMPRESSION ----------------- */
   // Méthode pour imprimer toute la page
   // printFrida() {
@@ -207,6 +258,10 @@ export class FridaComponent implements OnInit, AfterViewInit {
                 .fraction-box .num { border-bottom: 1px solid black; padding: 0 5px; line-height: 1.2; }
                 .fraction-box .den { padding: 0 5px; line-height: 1.2; }
                 
+                .dash-fill-container { display: flex; align-items: center; width: 100%; margin-bottom: 5px; }
+                .dash-fill-container .text-content { white-space: normal; }
+                .dash-fill-container .dashes { flex-grow: 1; overflow: hidden; white-space: nowrap; margin: 0 10px; font-weight: bold; letter-spacing: 2px; transform: translateY(5px); }
+
                 .signature-area {
                   margin-top: 2cm;
                   display: flex;

@@ -73,17 +73,23 @@
 
             <!-- Les temoins -->
             <section class="section">
-                <div class="bold" style="margin-bottom: 10px;">بشهادة كل من :</div>
+                <div class="dash-fill-container">
+                    <div class="bold text-content">بشهادة كل من :</div>
+                    <div class="dashes">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+                </div>
                 <div class="liste-temoins">
                     @for (temoin of temoins; track temoin; let i = $index) {
-                    <div style="margin-bottom: 10px;">
-                        <span> {{ i + 1 }}) - السيد</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span class="ocr-data"> {{temoin.identite.nom}} {{temoin.identite.prenom}}</span>،
-                        <span> جزائري</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
-                        <span> المولود</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span> بتاريخ <span class="ocr-data">{{temoin.identite.dateNaissance}}</span>، </span>
-                        <span> الساكن</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                        <span> بـ <span class="ocr-data">{{temoin.adresse}}</span>.</span>
+                    <div class="dash-fill-container">
+                        <div class="text-content">
+                            <span> {{ i + 1 }}) - السيد</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
+                            <span class="ocr-data"> {{temoin.identite.nom}} {{temoin.identite.prenom}}</span>،
+                            <span> جزائري</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
+                            <span> المولود</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
+                            <span> بتاريخ <span class="ocr-data">{{temoin.identite.dateNaissance}}</span>، </span>
+                            <span> الساكن</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
+                            <span> بـ <span class="ocr-data">{{temoin.adresse}}</span>.</span>
+                        </div>
+                        <div class="dashes">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</div>
                     </div>
                     }
                 </div>
@@ -96,37 +102,33 @@
 
             <!-- Présentations des héritiers -->
             <section class="section">
-                <div class="bold" style="margin-bottom: 10px;">الـورثـة :</div>
-                <div class="liste-heritiers">
+                <div class="dash-fill-container">
+                    <div class="bold text-content">الـورثـة :</div>
+                    <div class="dashes">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+                </div>
+                <div class="liste-heritiers" style="margin-right: 0;">
                     @for (heritier of heritiers; track heritier; let i = $index) {
-                    <div style="margin-bottom: 10px;">
-                        <span>{{ i + 1 }}) - </span>
-                        <!-- Conjoint -->
-                        @if (heritier.numParente==2) {
-                        <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else femininConjoint">أرملته</span><ng-template #femininConjoint>أرملها</ng-template>
-                        }
-                        <!-- Enfants -->
-                        @else if (heritier.numParente==3) {
-                        <span>ابن</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
-                        }
-                        <!-- Parents -->
-                        @else if (heritier.numParente==4) {
-                        <span *ngIf="heritier.identite.sexe == 'ذكر'">والد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">والدت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
-                        }
-                        <!-- Fratrie -->
-                        @else if (heritier.numParente==5) {
-                        <span *ngIf="heritier.identite.sexe == 'ذكر'">أخو</span><span *ngIf="heritier.identite.sexe != 'ذكر'">أخت</span><span>ه</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
-                        }
-
-                        <span> السيد</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span class="ocr-data"> {{heritier.identite.nom}} {{heritier.identite.prenom}}</span>،
-                        <span> المولود</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span> بتاريخ <span class="ocr-data">{{heritier.identite.dateNaissance}}</span> بـ <span
-                                class="ocr-data">{{heritier.identite.lieuNaissance}}</span> (ولاية <span
-                                class="ocr-data">{{heritier.identite.wilaya}}</span>)،</span>
-                        <span> جزائري</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
-                        <span> الحامل</span><span *ngIf="heritier.identite.sexe != 'ذكر'">ة</span>
-                        <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data">{{heritier.identite.nin}}</span>.</span>
+                    <div class="dash-fill-container">
+                        <div class="text-content">
+                            <span>- </span>
+                            <span class="bold">{{ getRelationArabe(heritier) }}</span>
+                            <span class="ocr-data"> {{ getTexteHeritier(heritier) }} </span>
+                        </div>
+                        <div class="dashes">
+                            ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                        </div>
+                        <div class="fraction-box" style="white-space: nowrap;">
+                            @if (getHeritierPart(heritier); as part) {
+                                @if (part.num > 0) {
+                                    <span class="num" style="font-size: 14pt;">{{ part.num }}</span>
+                                    <span class="den" style="font-size: 14pt;">{{ part.den }}</span>
+                                } @else {
+                                    <span style="font-weight: normal; font-size: 12pt;">-</span>
+                                }
+                            } @else {
+                                <span style="font-weight: normal; font-size: 12pt;">-</span>
+                            }
+                        </div>
                     </div>
                     }
                 </div>
@@ -134,7 +136,10 @@
 
             <!-- Calcul et Parts -->
             <section class="section">
-                <div class="bold" style="margin-bottom: 10px;">الـقـسـمـة :</div>
+                <div class="dash-fill-container">
+                    <div class="bold text-content">الـقـسـمـة :</div>
+                    <div class="dashes">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+                </div>
 
                 @if (frida?.calcul.nbConjoints!=0 || frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) {
                 <div>

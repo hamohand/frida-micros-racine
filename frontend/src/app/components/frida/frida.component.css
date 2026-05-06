@@ -52,8 +52,27 @@
 
 /* Sections */
 .section {
-  margin-bottom: 1.5cm;
+  margin-bottom: 0.5cm;
   text-align: justify;
+}
+
+.dash-fill-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 5px;
+}
+.dash-fill-container .text-content {
+  white-space: normal;
+}
+.dash-fill-container .dashes {
+  flex-grow: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  margin: 0 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  transform: translateY(5px);
 }
 
 .section-titre {
@@ -134,3 +153,4 @@
       color: black !important;
     }
   }
+}
