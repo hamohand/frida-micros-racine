@@ -19,7 +19,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
   //numFrida: string = '1956010320250116';
   //numFrida: string = '19560103202501171733';
   numFrida: string = '';
-  url: string = 'http://localhost:8080/api/frida/';
+  url: string = '/api/frida/';
 
   public heritiers: any = [];
   public temoins: any = [];

@@ -87,7 +87,7 @@ export class SearchComponent {
   numFrida: string = '';
   nomDefunt: string = '';
   defunts: any = [];
-  url: string = 'http://localhost:8080/api/frida/';
+  url: string = '/api/frida/';
   searchPerformed: boolean = false;
 
 

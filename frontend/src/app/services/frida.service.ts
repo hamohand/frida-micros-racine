@@ -6,7 +6,7 @@ import { catchError, map, Observable, throwError } from "rxjs";
   providedIn: 'root'
 })
 export class FridaService {
-  private apiUrl: string = 'http://localhost:8080'; // initialisation
+  private apiUrl: string = ''; // initialisation
 
   constructor(private monHttp: HttpClient) { }
 

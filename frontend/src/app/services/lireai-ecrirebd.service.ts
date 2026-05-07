@@ -6,7 +6,7 @@ import { Observable } from 'rxjs';
     providedIn: 'root',
 })
 export class LireaiEcrirebdService {
-    private apiUrl = 'http://localhost:8080/api/pdfs'; // Changez ce chemin si nécessaire
+    private apiUrl = '/api/pdfs'; // Changez ce chemin si nécessaire
 
     constructor(private http: HttpClient) {}
 

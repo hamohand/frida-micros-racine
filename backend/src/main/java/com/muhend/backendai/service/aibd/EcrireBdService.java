@@ -125,6 +125,9 @@ public class EcrireBdService {
                 finaliserEtSauvegarder(ctx);
             }
 
+            // Marquer le dossier comme traité
+            marquerDossierCommeTraite(Paths.get(folderPath));
+
             return ctx.getFicheFrida();
 
         } catch (InterruptedException e) {
@@ -317,5 +320,17 @@ public class EcrireBdService {
                     : calcul.getNumerateurFilles();
             default -> 0; // Parents et fratrie : géré par le service calculs
         };
+    }
+
+    private void marquerDossierCommeTraite(Path folderPath) {
+        try {
+            Path processedFile = folderPath.resolve(".processed");
+            if (!java.nio.file.Files.exists(processedFile)) {
+                java.nio.file.Files.createFile(processedFile);
+                log.info("Dossier marqué comme traité : {}", processedFile);
+            }
+        } catch (IOException e) {
+            log.error("Impossible de créer le fichier .processed dans {}", folderPath, e);
+        }
     }
 }

@@ -222,7 +222,7 @@ import { Router } from '@angular/router';
 export class FridaListComponent implements OnInit {
   fridaList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string; prenom?: string; requiresCorrection?: boolean }[] = [];
   filteredList: { numFrida: string; dateCreation: string; dateNaissane: string; nom: string; prenom?: string; requiresCorrection?: boolean }[] = [];
-  url: string = 'http://localhost:8080/api/frida/';
+  url: string = '/api/frida/';
 
   constructor(private fridaService: FridaService, private router: Router) { }
 

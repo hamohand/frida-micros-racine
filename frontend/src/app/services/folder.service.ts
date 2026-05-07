@@ -16,7 +16,7 @@ export interface FolderResponse {
   providedIn: 'root'
 })
 export class FolderService {
-  private apiUrl = 'http://localhost:8080/api/folders';
+  private apiUrl = '/api/folders';
 
   constructor(private http: HttpClient) {}
 

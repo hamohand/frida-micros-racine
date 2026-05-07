@@ -34,7 +34,7 @@ export class FridaEditComponent implements OnInit {
     }
     
     try {
-      this.frida = await firstValueFrom(this.http.get(`http://localhost:8080/api/frida/${this.numFrida}`));
+      this.frida = await firstValueFrom(this.http.get(`/api/frida/${this.numFrida}`));
       this.loading = false;
     } catch (err) {
       console.error(err);
@@ -46,7 +46,7 @@ export class FridaEditComponent implements OnInit {
   async sauvegarderCorrections() {
     this.saving = true;
     try {
-      await firstValueFrom(this.http.put(`http://localhost:8080/api/frida/corrections/${this.numFrida}`, this.frida));
+      await firstValueFrom(this.http.put(`/api/frida/corrections/${this.numFrida}`, this.frida));
       this.saving = false;
       // Rediriger vers l'archive avec succès
       this.router.navigate(['/list']);
