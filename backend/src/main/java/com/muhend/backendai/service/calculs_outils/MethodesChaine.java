@@ -64,7 +64,14 @@ public class MethodesChaine {
         java.time.format.DateTimeFormatter[] formatters = {
                 java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"),
                 java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"),
-                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy")
+                java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"),
+                java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"),
+                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy"),
+                new java.time.format.DateTimeFormatterBuilder()
+                    .appendPattern("yyyy")
+                    .parseDefaulting(java.time.temporal.ChronoField.MONTH_OF_YEAR, 1)
+                    .parseDefaulting(java.time.temporal.ChronoField.DAY_OF_MONTH, 1)
+                    .toFormatter()
         };
 
         // 3. Essai de conversion

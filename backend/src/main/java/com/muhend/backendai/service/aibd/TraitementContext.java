@@ -28,13 +28,22 @@ public class TraitementContext {
     private int nbFilles;
     private int nbGarcons;
     private int nbParents;
+    private boolean pereVivant;
+    private boolean mereVivante;
     private int nbFreres;
     private int nbSoeurs;
 
     public void incrementConjoints() { nbConjoints++; }
     public void incrementFilles() { nbFilles++; }
     public void incrementGarcons() { nbGarcons++; }
-    public void incrementParents() { nbParents++; }
+    public void incrementParents(String sexe) { 
+        nbParents++; 
+        if ("ذكر".equals(sexe)) {
+            this.pereVivant = true;
+        } else {
+            this.mereVivante = true;
+        }
+    }
     public void incrementFreres() { nbFreres++; }
     public void incrementSoeurs() { nbSoeurs++; }
 
@@ -54,7 +63,7 @@ public class TraitementContext {
                         if ("ذكر".equals(sexe)) ctx.incrementGarcons();
                         else ctx.incrementFilles();
                     }
-                    case "4" -> ctx.incrementParents();
+                    case "4" -> ctx.incrementParents(sexe);
                     case "5" -> {
                         if ("ذكر".equals(sexe)) ctx.incrementFreres();
                         else ctx.incrementSoeurs();

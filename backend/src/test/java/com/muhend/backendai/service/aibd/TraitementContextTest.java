@@ -27,8 +27,8 @@ class TraitementContextTest {
 
         ctx.incrementFilles();
         
-        ctx.incrementParents();
-        ctx.incrementParents();
+        ctx.incrementParents("ذكر");
+        ctx.incrementParents("انثى");
 
         ctx.incrementFreres();
         ctx.incrementSoeurs();

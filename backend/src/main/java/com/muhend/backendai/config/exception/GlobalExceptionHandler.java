@@ -33,4 +33,12 @@ public class GlobalExceptionHandler {
         );
         return ResponseEntity.badRequest().body(errors);
     }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {
+        log.error("Erreur inattendue", e);
+        Map<String, String> response = new HashMap<>();
+        response.put("error", e.getMessage() != null ? e.getMessage() : "Erreur interne du serveur");
+        return ResponseEntity.internalServerError().body(response);
+    }
 }

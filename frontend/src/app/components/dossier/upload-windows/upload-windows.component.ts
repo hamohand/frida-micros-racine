@@ -183,10 +183,10 @@ import { forkJoin, Observable, of } from 'rxjs';
 
                 <!-- Vue en mode asynchrone (Pendant l'OCR) -->
                 <div *ngIf="isReading && !endReading" style="margin-top: 15px; text-align: center; width: 100%;">
-                   <p style="color: springgreen; font-weight: bold; margin-bottom: 5px;"><span class="spinner" style="margin-right: 8px;"></span> L'Intelligence Artificielle analyse vos documents en arrière-plan...</p>
+                   <p style="color: springgreen; font-weight: bold; margin-bottom: 5px;"><span class="spinner" style="margin-right: 8px;"></span> Analyse de vos documents en cours...</p>
                    <div style="display: flex; gap: 10px; justify-content: center;">
                        <button class="btn btn-secondary continue-btn" (click)="accueil()">
-                         Retour à l'Accueil
+                         Retour à l'Accueil pour un nouveau dossier
                        </button>
                    </div>
                 </div>

@@ -188,8 +188,20 @@ export class FridaComponent implements OnInit, AfterViewInit {
       } else {
          return { num: this.frida.calcul.numerateurFilles || 0, den: den };
       }
+    } else if (heritier.numParente == 4) {
+      if (heritier.identite?.sexe === 'ذكر') {
+         return { num: this.frida.calcul.numerateurPere || 0, den: den };
+      } else {
+         return { num: this.frida.calcul.numerateurMere || 0, den: den };
+      }
     }
-    // Ajouter père/mère ou frères/sœurs si leurs numérateurs sont ajoutés au backend plus tard
+    
+    // Ajouter frères/sœurs si leurs numérateurs sont ajoutés au backend plus tard
+    // Fallback: reconstruire depuis le coefficient
+    if (heritier.coefPart && heritier.coefPart > 0) {
+      return { num: Math.round(heritier.coefPart * den), den: den };
+    }
+    
     return null;
   }
 

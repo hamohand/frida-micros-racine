@@ -152,17 +152,17 @@ public class OcrMappingService {
 
         entity.setNom(getText.apply("nom"));
         entity.setPrenom(getText.apply("prenom"));
-        entity.setLieuNaissance(getText.apply("lieu_naissance"));
+        entity.setLieuNaissance(getText.apply("lieuNaissance"));
         entity.setNin(getText.apply("nin"));
         entity.setSexe(getText.apply("sexe"));
-        entity.setNumeroPiece(getText.apply("numero_piece"));
-        entity.setDelivrePar(getText.apply("delivre_par"));
-        entity.setDelivreLe(getText.apply("delivre_le"));
-        entity.setExpireLe(getText.apply("expire_le"));
+        entity.setNumeroPiece(getText.apply("numeroPiece"));
+        entity.setDelivrePar(getText.apply("delivrePar"));
+        entity.setDelivreLe(getText.apply("delivreLe"));
+        entity.setExpireLe(getText.apply("expireLe"));
         entity.setNomPiece(docType == DocumentType.CNI
                 ? "Carte Nationale d'Identité" : "Passeport");
 
-        parseDateNaissance(entity, getText.apply("date_naissance"));
+        parseDateNaissance(entity, getText.apply("dateNaissance"));
 
         // Vérification du statut
         boolean hasLowConfidence = results.values().stream()
@@ -202,10 +202,10 @@ public class OcrMappingService {
     private void parseDateNaissance(IdentitesEntity entity, String dateTxt) {
         try {
             java.time.LocalDate parsedDate = MethodesChaine.parseOcrDate(dateTxt);
-            entity.setDateNaissance(parsedDate != null ? parsedDate : java.time.LocalDate.now());
+            entity.setDateNaissance(parsedDate);
         } catch (Exception e) {
-            log.warn("Impossible de parser la date de naissance '{}', utilisation de la date du jour.", dateTxt);
-            entity.setDateNaissance(java.time.LocalDate.now());
+            log.warn("Impossible de parser la date de naissance '{}', elle restera vide.", dateTxt);
+            entity.setDateNaissance(null);
         }
     }
 

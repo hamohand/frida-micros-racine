@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -93,6 +94,7 @@ public class EcrireBdService {
      *                   au format {code}_{type} (ex: 1_en, 2_cni).
      * @return La fiche Frida créée, ou {@code null} si aucun document traité.
      */
+    @org.springframework.transaction.annotation.Transactional
     public FridaEntity traiterExtraitsNaissance(String folderPath, String mode) {
         try {
             // Blocage si le nombre max de dossiers simultanés est atteint
@@ -108,6 +110,7 @@ public class EcrireBdService {
 
             if (files.isEmpty()) {
                 log.warn("Aucun document trouvé dans le dossier : {}", folderPath);
+                marquerDossierCommeTraite(Paths.get(folderPath));
                 return null;
             }
 
@@ -259,7 +262,7 @@ public class EcrireBdService {
                     ctx.incrementFilles();
                 }
             }
-            case "4" -> ctx.incrementParents();
+            case "4" -> ctx.incrementParents(sexe);
             case "5" -> {
                 if ("ذكر".equals(sexe)) {
                     ctx.incrementFreres();
@@ -318,7 +321,10 @@ public class EcrireBdService {
             case "3" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
                     ? calcul.getNumerateurGarcons()
                     : calcul.getNumerateurFilles();
-            default -> 0; // Parents et fratrie : géré par le service calculs
+            case "4" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
+                    ? (calcul.getNumerateurPere() != null ? calcul.getNumerateurPere() : 0)
+                    : (calcul.getNumerateurMere() != null ? calcul.getNumerateurMere() : 0);
+            default -> 0; // Fratrie : géré par le service calculs
         };
     }
 

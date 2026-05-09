@@ -18,7 +18,7 @@
   color: black;
   direction: rtl;
   font-family: 'Amiri', serif;
-  font-size: 16pt;
+  font-size: 12pt;
   line-height: 1.8;
   position: relative;
 }
@@ -27,12 +27,12 @@
 .header-officiel {
   text-align: center;
   font-weight: bold;
-  font-size: 18pt;
-  margin-bottom: 2cm;
+  font-size: 14pt;
+  margin-bottom: 1.5cm;
 }
 
 .header-titre-principal {
-  font-size: 24pt;
+  font-size: 18pt;
   margin-bottom: 10px;
 }
 
@@ -64,20 +64,37 @@
 }
 .dash-fill-container .text-content {
   white-space: normal;
+  flex-shrink: 0;
 }
-.dash-fill-container .dashes {
+.dash-fill-container .dashes-spacer {
   flex-grow: 1;
-  overflow: hidden;
-  white-space: nowrap;
+  border-bottom: 2px dashed black;
   margin: 0 10px;
+  position: relative;
+  top: 5px;
+}
+
+/* Multiline paragraph with dash fill at the end */
+.dash-paragraph {
+  display: block;
+  text-align: justify;
+  overflow: hidden;
+  margin-bottom: 5px;
+}
+.dash-paragraph .text-content {
+  display: inline;
+}
+.dash-paragraph .dashes {
+  display: inline;
+  white-space: nowrap;
   font-weight: bold;
   letter-spacing: 2px;
-  transform: translateY(5px);
+  margin: 0 10px;
 }
 
 .section-titre {
   font-weight: bold;
-  font-size: 18pt;
+  font-size: 14pt;
   margin-bottom: 0.5cm;
   border-bottom: 1px solid #ccc;
   display: inline-block;
@@ -153,4 +170,14 @@
       color: black !important;
     }
   }
+}
+.print-header {
+  padding: 20px;
+  text-align: center;
+}
+
+.print-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
