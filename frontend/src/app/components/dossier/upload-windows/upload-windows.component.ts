@@ -472,7 +472,10 @@ export class UploadWindowsComponent implements OnInit {
       error: (error) => {
         console.error('Erreur lors de l’écriture UploadWindowsComponent:', error);
         this.isReading = false;
-        alert("L'analyse a échouée.");
+        // Si le serveur a mis trop de temps à répondre (timeout Nginx), 
+        // l'analyse peut quand même avoir réussi en arrière-plan.
+        // On permet à l'utilisateur de cliquer sur "Afficher la frida" au cas où.
+        this.endReading = true; 
       },
     });
   }
