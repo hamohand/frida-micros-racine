@@ -77,17 +77,16 @@ export class FridaComponent implements OnInit, AfterViewInit {
           const numConjoint = this.frida.calcul.numerateurConjoint || 0;
           const numGarcons = this.frida.calcul.numerateurGarcons || 0;
           const numFilles = this.frida.calcul.numerateurFilles || 0;
+          const numPere = this.frida.calcul.numerateurPere || 0;
+          const numMere = this.frida.calcul.numerateurMere || 0;
 
           this.denominateur_L = this.traductionArabeService.nombreVersArabe(this.frida.calcul.denominateur || 1);
           this.numerateurConjoint_L = this.traductionArabeService.nombreVersArabe(numConjoint);
           this.numerateurGarcons_L = this.traductionArabeService.nombreVersArabe(numGarcons);
           this.numerateurFilles_L = this.traductionArabeService.nombreVersArabe(numFilles);
           
-          //Vérification
-          this.numerateurVerif = numConjoint * (this.frida.calcul.nbConjoints || 0)
-              + numGarcons * (this.frida.calcul.nbGarcons || 0)
-              + numFilles * (this.frida.calcul.nbFilles || 0);
-          this.numerateurVerif_L = this.traductionArabeService.nombreVersArabe(this.numerateurVerif);
+          // Lancer le calcul de vérification complet (nécessite les héritiers)
+          this.calculerNumerateurVerif();
           console.log("Notaire : "+this.frida.notaire);
         } else {
           console.error('Données invalides reçues pour "frida" : ', data);
@@ -109,8 +108,11 @@ export class FridaComponent implements OnInit, AfterViewInit {
       next: data => {
         if (data){
           this.heritiers = data;
-          console.log("Conjoint -------- : ", this.heritiers[0].identite.latines);
+          console.log("Conjoint -------- : ", this.heritiers[0]?.identite?.latines);
           console.log("data heritiers : ",this.heritiers);
+          
+          // Lancer le calcul de vérification complet (nécessite la frida)
+          this.calculerNumerateurVerif();
         } else {
           console.error('Données invalides reçues pour "heritiers" :', data);
           this.heritiers = null; // Éviter une référence invalide.
@@ -142,6 +144,23 @@ export class FridaComponent implements OnInit, AfterViewInit {
     console.log("numFrida frida.ts: ",this.numFrida);
   }
 
+  calculerNumerateurVerif(): void {
+    if (!this.frida || !this.frida.calcul || !this.heritiers || this.heritiers.length === 0) {
+      return;
+    }
+    
+    let total = 0;
+    for (const h of this.heritiers) {
+      const part = this.getHeritierPart(h);
+      if (part && part.num) {
+        total += part.num;
+      }
+    }
+    
+    this.numerateurVerif = total;
+    this.numerateurVerif_L = this.traductionArabeService.nombreVersArabe(this.numerateurVerif);
+  }
+
   getRelationArabe(heritier: any): string {
     const isMaleDefunt = this.frida?.defunt?.identite?.sexe === 'ذكر';
     const numParente = heritier.numParente;
@@ -158,6 +177,18 @@ export class FridaComponent implements OnInit, AfterViewInit {
     } else if (numParente == 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'أخوه' : 'أخته';
       else return isMaleHeritier ? 'أخوها' : 'أختها';
+    }
+    return '';
+  }
+
+  getRelationArabePourPart(heritier: any): string {
+    const isMaleDefunt = this.frida?.defunt?.identite?.sexe === 'ذكر';
+    const numParente = heritier.numParente;
+    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+
+    if (numParente == 5) {
+      if (isMaleDefunt) return isMaleHeritier ? 'لأخيه' : 'لأخته';
+      else return isMaleHeritier ? 'لأخيها' : 'لأختها';
     }
     return '';
   }
@@ -193,6 +224,12 @@ export class FridaComponent implements OnInit, AfterViewInit {
          return { num: this.frida.calcul.numerateurPere || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurMere || 0, den: den };
+      }
+    } else if (heritier.numParente == 5) {
+      if (heritier.identite?.sexe === 'ذكر') {
+         return { num: this.frida.calcul.numerateurFreres || 0, den: den };
+      } else {
+         return { num: this.frida.calcul.numerateurSoeurs || 0, den: den };
       }
     }
     
@@ -245,7 +282,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
                 body {
                   font-family: 'Amiri', serif;
                   color: black;
-                  font-size: 16pt;
+                  font-size: 12pt;
                   direction: rtl;
                   padding: 40px;
                   line-height: 1.8;
@@ -256,23 +293,30 @@ export class FridaComponent implements OnInit, AfterViewInit {
                 .vert { font-weight: bold; color: black; }
                 .bold { font-weight: bold; }
                 
-                .section { margin-bottom: 1.5cm; text-align: justify; }
+                .section { margin-bottom: 1.5cm; text-align: right; }
                 .liste-temoins, .liste-heritiers, .liste-parts { margin-right: 1cm; }
                 
                 .fraction-box {
-                  display: inline-flex;
+                  display: flex;
                   flex-direction: column;
                   align-items: center;
-                  vertical-align: middle;
+                  justify-content: flex-end;
                   font-weight: bold;
-                  margin: 0 5px;
+                  margin: 0;
                 }
-                .fraction-box .num { border-bottom: 1px solid black; padding: 0 5px; line-height: 1.2; }
-                .fraction-box .den { padding: 0 5px; line-height: 1.2; }
+                .fraction-box .num { border-bottom: 1px solid black; padding: 0 5px; line-height: 1.2; font-size: 14pt; }
+                .fraction-box .den { padding: 0 5px; line-height: 1.2; font-size: 14pt; }
                 
-                .dash-fill-container { display: flex; align-items: center; width: 100%; margin-bottom: 5px; }
-                .dash-fill-container .text-content { white-space: normal; }
-                .dash-fill-container .dashes { flex-grow: 1; overflow: hidden; white-space: nowrap; margin: 0 10px; font-weight: bold; letter-spacing: 2px; transform: translateY(5px); }
+                .dash-paragraph { display: block; text-align: right; overflow: hidden; position: relative; margin-bottom: 5px; }
+                .dash-paragraph .text-content { display: inline; position: relative; z-index: 2; padding-left: 10px; }
+                .dash-paragraph .leader-spacer { display: inline-block; width: 0; height: 0; position: relative; }
+                .dash-paragraph .leader-spacer::after { content: ""; position: absolute; right: 0; bottom: 8px; width: 21cm; border-bottom: 2px dashed black; z-index: 1; }
+
+                .heir-paragraph { display: block; text-align: right; overflow: hidden; position: relative; margin-bottom: 15px; }
+                .heir-paragraph .text-content { display: inline; position: relative; z-index: 2; padding-left: 10px; }
+                .heir-paragraph .leader-spacer { display: inline-block; width: 0; height: 0; position: relative; }
+                .heir-paragraph .leader-spacer::after { content: ""; position: absolute; right: 0; bottom: 8px; width: 21cm; border-bottom: 2px dashed black; z-index: 1; }
+                .heir-paragraph .fraction-box { float: left; display: flex; flex-direction: column; align-items: center; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; z-index: 2; padding-right: 15px; margin: 0; }
 
                 .signature-area {
                   margin-top: 2cm;

@@ -21,7 +21,7 @@
             <div style="font-size: 14pt;">الجمهورية الجزائرية الديمقراطية الشعبية</div>
             <div style="font-size: 14pt; margin-bottom: 20px;">وزارة العدل</div>
 
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; font-size: 12pt;">
                 <div style="text-align: right; line-height: 1.4;">
                     مكتب التوثيق<br>
                     <span>للأستاذ(ة) : <span class="bold">{{frida?.notaire}}</span></span>
@@ -72,9 +72,9 @@
 
             <!-- Les temoins -->
             <section class="section">
-                <div class="dash-fill-container">
+                <div class="dash-paragraph">
                     <div class="bold text-content">بشهادة كل من :</div>
-                    <div class="dashes-spacer"></div>
+                    <span class="leader-spacer"></span>
                 </div>
                 <div class="liste-temoins">
                     @for (temoin of temoins; track temoin; let i = $index) {
@@ -88,7 +88,7 @@
                             <span> الساكن</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
                             <span> بـ <span class="ocr-data">{{temoin.adresse}}</span>.</span>
                         </div>
-                        <div class="dashes">------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------</div>
+                        <span class="leader-spacer"></span>
                     </div>
                     }
                 </div>
@@ -101,13 +101,13 @@
 
             <!-- Présentations des héritiers -->
             <section class="section">
-                <div class="dash-fill-container">
+                <div class="dash-paragraph">
                     <div class="bold text-content">الـورثـة :</div>
-                    <div class="dashes-spacer"></div>
+                    <span class="leader-spacer"></span>
                 </div>
                 <div class="liste-heritiers" style="margin-right: 0;">
                     @for (heritier of heritiers; track heritier; let i = $index) {
-                    <div class="dash-fill-container">
+                    <div class="heir-paragraph">
                         <div class="text-content">
                             <span>- </span>
                             <span class="bold">{{ getRelationArabe(heritier) }} </span>
@@ -117,12 +117,12 @@
                             <span> {{heritier.identite?.sexe === 'ذكر' ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني'}} </span>
                             <span class="ocr-data">{{heritier.identite?.nin || ''}}</span>
                         </div>
-                        <div class="dashes-spacer"></div>
-                        <div class="fraction-box" style="white-space: nowrap;">
+                        <span class="leader-spacer"></span>
+                        <div class="fraction-box">
                             @if (getHeritierPart(heritier); as part) {
                                 @if (part.num > 0) {
-                                    <span class="num" style="font-size: 14pt;">{{ part.num }}</span>
-                                    <span class="den" style="font-size: 14pt;">{{ part.den }}</span>
+                                    <span class="num">{{ part.num }}</span>
+                                    <span class="den">{{ part.den }}</span>
                                 } @else {
                                     <span style="font-weight: normal; font-size: 12pt;">-</span>
                                 }
@@ -137,9 +137,9 @@
 
             <!-- Calcul et Parts -->
             <section class="section">
-                <div class="dash-fill-container">
+                <div class="dash-paragraph">
                     <div class="bold text-content">الـقـسـمـة :</div>
-                    <div class="dashes-spacer"></div>
+                    <span class="leader-spacer"></span>
                 </div>
 
                 @if (frida?.calcul.nbConjoints!=0 || frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) {
@@ -182,7 +182,7 @@
                     <div style="margin-bottom: 15px;">
                         <span>- للأبناء الذكور (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
-                        @if (heritier.numParente>2 && heritier.identite.sexe == 'ذكر') {
+                        @if (heritier.numParente == 3 && heritier.identite.sexe == 'ذكر') {
                         <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
                         }
                         }
@@ -202,7 +202,7 @@
                     <div style="margin-bottom: 15px;">
                         <span>- للبنات (</span>
                         @for (heritier of heritiers; track heritier.id; let last = $last) {
-                        @if (heritier.numParente>2 && heritier.identite.sexe != 'ذكر') {
+                        @if (heritier.numParente == 3 && heritier.identite.sexe != 'ذكر') {
                         <span class="ocr-data">{{heritier.identite.prenom}}</span><span *ngIf="!last">، </span>
                         }
                         }
@@ -251,6 +251,26 @@
                         </div>
                         <span> حصة </span>
                     </div>
+                    }
+
+                    <!-- Part frères et sœurs (individuellement) -->
+                    @for (heritier of heritiers; track heritier.id) {
+                        @if (heritier.numParente == 5) {
+                            @if (getHeritierPart(heritier); as part) {
+                            <div style="margin-bottom: 15px;">
+                                <span>- </span>
+                                <span class="bold">{{ getRelationArabePourPart(heritier) }}</span>
+                                <span> </span>
+                                <span class="ocr-data">{{heritier.identite.prenom}}</span>
+                                <span> : </span>
+                                <div class="fraction-box">
+                                    <span class="num">{{ part.num }}</span>
+                                    <span class="den">{{ part.den }}</span>
+                                </div>
+                                <span> حصة </span>
+                            </div>
+                            }
+                        }
                     }
 
                     <div style="margin-top: 15px; border-top: 1px dotted #ccc; padding-top: 10px;">

@@ -56,40 +56,80 @@
   text-align: justify;
 }
 
-.dash-fill-container {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 5px;
-}
-.dash-fill-container .text-content {
-  white-space: normal;
-  flex-shrink: 0;
-}
-.dash-fill-container .dashes-spacer {
-  flex-grow: 1;
-  border-bottom: 2px dashed black;
-  margin: 0 10px;
-  position: relative;
-  top: 5px;
-}
 
-/* Multiline paragraph with dash fill at the end */
+/* Inline paragraph layout for witnesses */
 .dash-paragraph {
   display: block;
-  text-align: justify;
+  text-align: right;
   overflow: hidden;
+  position: relative;
   margin-bottom: 5px;
 }
 .dash-paragraph .text-content {
   display: inline;
+  position: relative;
+  z-index: 2;
+  line-height: 1.8;
+  padding-left: 10px; /* Gap before dashes */
 }
-.dash-paragraph .dashes {
+.dash-paragraph .leader-spacer {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  position: relative;
+}
+.dash-paragraph .leader-spacer::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 8px; /* text baseline */
+  width: 21cm; /* Exactly A4 width, perfectly print safe */
+  border-bottom: 2px dashed black;
+  z-index: 1;
+}
+
+/* Specific inline layout for Heirs with fraction box */
+.heir-paragraph {
+  display: block;
+  text-align: right;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 15px;
+}
+.heir-paragraph .text-content {
   display: inline;
-  white-space: nowrap;
-  font-weight: bold;
-  letter-spacing: 2px;
-  margin: 0 10px;
+  position: relative;
+  z-index: 2;
+  line-height: 1.8;
+  padding-left: 10px;
+}
+.heir-paragraph .leader-spacer {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  position: relative;
+}
+.heir-paragraph .leader-spacer::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 8px; /* text baseline */
+  width: 21cm; /* Exactly A4 width, perfectly print safe */
+  border-bottom: 2px dashed black;
+  z-index: 1;
+}
+.heir-paragraph .fraction-box {
+  float: left; /* Pull to far left */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: white;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  position: relative;
+  z-index: 2; /* Masks the dashed line */
+  padding-right: 15px; /* Space between dashes and fraction */
+  margin: 0;
 }
 
 .section-titre {
