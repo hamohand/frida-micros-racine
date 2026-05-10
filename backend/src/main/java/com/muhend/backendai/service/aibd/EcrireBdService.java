@@ -324,7 +324,10 @@ public class EcrireBdService {
             case "4" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
                     ? (calcul.getNumerateurPere() != null ? calcul.getNumerateurPere() : 0)
                     : (calcul.getNumerateurMere() != null ? calcul.getNumerateurMere() : 0);
-            default -> 0; // Fratrie : géré par le service calculs
+            case "5" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
+                    ? (calcul.getNumerateurFreres() != null ? calcul.getNumerateurFreres() : 0)
+                    : (calcul.getNumerateurSoeurs() != null ? calcul.getNumerateurSoeurs() : 0);
+            default -> 0;
         };
     }
 

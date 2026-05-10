@@ -116,6 +116,24 @@ public class HeirPartCalculatorService {
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurMere(h.getPart().getNumerateur()));
 
+            // Numérateur frères
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("frère") || label.contains("frere");
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurFreres(h.getPart().getNumerateur()));
+
+            // Numérateur soeurs
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("sœur") || label.contains("soeur");
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurSoeurs(h.getPart().getNumerateur()));
+
         } catch (Exception e) {
             log.error("Erreur appel microservice calculs : {}", e.getMessage(), e);
             throw new RuntimeException("Erreur microservice calculs", e);
