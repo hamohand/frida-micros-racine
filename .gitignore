@@ -69,3 +69,6 @@ logs_*.txt
 # Storage and uploads dir
 /frida-storage/
 /backend/uploads/
+
+# Backups
+/db_backups/

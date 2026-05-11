@@ -21,9 +21,13 @@ WORKDIR /app
 RUN groupadd -r spring && useradd -r -g spring spring
 USER spring:spring
 
-# Installer curl pour les healthchecks
+# Installer curl + postgresql-client v16 (doit correspondre à la version du serveur)
 USER root
-RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y curl lsb-release gnupg2 \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg \
+    && apt-get update && apt-get install -y postgresql-client-16 \
+    && rm -rf /var/lib/apt/lists/*
 USER spring:spring
 
 # Copier le JAR (sois plus spécifique si possible sur le nom du JAR)

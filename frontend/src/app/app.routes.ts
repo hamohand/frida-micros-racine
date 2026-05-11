@@ -34,5 +34,9 @@ export const routes: Routes = [
     path: 'edit/:numFrida', 
     loadComponent: () => import('./components/frida-edit/frida-edit.component').then(m => m.FridaEditComponent) 
   },
+  { 
+    path: 'backups', 
+    loadComponent: () => import('./components/backup/backup.component').then(m => m.BackupComponent) 
+  },
   { path: '**', redirectTo: '' }
 ];

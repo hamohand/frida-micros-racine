@@ -15,6 +15,7 @@ import { RouterLink, RouterOutlet } from "@angular/router";
         <a routerLink="/create" class="nav-link">Créer</a>
         <a routerLink="/search" class="nav-link">Rechercher</a>
         <a routerLink="/list" class="nav-link">Liste</a>
+        <a routerLink="/backups" class="nav-link">Sauvegardes</a>
 <!--        <a routerLink="/about" class="nav-link">À propos</a>-->
       </div>
     </nav>
