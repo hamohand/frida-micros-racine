@@ -92,6 +92,8 @@ docker-compose up backend
 - `GET /api/frida/listeTemoins/{numFrida}` - Témoins d'une fiche
 - `POST /api/files/upload` - Upload de fichiers
 - `POST /api/folders/create` - Créer un dossier et lancer le traitement OCR
+- `GET /api/pdfs/analyze-composition` - Analyse partielle (f1-f4) pour déterminer la composition familiale sans finalisation
+- `GET /api/pdfs/update-frida/{numFrida}` - Ajout des derniers documents (f5, f6, témoins) à une fiche existante sans refaire l'OCR
 - `GET /swagger-ui.html` - Documentation API
 
 ## 📄 Modèle de données

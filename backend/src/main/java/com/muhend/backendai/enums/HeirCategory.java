@@ -12,7 +12,8 @@ public enum HeirCategory {
     CONJOINT(2),
     ENFANT(3),
     PARENT(4),
-    FRATRIE(5);
+    FRATRIE(5),
+    AUTRE(6);
 
     private final int code;
 

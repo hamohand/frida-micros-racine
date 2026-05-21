@@ -2,6 +2,7 @@ package com.muhend.backendai.service.aibd;
 
 import com.muhend.backendai.client.ocr.dto.OcrEntityDefinitionDto;
 import com.muhend.backendai.dto.DocumentInfo;
+import com.muhend.backendai.dto.CompositionAnalysisDto;
 import com.muhend.backendai.entities.*;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.enums.HeirCategory;
@@ -143,6 +144,126 @@ public class EcrireBdService {
         } finally {
             maxConcurrentFoldersSemaphore.release();
             log.info("Fin traitement dossier (thread libéré). Dossier: {}", folderPath);
+        }
+    }
+
+    /**
+     * Phase 1 : Analyse des parents/enfants pour déterminer la composition.
+     * Cette méthode traite les documents f1 à f4, génère une fiche Frida en base,
+     * et retourne un DTO contenant l'état de la composition.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public CompositionAnalysisDto analyzeComposition(String folderPath, String mode) {
+        FridaEntity frida = traiterExtraitsNaissance(folderPath, mode);
+        if (frida == null || frida.getCalcul() == null) {
+            return CompositionAnalysisDto.builder().build();
+        }
+        
+        CalculEntity calc = frida.getCalcul();
+        boolean hasBoy = (calc.getNbGarcons() != null && calc.getNbGarcons() > 0);
+        boolean hasFather = (calc.getNumerateurPere() != null && calc.getNumerateurPere() > 0);
+        
+        int sumNumerators = 0;
+        sumNumerators += calc.getNumerateurConjoint() != null ? calc.getNumerateurConjoint() : 0;
+        sumNumerators += calc.getNumerateurFilles() != null ? calc.getNumerateurFilles() : 0;
+        sumNumerators += calc.getNumerateurGarcons() != null ? calc.getNumerateurGarcons() : 0;
+        sumNumerators += calc.getNumerateurPere() != null ? calc.getNumerateurPere() : 0;
+        sumNumerators += calc.getNumerateurMere() != null ? calc.getNumerateurMere() : 0;
+        sumNumerators += calc.getNumerateurFreres() != null ? calc.getNumerateurFreres() : 0;
+        sumNumerators += calc.getNumerateurSoeurs() != null ? calc.getNumerateurSoeurs() : 0;
+
+        int denom = calc.getDenominateur() != null && calc.getDenominateur() > 0 ? calc.getDenominateur() : 1;
+        boolean hasRemainingPart = sumNumerators < denom;
+        String remainingPartDetails = (denom - sumNumerators) + "/" + denom;
+
+        return CompositionAnalysisDto.builder()
+                .numFrida(frida.getNumFrida())
+                .hasBoy(hasBoy)
+                .hasFather(hasFather)
+                .hasRemainingPart(hasRemainingPart)
+                .remainingPartDetails(remainingPartDetails)
+                .build();
+    }
+
+    /**
+     * Phase 2 : Mise à jour d'une fiche Frida existante avec de nouveaux documents (f5, f6, temoins).
+     * Ne re-traite que les documents appartenant aux catégories 5, 6, 11.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public FridaEntity updateFrida(String folderPath, String mode, String numFrida) {
+        try {
+            maxConcurrentFoldersSemaphore.acquire();
+            log.info("Début mise à jour dossier: {}", folderPath);
+
+            FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                    .orElseThrow(() -> new RuntimeException("Frida non trouvée: " + numFrida));
+
+            LectureAiService.FolderScanResult scanResult = lectureAiService.listFolderContents(folderPath);
+            TraitementContext ctx = TraitementContext.reconstruireContexte(frida);
+            // Ensure lists are initialized
+            if (ctx.getTableauNumParente() == null) {
+                ctx.setTableauNumParente(scanResult.getTableauNumParente());
+            }
+
+            Map<Path, DocumentInfo> fileDocInfoMap = scanResult.getFileDocumentInfoMap();
+            Map<String, OcrEntityDefinitionDto> entityDefCache = new HashMap<>();
+            List<Path> files = scanResult.getPdfFiles();
+
+            int processedCount = 0;
+            for (Path file : files) {
+                DocumentInfo docInfo = fileDocInfoMap.get(file);
+                if (docInfo == null) continue;
+                
+                HeirCategory cat = docInfo.getHeirCategory();
+                // On ne traite que les frères/soeurs (5), autres (6), ou témoins (11)
+                if (cat == HeirCategory.FRATRIE || cat == HeirCategory.AUTRE || cat == HeirCategory.TEMOIN) {
+                    // Trouver l'indice de parenté
+                    String numParente = String.valueOf(cat.getCode());
+                    int indiceParente = ctx.getTableauNumParente().indexOf(numParente);
+                    if (indiceParente == -1) {
+                        ctx.getTableauNumParente().add(numParente);
+                        indiceParente = ctx.getTableauNumParente().size() - 1;
+                    }
+                    
+                    try {
+                        int newIndice = traiterFichier(ctx, file, fileDocInfoMap, entityDefCache, indiceParente, mode);
+                        if (newIndice > indiceParente) {
+                            processedCount++;
+                        }
+                    } catch (Exception e) {
+                        log.error("Erreur mise à jour fichier OCR : {} - {}", file, e.getMessage(), e);
+                    }
+                }
+            }
+
+            if (processedCount > 0) {
+                // Re-calculer les parts et sauvegarder
+                CalculEntity calcul = heirPartCalculatorService.calculerParts(ctx);
+                calculRepo.save(calcul);
+                frida.setCalcul(calcul);
+                
+                for (HeritierEntity heritier : ctx.getListeHeritiers()) {
+                    int numerateur = determinerNumerateur(heritier, calcul);
+                    float coef = heirPartCalculatorService.calculerCoefficient(numerateur, calcul.getDenominateur());
+                    heritier.setCoefPart(coef);
+                }
+                frida.setHeritiers(ctx.getListeHeritiers());
+                frida.setTemoins(ctx.getListeTemoins());
+                fridaRepo.save(frida);
+            }
+
+            return frida;
+
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.error("Le traitement a été interrompu : {}", e.getMessage(), e);
+            return null;
+        } catch (IOException e) {
+            log.error("Erreur lecture fichiers pour mise à jour : {}", e.getMessage(), e);
+            return null;
+        } finally {
+            maxConcurrentFoldersSemaphore.release();
+            log.info("Fin mise à jour dossier: {}", folderPath);
         }
     }
 
