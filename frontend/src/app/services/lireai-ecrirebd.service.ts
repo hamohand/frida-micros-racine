@@ -10,8 +10,16 @@ export class LireaiEcrirebdService {
 
     constructor(private http: HttpClient) {}
 
-    // Nouvelle méthode pour appeler le contrôleur `lireAiEcrireBd` avec paramètre de mode
+    // Ancienne méthode complète (optionnelle, gardée pour la rétrocompatibilité si besoin)
     lireAiEcrireBd(mode: string = 'rapide'): Observable<any> {
         return this.http.get(`${this.apiUrl}/lireai-ecrirebd?mode=${mode}`);
+    }
+
+    analyzeComposition(mode: string = 'rapide'): Observable<any> {
+        return this.http.get(`${this.apiUrl}/analyze-composition?mode=${mode}`);
+    }
+
+    updateFrida(numFrida: string, mode: string = 'rapide'): Observable<any> {
+        return this.http.get(`${this.apiUrl}/update-frida/${numFrida}?mode=${mode}`);
     }
 }

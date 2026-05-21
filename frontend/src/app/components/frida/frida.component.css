@@ -9,18 +9,19 @@
 }
 
 .a4-paper {
-  background: white;
+  background: var(--background-gradient-end, #112420);
   width: 21cm;
   min-height: 29.7cm;
   padding: 2.5cm;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border-radius: 4px;
-  color: black;
+  color: white;
   direction: rtl;
   font-family: 'Amiri', serif;
   font-size: 12pt;
   line-height: 1.8;
   position: relative;
+  border: 2px solid var(--accent-color, #4ecca3);
 }
 
 /* En-tête officiel */
@@ -38,8 +39,8 @@
 
 .ocr-data {
   font-weight: bold;
-  color: #0056b3;
-  /* Bleu pour faciliter la vérification */
+  color: var(--accent-color, #4ecca3);
+  /* Vert clair pour faciliter la vérification */
 }
 
 .souligne {
@@ -84,7 +85,7 @@
   right: 0;
   bottom: 8px; /* text baseline */
   width: 21cm; /* Exactly A4 width, perfectly print safe */
-  border-bottom: 2px dashed black;
+  border-bottom: 2px dashed var(--text-secondary, rgba(255, 255, 255, 0.3));
   z-index: 1;
 }
 
@@ -115,7 +116,7 @@
   right: 0;
   bottom: 8px; /* text baseline */
   width: 21cm; /* Exactly A4 width, perfectly print safe */
-  border-bottom: 2px dashed black;
+  border-bottom: 2px dashed var(--text-secondary, rgba(255, 255, 255, 0.3));
   z-index: 1;
 }
 .heir-paragraph .fraction-box {
@@ -123,7 +124,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: white;
+  background: var(--background-gradient-end, #112420);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   position: relative;
@@ -136,7 +137,7 @@
   font-weight: bold;
   font-size: 14pt;
   margin-bottom: 0.5cm;
-  border-bottom: 1px solid #ccc;
+  border-bottom: 1px solid var(--accent-color, #4ecca3);
   display: inline-block;
 }
 
@@ -157,7 +158,7 @@
 }
 
 .fraction-box .num {
-  border-bottom: 1px solid black;
+  border-bottom: 1px solid white;
   padding: 0 5px;
   line-height: 1.2;
 }
@@ -191,6 +192,9 @@
   }
 
   .a4-paper {
+    background: white !important;
+    color: black !important;
+    border: none !important;
     box-shadow: none;
     border-radius: 0;
     width: 100%;
@@ -203,12 +207,29 @@
     background: white;
   }
 
+  .ocr-data {
+    color: black !important;
+  }
+
+  .dash-paragraph .leader-spacer::after,
+  .heir-paragraph .leader-spacer::after {
+    border-bottom: 2px dashed black !important;
+  }
+
+  .heir-paragraph .fraction-box {
+    background: white !important;
+  }
+
+  .section-titre {
+    border-bottom: 1px solid #ccc !important;
+  }
+
+  .fraction-box .num {
+    border-bottom: 1px solid black !important;
+  }
+
   header {
     display: none !important;
-
-    .ocr-data {
-      color: black !important;
-    }
   }
 }
 .print-header {
