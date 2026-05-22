@@ -33,7 +33,7 @@ public class FolderService {
      * Sous-dossiers créés automatiquement : chaque catégorie × chaque type de
      * document
      */
-    private static final String[] CATEGORY_CODES = { "1", "2", "3", "4", "5", "6", "11" };
+    private static final String[] CATEGORY_CODES = { "1", "2", "3", "4", "5", "6", "7", "11" };
     private static final String[] DOC_TYPE_SUFFIXES = { "en", "cni", "pp" };
 
     public FolderResponse createFolder(CreateFolderRequest request) {

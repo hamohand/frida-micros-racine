@@ -60,6 +60,8 @@ public class HeirPartCalculatorService {
                 .mereVivante(ctx.isMereVivante())
                 .nbSoeurs(ctx.getNbSoeurs())
                 .nbFreres(ctx.getNbFreres())
+                .nbOncles(ctx.getNbOnclesPaternels())
+                .nbCousins(ctx.getNbCousinsPaternels())
                 .build();
 
         CalculEntity calcul = new CalculEntity();
@@ -67,6 +69,8 @@ public class HeirPartCalculatorService {
         calcul.setNbConjoints(ctx.getNbConjoints());
         calcul.setNbFilles(ctx.getNbFilles());
         calcul.setNbGarcons(ctx.getNbGarcons());
+        calcul.setNbOnclesPaternels(ctx.getNbOnclesPaternels());
+        calcul.setNbCousinsPaternels(ctx.getNbCousinsPaternels());
 
         try {
             CalculResponseDto response = calculsApiClient.calculerParts(request);
@@ -133,6 +137,24 @@ public class HeirPartCalculatorService {
                     })
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurSoeurs(h.getPart().getNumerateur()));
+
+            // Numérateur oncles paternels
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("oncle");
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurOnclesPaternels(h.getPart().getNumerateur()));
+
+            // Numérateur cousins paternels
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("cousin");
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurCousinsPaternels(h.getPart().getNumerateur()));
 
         } catch (Exception e) {
             log.error("Erreur appel microservice calculs : {}", e.getMessage(), e);

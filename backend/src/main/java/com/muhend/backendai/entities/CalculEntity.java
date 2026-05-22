@@ -64,6 +64,22 @@ public class CalculEntity {
     @Column(name = "numerateurSoeurs")
     private Integer numerateurSoeurs;
 
+    @ColumnDefault("0")
+    @Column(name = "nbOnclesPaternels")
+    private Integer nbOnclesPaternels;
+
+    @ColumnDefault("0")
+    @Column(name = "nbCousinsPaternels")
+    private Integer nbCousinsPaternels;
+
+    @ColumnDefault("0")
+    @Column(name = "numerateurOnclesPaternels")
+    private Integer numerateurOnclesPaternels;
+
+    @ColumnDefault("0")
+    @Column(name = "numerateurCousinsPaternels")
+    private Integer numerateurCousinsPaternels;
+
     @Column(name = "denominateur")
     private Integer denominateur;
 

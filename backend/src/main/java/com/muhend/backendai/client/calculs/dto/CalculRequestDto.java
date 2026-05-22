@@ -26,4 +26,8 @@ public class CalculRequestDto {
     private Integer nbSoeurs;
 
     private Integer nbFreres;
+
+    private Integer nbOncles;
+
+    private Integer nbCousins;
 }

@@ -36,32 +36,5 @@ public class OcrProcessingController {
         return ecrireBdService.traiterExtraitsNaissance(cheminDossierBase, mode);
     }
 
-    /**
-     * Analyse partielle pour déterminer la composition familiale (f1 à f4)
-     * sans sauvegarder la fiche Frida finale.
-     */
-    @GetMapping("/analyze-composition")
-    public com.muhend.backendai.dto.CompositionAnalysisDto analyzeComposition(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "rapide") String mode) throws IOException {
-        java.nio.file.Path path = FolderService.getFolderPath();
-        if (path == null) {
-            path = pathResolver.getLatestFolder();
-        }
-        String cheminDossierBase = path.toString();
-        System.out.println("analyzeComposition cheminDossierBase : " + cheminDossierBase);
-        return ecrireBdService.analyzeComposition(cheminDossierBase, mode);
-    }
 
-    /**
-     * Phase 2 : Met à jour la fiche Frida existante avec les nouveaux documents ajoutés au dossier.
-     */
-    @GetMapping("/update-frida/{numFrida}")
-    public FridaEntity updateFrida(@org.springframework.web.bind.annotation.PathVariable String numFrida, @org.springframework.web.bind.annotation.RequestParam(defaultValue = "rapide") String mode) throws IOException {
-        java.nio.file.Path path = FolderService.getFolderPath();
-        if (path == null) {
-            path = pathResolver.getLatestFolder();
-        }
-        String cheminDossierBase = path.toString();
-        System.out.println("updateFrida cheminDossierBase : " + cheminDossierBase + " numFrida: " + numFrida);
-        return ecrireBdService.updateFrida(cheminDossierBase, mode, numFrida);
-    }
 }

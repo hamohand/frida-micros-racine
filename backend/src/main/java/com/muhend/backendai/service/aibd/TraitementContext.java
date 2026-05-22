@@ -32,6 +32,8 @@ public class TraitementContext {
     private boolean mereVivante;
     private int nbFreres;
     private int nbSoeurs;
+    private int nbOnclesPaternels;
+    private int nbCousinsPaternels;
 
     public void incrementConjoints() { nbConjoints++; }
     public void incrementFilles() { nbFilles++; }
@@ -46,6 +48,8 @@ public class TraitementContext {
     }
     public void incrementFreres() { nbFreres++; }
     public void incrementSoeurs() { nbSoeurs++; }
+    public void incrementOnclesPaternels() { nbOnclesPaternels++; }
+    public void incrementCousinsPaternels() { nbCousinsPaternels++; }
 
     public static TraitementContext reconstruireContexte(FridaEntity frida) {
         TraitementContext ctx = new TraitementContext();
@@ -68,6 +72,8 @@ public class TraitementContext {
                         if ("ذكر".equals(sexe)) ctx.incrementFreres();
                         else ctx.incrementSoeurs();
                     }
+                    case "6" -> ctx.incrementOnclesPaternels();
+                    case "7" -> ctx.incrementCousinsPaternels();
                 }
             }
         }
