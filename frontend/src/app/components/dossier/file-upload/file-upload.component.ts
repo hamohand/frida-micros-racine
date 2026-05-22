@@ -58,9 +58,12 @@ import { FileUploadService } from '../../../services/file-upload.service';
         </div>
       </div>
 
-      <div class="button-group" *ngIf="uploadedFiles.length > 0 || config.allowPrevious">
+      <div class="button-group" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip">
         <button class="btn btn-secondary" *ngIf="config.allowPrevious" (click)="onPrevious()">
           Précédent
+        </button>
+        <button class="btn btn-secondary continue-btn" (click)="onSkip()" *ngIf="uploadedFiles.length === 0 && config.allowSkip" style="margin-top: 0;">
+          {{ config.skipText || 'Continuer' }}
         </button>
         <button class="btn btn-secondary" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
           Vider
@@ -169,6 +172,8 @@ export class FileUploadComponent implements OnInit {
   @Output() filesConfirmed = new EventEmitter<{rawFiles: UploadedFile[], groupedFiles: {files: File[], docType: string, entityName: string}[]}>();
   @Output() previousClicked = new EventEmitter<void>();
   @Output() uploadCancelled = new EventEmitter<void>();
+  @Output() pendingFilesChanged = new EventEmitter<number>();
+  @Output() skipClicked = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
 
@@ -187,6 +192,8 @@ export class FileUploadComponent implements OnInit {
   ngOnInit() {
     if (this.initialFiles && this.initialFiles.length > 0) {
       this.uploadedFiles = [...this.initialFiles];
+      // Pour s'assurer que le parent a bien le compte initial quand on revient en arrière
+      setTimeout(() => this.pendingFilesChanged.emit(this.uploadedFiles.length));
     }
     
     // Charger dynamiquement les entités OCR depuis l'API Python
@@ -237,8 +244,9 @@ export class FileUploadComponent implements OnInit {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files) {
+    if (input.files && input.files.length > 0) {
       this.addFiles(Array.from(input.files));
+      input.value = ''; // Réinitialiser pour permettre de resélectionner le même fichier
     }
   }
 
@@ -255,6 +263,7 @@ export class FileUploadComponent implements OnInit {
         entityName: docType + '_01'
       });
     });
+    this.pendingFilesChanged.emit(this.uploadedFiles.length);
   }
 
   onDocTypeChange(file: UploadedFile) {
@@ -277,15 +286,24 @@ export class FileUploadComponent implements OnInit {
 
   removeFile(id: string) {
     this.uploadedFiles = this.uploadedFiles.filter(file => file.id !== id);
+    this.pendingFilesChanged.emit(this.uploadedFiles.length);
+    if (this.uploadedFiles.length === 0) {
+      this.uploadCancelled.emit();
+    }
   }
 
   onCancel() {
     this.uploadedFiles = [];
+    this.pendingFilesChanged.emit(0);
     this.uploadCancelled.emit();
   }
 
   onPrevious() {
     this.previousClicked.emit();
+  }
+
+  onSkip() {
+    this.skipClicked.emit();
   }
 
   onUpload() {

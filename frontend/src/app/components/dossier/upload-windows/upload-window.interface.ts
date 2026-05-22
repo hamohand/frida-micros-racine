@@ -7,6 +7,7 @@ export interface UploadWindowState {
   path: string;
   rawFiles?: UploadedFile[];
   groupedFiles?: {files: File[], docType: string, entityName: string}[];
+  pendingFilesCount?: number;
 }
 
 export interface UploadConfig {

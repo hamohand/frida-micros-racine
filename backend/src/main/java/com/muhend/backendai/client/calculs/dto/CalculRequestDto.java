@@ -19,6 +19,8 @@ public class CalculRequestDto {
 
     private boolean mereVivante;
 
+    private boolean grandPerePaternelVivant;
+
     private Integer nbFilles;
 
     private Integer nbGarcons;

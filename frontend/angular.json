@@ -30,6 +30,9 @@
             }
           },
           "options": {
+            "optimization": {
+              "fonts": false
+            },
             "assets": [],
             "index": "src/index.html",
             "browser": "src/main.ts",

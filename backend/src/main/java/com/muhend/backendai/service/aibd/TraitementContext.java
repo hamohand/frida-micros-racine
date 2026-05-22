@@ -30,6 +30,7 @@ public class TraitementContext {
     private int nbParents;
     private boolean pereVivant;
     private boolean mereVivante;
+    private boolean grandPerePaternelVivant;
     private int nbFreres;
     private int nbSoeurs;
     private int nbOnclesPaternels;
@@ -46,6 +47,7 @@ public class TraitementContext {
             this.mereVivante = true;
         }
     }
+    public void setGrandPerePaternelVivant() { this.grandPerePaternelVivant = true; }
     public void incrementFreres() { nbFreres++; }
     public void incrementSoeurs() { nbSoeurs++; }
     public void incrementOnclesPaternels() { nbOnclesPaternels++; }
@@ -74,6 +76,7 @@ public class TraitementContext {
                     }
                     case "6" -> ctx.incrementOnclesPaternels();
                     case "7" -> ctx.incrementCousinsPaternels();
+                    case "8" -> ctx.setGrandPerePaternelVivant();
                 }
             }
         }

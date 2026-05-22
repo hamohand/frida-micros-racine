@@ -275,6 +275,7 @@ public class EcrireBdService {
             }
             case "6" -> ctx.incrementOnclesPaternels();
             case "7" -> ctx.incrementCousinsPaternels();
+            case "8" -> ctx.setGrandPerePaternelVivant();
         }
 
         return heritier;
@@ -334,6 +335,7 @@ public class EcrireBdService {
                     : (calcul.getNumerateurSoeurs() != null ? calcul.getNumerateurSoeurs() : 0);
             case "6" -> (calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0);
             case "7" -> (calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0);
+            case "8" -> (calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0);
             default -> 0;
         };
     }
