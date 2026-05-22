@@ -51,45 +51,87 @@ import { forkJoin, Observable, of } from 'rxjs';
           </button>
         </div>
 
-        <!-- Fenêtre Enfants -->
+        <!-- Fenêtre Fils (Garçons) -->
         <div class="window-section">
-          <app-file-upload *ngIf="!windows['f3'].isUploading"
-              [config]="getUploadConfig('3', 'Enfants')"
-              [initialFiles]="windows['f3'].rawFiles || []"
-              (filesConfirmed)="onFilesConfirmed('f3', $event)"
-              (previousClicked)="moveToPreviousWindow('f3')"
-              (uploadCancelled)="onUploadCancelled('f3')"
+          <app-file-upload *ngIf="!windows['f_garcons'].isUploading"
+              [config]="getUploadConfig('3', 'Fils (Garçons)')"
+              [initialFiles]="windows['f_garcons'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f_garcons', $event)"
+              (previousClicked)="moveToPreviousWindow('f_garcons')"
+              (uploadCancelled)="onUploadCancelled('f_garcons')"
           ></app-file-upload>
-          <div *ngIf="windows['f3'].isUploading" class="drop-zone loading-zone">
+          <div *ngIf="windows['f_garcons'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
           </div>
           <button
-              *ngIf="!windows['f3'].hasFiles && !windows['f3'].isUploading"
+              *ngIf="!windows['f_garcons'].hasFiles && !windows['f_garcons'].isUploading"
               class="btn btn-secondary continue-btn"
-              (click)="continueToNext('f3')"
+              (click)="continueToNext('f_garcons')"
           >
-            Continuer s'il n'y a pas d'enfants
+            Continuer s'il n'y a pas de fils
           </button>
         </div>
 
-        <!-- Fenêtre Parents du défunt -->
+        <!-- Fenêtre Filles -->
         <div class="window-section">
-          <app-file-upload *ngIf="!windows['f4'].isUploading && !isAnalyzing"
-              [config]="getUploadConfig('4', 'Parents du défunt')"
-              [initialFiles]="windows['f4'].rawFiles || []"
-              (filesConfirmed)="onFilesConfirmed('f4', $event)"
-              (previousClicked)="moveToPreviousWindow('f4')"
-              (uploadCancelled)="onUploadCancelled('f4')"
+          <app-file-upload *ngIf="!windows['f_filles'].isUploading"
+              [config]="getUploadConfig('3', 'Filles')"
+              [initialFiles]="windows['f_filles'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f_filles', $event)"
+              (previousClicked)="moveToPreviousWindow('f_filles')"
+              (uploadCancelled)="onUploadCancelled('f_filles')"
           ></app-file-upload>
-          <div *ngIf="windows['f4'].isUploading || isAnalyzing" class="drop-zone loading-zone">
-            <span class="spinner"></span> {{ isAnalyzing ? 'Analyse de la composition en cours...' : 'Sauvegarde en cours...' }}
+          <div *ngIf="windows['f_filles'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
           </div>
           <button
-              *ngIf="!windows['f4'].hasFiles && !windows['f4'].isUploading && !isAnalyzing"
+              *ngIf="!windows['f_filles'].hasFiles && !windows['f_filles'].isUploading"
               class="btn btn-secondary continue-btn"
-              (click)="analyzeAndContinue()"
+              (click)="continueToNext('f_filles')"
           >
-            Continuer s'il n'y a pas de parents
+            Continuer s'il n'y a pas de filles
+          </button>
+        </div>
+
+        <!-- Fenêtre Père -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f_pere'].isUploading"
+              [config]="getUploadConfig('4', 'Père')"
+              [initialFiles]="windows['f_pere'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f_pere', $event)"
+              (previousClicked)="moveToPreviousWindow('f_pere')"
+              (uploadCancelled)="onUploadCancelled('f_pere')"
+          ></app-file-upload>
+          <div *ngIf="windows['f_pere'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f_pere'].hasFiles && !windows['f_pere'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f_pere')"
+          >
+            Continuer s'il n'y a pas de père
+          </button>
+        </div>
+
+        <!-- Fenêtre Mère -->
+        <div class="window-section">
+          <app-file-upload *ngIf="!windows['f_mere'].isUploading"
+              [config]="getUploadConfig('4', 'Mère')"
+              [initialFiles]="windows['f_mere'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f_mere', $event)"
+              (previousClicked)="moveToPreviousWindow('f_mere')"
+              (uploadCancelled)="onUploadCancelled('f_mere')"
+          ></app-file-upload>
+          <div *ngIf="windows['f_mere'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f_mere'].hasFiles && !windows['f_mere'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f_mere')"
+          >
+            Continuer s'il n'y a pas de mère
           </button>
         </div>
 
@@ -114,24 +156,45 @@ import { forkJoin, Observable, of } from 'rxjs';
           </button>
         </div>
 
-        <!-- Fenêtre Autres héritiers -->
-        <div class="window-section" *ngIf="hasRemainingPartOcr">
-          <app-file-upload *ngIf="!windows['f_autres'].isUploading"
-              [config]="getUploadConfig('6', 'Autres éventuels héritiers (oncles, cousins, etc.)')"
-              [initialFiles]="windows['f_autres'].rawFiles || []"
-              (filesConfirmed)="onFilesConfirmed('f_autres', $event)"
-              (previousClicked)="moveToPreviousWindow('f_autres')"
-              (uploadCancelled)="onUploadCancelled('f_autres')"
+        <!-- Fenêtre Oncles paternels -->
+        <div class="window-section" *ngIf="!shouldHideUncles()">
+          <app-file-upload *ngIf="!windows['f6'].isUploading"
+              [config]="getUploadConfig('6', 'Oncles paternels')"
+              [initialFiles]="windows['f6'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f6', $event)"
+              (previousClicked)="moveToPreviousWindow('f6')"
+              (uploadCancelled)="onUploadCancelled('f6')"
           ></app-file-upload>
-          <div *ngIf="windows['f_autres'].isUploading" class="drop-zone loading-zone">
+          <div *ngIf="windows['f6'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
           </div>
           <button
-              *ngIf="!windows['f_autres'].hasFiles && !windows['f_autres'].isUploading"
+              *ngIf="!windows['f6'].hasFiles && !windows['f6'].isUploading"
               class="btn btn-secondary continue-btn"
-              (click)="continueToNext('f_autres')"
+              (click)="continueToNext('f6')"
           >
-            Continuer s'il n'y a pas d'autres héritiers
+            Continuer s'il n'y a pas d'oncles paternels
+          </button>
+        </div>
+
+        <!-- Fenêtre Cousins paternels -->
+        <div class="window-section" *ngIf="!shouldHideCousins()">
+          <app-file-upload *ngIf="!windows['f7'].isUploading"
+              [config]="getUploadConfig('7', 'Cousins paternels')"
+              [initialFiles]="windows['f7'].rawFiles || []"
+              (filesConfirmed)="onFilesConfirmed('f7', $event)"
+              (previousClicked)="moveToPreviousWindow('f7')"
+              (uploadCancelled)="onUploadCancelled('f7')"
+          ></app-file-upload>
+          <div *ngIf="windows['f7'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+          <button
+              *ngIf="!windows['f7'].hasFiles && !windows['f7'].isUploading"
+              class="btn btn-secondary continue-btn"
+              (click)="continueToNext('f7')"
+          >
+            Continuer s'il n'y a pas de cousins paternels
           </button>
         </div>
 
@@ -335,10 +398,13 @@ export class UploadWindowsComponent implements OnInit {
     f1: { isVisible: true, hasFiles: false, isUploading: false, path: '1' },
     // Héritiers
     f2: { isVisible: false, hasFiles: false, isUploading: false, path: '2' },  // Conjoint
-    f3: { isVisible: false, hasFiles: false, isUploading: false, path: '3' },  // Enfants
-    f4: { isVisible: false, hasFiles: false, isUploading: false, path: '4' },  // Parents du défunt
+    f_garcons: { isVisible: false, hasFiles: false, isUploading: false, path: '3' }, // Fils
+    f_filles: { isVisible: false, hasFiles: false, isUploading: false, path: '3' }, // Filles
+    f_pere: { isVisible: false, hasFiles: false, isUploading: false, path: '4' }, // Père
+    f_mere: { isVisible: false, hasFiles: false, isUploading: false, path: '4' }, // Mère
     f5: { isVisible: false, hasFiles: false, isUploading: false, path: '5' },  // Frères et sœurs
-    f_autres: { isVisible: false, hasFiles: false, isUploading: false, path: '6' }, // Autres héritiers
+    f6: { isVisible: false, hasFiles: false, isUploading: false, path: '6' },  // Oncles paternels
+    f7: { isVisible: false, hasFiles: false, isUploading: false, path: '7' },  // Cousins paternels
     // Témoins
     f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '11' },
     // Lecture AI
@@ -349,22 +415,19 @@ export class UploadWindowsComponent implements OnInit {
   isReading = false;
   endReading = false;
   isBatchUploaded = false;
-  numFrida: String = "1956010320250116";
+  numFrida: String = "";
   ocrMode: 'rapide' | 'approfondi' | 'batch' = 'rapide';
 
-  hasBoyOcr = false;
-  hasFatherOcr = false;
-  hasRemainingPartOcr = false;
-  isAnalyzing = false;
-  hasAnalyzedComposition = false;
-
   getActiveWindowKeys(): string[] {
-    const keys = ['f1', 'f2', 'f3', 'f4'];
+    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_pere', 'f_mere'];
     if (!this.shouldHideSiblings()) {
       keys.push('f5');
     }
-    if (this.hasRemainingPartOcr) {
-      keys.push('f_autres');
+    if (!this.shouldHideUncles()) {
+      keys.push('f6');
+    }
+    if (!this.shouldHideCousins()) {
+      keys.push('f7');
     }
     keys.push('f_temoins', 'f_ai');
     return keys;
@@ -376,64 +439,37 @@ export class UploadWindowsComponent implements OnInit {
     return windowKeys.indexOf(activeKey || 'f1');
   }
 
-  hasBoyEnfant(): boolean {
-    const enfantsWindow = this.windows['f3'];
-    if (!enfantsWindow || !enfantsWindow.rawFiles) return false;
-    
-    const boyKeywords = ['garcon', 'garçon', 'fils', 'boy', 'ذكر', 'masculin', 'ibn', 'ولد', 'ابن'];
-    return enfantsWindow.rawFiles.some(file => {
-      const fileName = file.file?.name?.toLowerCase() || '';
-      const entityName = file.entityName?.toLowerCase() || '';
-      
-      const checkKeyword = (text: string) => {
-        return boyKeywords.some(keyword => {
-          if (keyword === 'ابن') {
-            return text.includes(keyword) && !text.includes('ابنة');
-          }
-          return text.includes(keyword);
-        });
-      };
-      
-      return checkKeyword(fileName) || checkKeyword(entityName);
-    });
-  }
-
-  hasFatherParent(): boolean {
-    const parentsWindow = this.windows['f4'];
-    if (!parentsWindow || !parentsWindow.rawFiles) return false;
-    
-    const fatherKeywords = ['pere', 'père', 'father', 'ذكر', 'masculin', 'والد', 'أب', 'اب'];
-    return parentsWindow.rawFiles.some(file => {
-      const fileName = file.file?.name?.toLowerCase() || '';
-      const entityName = file.entityName?.toLowerCase() || '';
-      
-      const checkKeyword = (text: string) => {
-        return fatherKeywords.some(keyword => {
-          if (keyword === 'والد') {
-            return text.includes(keyword) && !text.includes('والدة');
-          }
-          if (keyword === 'أب' || keyword === 'اب') {
-            return text.includes(keyword) && !text.includes('ابن') && !text.includes('ابنة');
-          }
-          return text.includes(keyword);
-        });
-      };
-      
-      return checkKeyword(fileName) || checkKeyword(entityName);
-    });
-  }
-
   shouldHideSiblings(): boolean {
-    const hide = this.hasAnalyzedComposition ? (this.hasBoyOcr || this.hasFatherOcr) : (this.hasBoyEnfant() || this.hasFatherParent());
+    const hide = this.windows['f_garcons'].hasFiles || this.windows['f_pere'].hasFiles;
     if (hide) {
-      const siblingWindow = this.windows['f5'];
-      if (siblingWindow && (siblingWindow.hasFiles || siblingWindow.rawFiles?.length || siblingWindow.groupedFiles?.length)) {
-        siblingWindow.hasFiles = false;
-        siblingWindow.rawFiles = [];
-        siblingWindow.groupedFiles = [];
-      }
+      this.clearWindow('f5');
     }
     return hide;
+  }
+
+  shouldHideUncles(): boolean {
+    const hide = this.shouldHideSiblings() || this.windows['f5'].hasFiles;
+    if (hide) {
+      this.clearWindow('f6');
+    }
+    return hide;
+  }
+
+  shouldHideCousins(): boolean {
+    const hide = this.shouldHideUncles() || this.windows['f6'].hasFiles;
+    if (hide) {
+      this.clearWindow('f7');
+    }
+    return hide;
+  }
+
+  private clearWindow(key: string) {
+    const win = this.windows[key];
+    if (win && (win.hasFiles || win.rawFiles?.length || win.groupedFiles?.length)) {
+      win.hasFiles = false;
+      win.rawFiles = [];
+      win.groupedFiles = [];
+    }
   }
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
@@ -472,11 +508,7 @@ export class UploadWindowsComponent implements OnInit {
         currentWindow.rawFiles = [];
         currentWindow.groupedFiles = [];
       }
-      if (window === 'f4') {
-        this.analyzeAndContinue();
-      } else {
-        this.moveToNextWindow(window);
-      }
+      this.moveToNextWindow(window);
     }
   }
 
@@ -491,58 +523,6 @@ export class UploadWindowsComponent implements OnInit {
 
   continueToNext(window: string) {
     this.moveToNextWindow(window);
-  }
-
-  analyzeAndContinue() {
-    this.isAnalyzing = true;
-    const uploadObservables: Observable<any>[] = [];
-
-    ['f1', 'f2', 'f3', 'f4'].forEach(key => {
-      const win = this.windows[key];
-      if (win.groupedFiles && win.groupedFiles.length > 0) {
-        win.groupedFiles.forEach(group => {
-          let uploadPath = win.path + '_' + group.docType;
-          if (group.entityName && group.entityName.trim() !== '') {
-            uploadPath += '_' + group.entityName;
-          }
-          uploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
-        });
-      }
-    });
-
-    if (uploadObservables.length > 0) {
-      forkJoin(uploadObservables).subscribe({
-        next: () => {
-          this.callAnalyzeEndpoint();
-        },
-        error: (err) => {
-          console.error('Erreur upload partiel :', err);
-          this.isAnalyzing = false;
-          this.moveToNextWindow('f4');
-        }
-      });
-    } else {
-      this.callAnalyzeEndpoint();
-    }
-  }
-
-  private callAnalyzeEndpoint() {
-    this.lireaiEcrirebdService.analyzeComposition(this.ocrMode).subscribe({
-      next: (res: any) => {
-        this.hasAnalyzedComposition = true;
-        if (res.numFrida) this.numFrida = res.numFrida;
-        this.hasBoyOcr = res.hasBoy;
-        this.hasFatherOcr = res.hasFather;
-        this.hasRemainingPartOcr = res.hasRemainingPart;
-        this.isAnalyzing = false;
-        this.moveToNextWindow('f4');
-      },
-      error: (err) => {
-        console.error('Erreur analyze-composition :', err);
-        this.isAnalyzing = false;
-        this.moveToNextWindow('f4');
-      }
-    });
   }
 
   // Permet de reculer d'une fenêtre
@@ -567,17 +547,12 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   onLireAiEcrireBd(): void {
-    // Étape finale : Upload de f5, f_autres et témoins (Asynchrone Backend)
     this.isUploadingFiles = true;
 
     const allUploadObservables: Observable<any>[] = [];
 
-    const keysToUpload = [];
-    if (!this.shouldHideSiblings()) keysToUpload.push('f5');
-    if (this.hasRemainingPartOcr) keysToUpload.push('f_autres');
-    keysToUpload.push('f_temoins');
-
-    keysToUpload.forEach(key => {
+    this.getActiveWindowKeys().forEach(key => {
+      if (key === 'f_ai') return;
       const win = this.windows[key];
       if (win && win.groupedFiles && win.groupedFiles.length > 0) {
         win.groupedFiles.forEach(group => {
@@ -618,9 +593,10 @@ export class UploadWindowsComponent implements OnInit {
 
   private launchOcrProcess() {
     this.isReading = true;
-    this.lireaiEcrirebdService.updateFrida(this.numFrida as string, this.ocrMode).subscribe({
+    this.lireaiEcrirebdService.lireAiEcrireBd(this.ocrMode).subscribe({
       next: (data) => {
-        console.log('Réponse du serveur UploadWindowsComponent (update): ', data);
+        console.log('Réponse du serveur UploadWindowsComponent: ', data);
+        this.numFrida = data.numFrida;
         this.isReading = false;
         this.endReading = true;
       },
