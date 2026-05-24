@@ -3,6 +3,8 @@ package com.muhend.backendai.service.aibd;
 import com.muhend.backendai.client.ocr.dto.OcrEntityDefinitionDto;
 import com.muhend.backendai.dto.DocumentInfo;
 import com.muhend.backendai.dto.CompositionAnalysisDto;
+import com.muhend.backendai.dto.FicheUpdateDto;
+import com.muhend.backendai.dto.PersonneUpdateDto;
 import com.muhend.backendai.entities.*;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.enums.HeirCategory;
@@ -126,7 +128,7 @@ public class EcrireBdService {
             }
 
             if (indiceParente > 0) {
-                finaliserEtSauvegarder(ctx);
+                sauvegarderBrouillonFrida(ctx);
             }
 
             // Marquer le dossier comme traité
@@ -293,29 +295,98 @@ public class EcrireBdService {
     // ======================= Finalisation =======================
 
     /**
-     * Calcule les parts, attribue les coefficients, et persiste la fiche Frida.
+     * Persiste la fiche Frida à l'état de brouillon (sans lancer les calculs).
      */
-    private void finaliserEtSauvegarder(TraitementContext ctx) {
-        // Calculer les parts via le microservice
+    private void sauvegarderBrouillonFrida(TraitementContext ctx) {
+        // Constituer et sauvegarder la fiche Frida sans le calcul
+        FridaEntity ficheFrida = ctx.getFicheFrida();
+        ficheFrida.setDateCreation(LocalDate.now());
+        ficheFrida.setNotaire("محمد قثوم الموثق بالجزاىر شارع الانتصار،"); // TODO: rendre configurable
+        ficheFrida.setHeritiers(ctx.getListeHeritiers());
+        ficheFrida.setTemoins(ctx.getListeTemoins());
+        
+        // Si aucun calcul n'a encore été fait, on s'assure qu'il reste null
+        // On le fera a posteriori depuis l'interface de validation
+        fridaRepo.save(ficheFrida);
+    }
+
+    /**
+     * Ecrase le brouillon de l'IA avec la version corrigée par l'humain.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public void sauvegarderFicheCorrigee(String numFrida, FicheUpdateDto dto) {
+        FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                .orElseThrow(() -> new RuntimeException("Frida non trouvée: " + numFrida));
+        
+        // 1. Mettre à jour le défunt
+        if (dto.getDefunt() != null) {
+            DefuntEntity defunt = frida.getDefunt();
+            if (defunt != null && defunt.getIdentite() != null) {
+                defunt.getIdentite().setNom(dto.getDefunt().getNom());
+                defunt.getIdentite().setPrenom(dto.getDefunt().getPrenom());
+                defunt.getIdentite().setDateNaissance(dto.getDefunt().getDateNaissance());
+                defunt.getIdentite().setSexe(dto.getDefunt().getSexe());
+                identitesRepo.save(defunt.getIdentite());
+            }
+        }
+        
+        // 2. Remplacer les héritiers
+        // Nettoyage de l'ancienne liste
+        if (frida.getHeritiers() != null && !frida.getHeritiers().isEmpty()) {
+            heritierRepo.deleteAll(frida.getHeritiers());
+            frida.getHeritiers().clear();
+        }
+        
+        // Insertion des nouveaux
+        if (dto.getHeritiers() != null) {
+            for (PersonneUpdateDto p : dto.getHeritiers()) {
+                IdentitesEntity identite = new IdentitesEntity();
+                identite.setNumFrida(numFrida);
+                identite.setNom(p.getNom());
+                identite.setPrenom(p.getPrenom());
+                identite.setDateNaissance(p.getDateNaissance());
+                identite.setSexe(p.getSexe());
+                identite = identitesRepo.save(identite);
+                
+                HeritierEntity heritier = new HeritierEntity();
+                heritier.setNumFrida(numFrida);
+                heritier.setNumParente(p.getNumParente());
+                heritier.setIdentite(identite);
+                
+                heritier = heritierRepo.save(heritier);
+                frida.getHeritiers().add(heritier);
+            }
+        }
+        
+        fridaRepo.save(frida);
+    }
+
+    /**
+     * Lance le calcul des parts sur une Frida existante et la met à jour.
+     * Cette méthode est appelée manuellement après validation de la Fiche.
+     */
+    @org.springframework.transaction.annotation.Transactional
+    public FridaEntity lancerCalcul(String numFrida) {
+        FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                .orElseThrow(() -> new RuntimeException("Frida non trouvée: " + numFrida));
+
+        TraitementContext ctx = TraitementContext.reconstruireContexte(frida);
+
+        // 1. Appel du moteur de calcul
         CalculEntity calcul = heirPartCalculatorService.calculerParts(ctx);
         calculRepo.save(calcul);
 
-        // Attribuer le coefficient à chaque héritier
-        for (HeritierEntity heritier : ctx.getListeHeritiers()) {
+        // 2. Attribution des coefficients
+        for (HeritierEntity heritier : frida.getHeritiers()) {
             int numerateur = determinerNumerateur(heritier, calcul);
             float coef = heirPartCalculatorService.calculerCoefficient(
                     numerateur, calcul.getDenominateur());
             heritier.setCoefPart(coef);
         }
 
-        // Constituer et sauvegarder la fiche Frida
-        FridaEntity ficheFrida = ctx.getFicheFrida();
-        ficheFrida.setDateCreation(LocalDate.now());
-        ficheFrida.setNotaire("محمد قثوم الموثق بالجزاىر شارع الانتصار،"); // TODO: rendre configurable
-        ficheFrida.setCalcul(calcul);
-        ficheFrida.setHeritiers(ctx.getListeHeritiers());
-        ficheFrida.setTemoins(ctx.getListeTemoins());
-        fridaRepo.save(ficheFrida);
+        // 3. Sauvegarde
+        frida.setCalcul(calcul);
+        return fridaRepo.save(frida);
     }
 
     /**
