@@ -20,4 +20,5 @@ export interface UploadConfig {
   docTypes: DocTypeOption[];
   allowSkip?: boolean;
   skipText?: string;
+  maxFiles?: number;
 }

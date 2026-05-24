@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FolderService } from '../../../services/folder.service';
+import { UploadStateService } from '../../../services/upload-state.service';
+import { ConstitutionService } from '../../../services/constitution.service';
 
 @Component({
   selector: 'app-create-person',
@@ -136,7 +138,9 @@ export class CreatePersonComponent {
   constructor(
     private fb: FormBuilder,
     private folderService: FolderService,
-    private router: Router
+    private router: Router,
+    private uploadStateService: UploadStateService,
+    private constitutionService: ConstitutionService
   ) {
     this.personForm = this.fb.group({
       lastName: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
@@ -165,6 +169,9 @@ export class CreatePersonComponent {
           this.submitSuccess = true;
           this.personForm.reset();
           this.isSubmitting = false;
+          // Nettoyer la mémoire de l'ancien dossier
+          this.uploadStateService.clearState();
+          this.constitutionService.resetFiche();
           setTimeout(() => {
             this.router.navigate(['/upload']);
           }, 1500);

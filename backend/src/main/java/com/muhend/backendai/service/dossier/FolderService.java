@@ -17,13 +17,18 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 import org.springframework.beans.factory.annotation.Value;
+import com.muhend.backendai.config.util.PathResolver;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class FolderService {
 
     @Value("${ROOT_PATH}")
     private String rootPathString;
+    
+    private final PathResolver pathResolver;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     @Getter
@@ -91,5 +96,22 @@ public class FolderService {
         } while (Files.exists(folderPath));
 
         return folderPath;
+    }
+
+    public void clearLatestFolder() {
+        try {
+            Path latest = pathResolver.getLatestFolder();
+            Files.walk(latest)
+                 .filter(Files::isRegularFile)
+                 .forEach(file -> {
+                     try {
+                         Files.delete(file);
+                     } catch (IOException e) {
+                         log.error("Impossible de supprimer {}", file);
+                     }
+                 });
+        } catch (IOException e) {
+            log.error("Erreur lors du nettoyage du dernier dossier: {}", e.getMessage());
+        }
     }
 }

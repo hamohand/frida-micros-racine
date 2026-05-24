@@ -25,4 +25,11 @@ public class FolderController {
             @Valid @RequestBody CreateFolderRequest request) {
         return ResponseEntity.ok(folderService.createFolder(request));
     }
+
+    @DeleteMapping("/clear-latest")
+    @Operation(summary = "Nettoyer le dossier", description = "Supprime les fichiers du dernier dossier pour éviter les doublons lors des re-vérifications")
+    public ResponseEntity<Void> clearLatestFolder() {
+        folderService.clearLatestFolder();
+        return ResponseEntity.ok().build();
+    }
 }

@@ -16,20 +16,24 @@ import { FileUploadService } from '../../../services/file-upload.service';
         class="drop-zone"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
-        (drop)="onDrop($event)"
+        [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
       >
-        <div class="drop-message">
+        <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
           <span class="material-icons">cloud_upload</span>
           <p>Glissez-déposez vos fichiers ici ou</p>
           <button class="btn btn-secondary" (click)="fileInput.click()">
             Sélectionnez des fichiers
           </button>
         </div>
+        <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
+          <span class="material-icons" style="color: #ffb84d;">lock</span>
+          <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max).</p>
+        </div>
         <input
           #fileInput
           type="file"
           multiple
-          hidden
+          [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
           (change)="onFileSelected($event)"
         />
       </div>
@@ -128,9 +132,16 @@ import { FileUploadService } from '../../../services/file-upload.service';
       background: rgba(78, 204, 163, 0.05);
     }
     
-    .drop-zone.drag-over {
+    .drop-zone.drag-over:not(.disabled-zone) {
       background: rgba(78, 204, 163, 0.1);
       border-color: var(--accent-color);
+    }
+    
+    .drop-zone.disabled-zone {
+      opacity: 0.6;
+      pointer-events: none;
+      background: rgba(0, 0, 0, 0.2);
+      border-color: rgba(255, 255, 255, 0.1);
     }
     
     .file-list {

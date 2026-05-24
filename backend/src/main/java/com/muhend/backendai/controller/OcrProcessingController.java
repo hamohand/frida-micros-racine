@@ -6,6 +6,8 @@ import com.muhend.backendai.service.dossier.FolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -36,5 +38,21 @@ public class OcrProcessingController {
         return ecrireBdService.traiterExtraitsNaissance(cheminDossierBase, mode);
     }
 
+    /**
+     * Sauvegarde la fiche familiale (écrasement du brouillon OCR).
+     */
+    @PostMapping("/sauvegarder-fiche/{numFrida}")
+    public void sauvegarderFiche(@PathVariable String numFrida, @org.springframework.web.bind.annotation.RequestBody com.muhend.backendai.dto.FicheUpdateDto dto) {
+        ecrireBdService.sauvegarderFicheCorrigee(numFrida, dto);
+    }
+
+    /**
+     * Déclenche manuellement le calcul pour une Frida existante.
+     * Appelée depuis l'interface de vérification de la Fiche.
+     */
+    @PostMapping("/lancer-calcul/{numFrida}")
+    public FridaEntity lancerCalcul(@PathVariable String numFrida) {
+        return ecrireBdService.lancerCalcul(numFrida);
+    }
 
 }

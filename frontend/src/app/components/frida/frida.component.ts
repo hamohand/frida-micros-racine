@@ -177,6 +177,12 @@ export class FridaComponent implements OnInit, AfterViewInit {
     } else if (numParente == 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'أخوه' : 'أخته';
       else return isMaleHeritier ? 'أخوها' : 'أختها';
+    } else if (numParente == 6) {
+      return isMaleDefunt ? 'عمه' : 'عمها';
+    } else if (numParente == 7) {
+      return isMaleDefunt ? 'ابن عمه' : 'ابن عمها';
+    } else if (numParente == 8) {
+      return isMaleDefunt ? 'جده' : 'جدها';
     }
     return '';
   }
@@ -189,6 +195,12 @@ export class FridaComponent implements OnInit, AfterViewInit {
     if (numParente == 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'لأخيه' : 'لأخته';
       else return isMaleHeritier ? 'لأخيها' : 'لأختها';
+    } else if (numParente == 6) {
+      return isMaleDefunt ? 'لعمه' : 'لعمها';
+    } else if (numParente == 7) {
+      return isMaleDefunt ? 'لابن عمه' : 'لابن عمها';
+    } else if (numParente == 8) {
+      return isMaleDefunt ? 'لجده' : 'لجدها';
     }
     return '';
   }
