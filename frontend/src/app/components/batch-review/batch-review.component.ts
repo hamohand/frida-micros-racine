@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FridaService } from '../../services/frida.service';
+import { forkJoin } from 'rxjs';
 
 interface DossierEnAttente {
   numFrida: string;
@@ -24,13 +25,12 @@ interface DossierEnAttente {
           <div class="header-left">
             <span class="header-icon">🌙</span>
             <div>
-              <h2>Révision des dossiers batch</h2>
+              <h2>Suivi du mode Batch</h2>
               <p class="subtitle">
-                {{ dossiers.length }} dossier(s) traités automatiquement en attente de votre validation.
+                Supervisez vos dossiers en attente de traitement, de correction OCR ou de validation familiale.
               </p>
             </div>
           </div>
-          <span class="badge-count" *ngIf="dossiers.length > 0">{{ dossiers.length }}</span>
         </div>
 
         <!-- Chargement -->
@@ -38,49 +38,90 @@ interface DossierEnAttente {
           <span class="spinner"></span> Chargement des dossiers...
         </div>
 
-        <!-- Liste vide -->
-        <div *ngIf="!isLoading && dossiers.length === 0" class="empty-state">
-          <span class="empty-icon">✅</span>
-          <p>Aucun dossier en attente de révision.</p>
-          <p class="empty-sub">Le traitement batch déposera ici les dossiers traités automatiquement.</p>
-        </div>
+        <div *ngIf="!isLoading">
+          <!-- 1. Travaux mis en batch -->
+          <div class="section-container">
+            <h3><span class="section-icon">⏳</span> Travaux mis en batch <span class="badge-count" *ngIf="pendingFolders.length > 0">{{ pendingFolders.length }}</span></h3>
+            <div *ngIf="pendingFolders.length === 0" class="empty-state">
+              <p>Aucun dossier en attente de traitement OCR.</p>
+            </div>
+            <div class="table-container" *ngIf="pendingFolders.length > 0">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nom du dossier</th>
+                    <th>État</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let folder of pendingFolders">
+                    <td class="font-mono"><strong>{{ folder }}</strong></td>
+                    <td><span class="badge-ocr warning">⏳ En attente de traitement batch</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
-        <!-- Tableau -->
-        <div class="table-container" *ngIf="!isLoading && dossiers.length > 0">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>N° Dossier</th>
-                <th>Défunt</th>
-                <th>Date de création</th>
-                <th>État OCR</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let d of dossiers" [class.row-warning]="d.requiresCorrection">
-                <td class="font-mono"><strong>{{ d.numFrida }}</strong></td>
-                <td>{{ d.nom }} {{ d.prenom }}</td>
-                <td><span class="badge-date">{{ d.dateCreation }}</span></td>
-                <td>
-                  <span *ngIf="d.requiresCorrection" class="badge-ocr warning">
-                    ⚠️ Champs à vérifier
-                  </span>
-                  <span *ngIf="!d.requiresCorrection" class="badge-ocr ok">
-                    ✅ OCR fiable
-                  </span>
-                </td>
-                <td>
-                  <button class="btn-reviser" (click)="reviser(d)">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor">
-                      <path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/>
-                    </svg>
-                    Réviser
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <!-- 2. Révisions -->
+          <div class="section-container">
+            <h3><span class="section-icon">⚠️</span> Révisions <span class="badge-count" *ngIf="revisions.length > 0">{{ revisions.length }}</span></h3>
+            <div *ngIf="revisions.length === 0" class="empty-state">
+              <p>Aucune révision OCR requise pour le moment.</p>
+            </div>
+            <div class="table-container" *ngIf="revisions.length > 0">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>N° Dossier</th>
+                    <th>Défunt</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let d of revisions" class="row-warning">
+                    <td class="font-mono"><strong>{{ d.numFrida }}</strong></td>
+                    <td>{{ d.nom }} {{ d.prenom }}</td>
+                    <td><span class="badge-date">{{ d.dateCreation }}</span></td>
+                    <td>
+                      <button class="btn-reviser" (click)="reviser(d)">Réviser OCR</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- 3. Validations -->
+          <div class="section-container">
+            <h3><span class="section-icon">✅</span> Validations <span class="badge-count" *ngIf="validations.length > 0">{{ validations.length }}</span></h3>
+            <div *ngIf="validations.length === 0" class="empty-state">
+              <p>Aucun dossier en attente de validation familiale.</p>
+            </div>
+            <div class="table-container" *ngIf="validations.length > 0">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>N° Dossier</th>
+                    <th>Défunt</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let d of validations">
+                    <td class="font-mono"><strong>{{ d.numFrida }}</strong></td>
+                    <td>{{ d.nom }} {{ d.prenom }}</td>
+                    <td><span class="badge-date">{{ d.dateCreation }}</span></td>
+                    <td>
+                      <button class="btn-valider" (click)="reviser(d)">Valider la Famille</button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -144,29 +185,44 @@ interface DossierEnAttente {
       margin: 0;
       font-size: 0.95rem;
     }
+    
+    .section-container {
+      margin-bottom: 2.5rem;
+      background: rgba(0,0,0,0.15);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+
+    .section-container h3 {
+      color: #e2e8f0;
+      margin-top: 0;
+      margin-bottom: 1.2rem;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
 
     .badge-count {
       background: rgba(255, 184, 77, 0.15);
       color: #ffb84d;
       border: 1px solid rgba(255, 184, 77, 0.4);
       border-radius: 50%;
-      width: 44px;
-      height: 44px;
+      width: 28px;
+      height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 0.85rem;
       font-weight: 700;
     }
 
     .loading-state, .empty-state {
       text-align: center;
-      padding: 3rem;
+      padding: 1.5rem;
       color: rgba(255,255,255,0.4);
     }
-
-    .empty-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
-    .empty-sub { font-size: 0.85rem; opacity: 0.6; }
 
     .spinner {
       display: inline-block;
@@ -197,6 +253,7 @@ interface DossierEnAttente {
       text-transform: uppercase;
       letter-spacing: 0.05em;
       border-bottom: 1px solid rgba(255,255,255,0.1);
+      text-align: left;
     }
 
     .table td {
@@ -240,16 +297,29 @@ interface DossierEnAttente {
       border: 1px solid rgba(255,184,77,0.3);
     }
 
-    .badge-ocr.ok {
-      background: rgba(78,204,163,0.1);
-      color: #4ecca3;
-      border: 1px solid rgba(78,204,163,0.25);
-    }
-
     .btn-reviser {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      background: rgba(255,184,77,0.12);
+      color: #ffb84d;
+      border: 1px solid rgba(255,184,77,0.3);
+      padding: 7px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-reviser:hover {
+      background: rgba(255,184,77,0.25);
+      color: #fff;
+    }
+
+    .btn-valider {
+      display: inline-flex;
+      align-items: center;
       background: rgba(78,204,163,0.12);
       color: #4ecca3;
       border: 1px solid rgba(78,204,163,0.3);
@@ -261,23 +331,31 @@ interface DossierEnAttente {
       font-family: inherit;
       transition: all 0.2s;
     }
-
-    .btn-reviser:hover {
+    
+    .btn-valider:hover {
       background: rgba(78,204,163,0.25);
       color: #fff;
     }
   `]
 })
 export class BatchReviewComponent implements OnInit {
-  dossiers: DossierEnAttente[] = [];
+  pendingFolders: string[] = [];
+  revisions: DossierEnAttente[] = [];
+  validations: DossierEnAttente[] = [];
   isLoading = true;
 
   constructor(private fridaService: FridaService, private router: Router) {}
 
   ngOnInit() {
-    this.fridaService.lancerApi('/api/frida/batch-en-attente').subscribe({
+    forkJoin({
+      pending: this.fridaService.lancerApi('/api/folders/pending-batch'),
+      enAttente: this.fridaService.lancerApi('/api/frida/batch-en-attente')
+    }).subscribe({
       next: (data) => {
-        this.dossiers = Array.isArray(data) ? data : [];
+        this.pendingFolders = Array.isArray(data.pending) ? data.pending : [];
+        const dossiers = Array.isArray(data.enAttente) ? data.enAttente : [];
+        this.revisions = dossiers.filter(d => d.requiresCorrection);
+        this.validations = dossiers.filter(d => !d.requiresCorrection);
         this.isLoading = false;
       },
       error: () => { this.isLoading = false; }
@@ -285,8 +363,6 @@ export class BatchReviewComponent implements OnInit {
   }
 
   reviser(d: DossierEnAttente) {
-    // Si l'OCR a détecté des champs suspects → passer par la fiche de correction
-    // Sinon → aller directement à la fiche de validation familiale
     if (d.requiresCorrection) {
       this.router.navigate(['/correction'], { queryParams: { numFrida: d.numFrida } });
     } else {

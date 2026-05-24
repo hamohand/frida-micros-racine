@@ -51,6 +51,7 @@ public class FridaController {
      * Endpoint pour corriger une Frida, et relancer le calcul des parts.
      */
     @PutMapping("/corrections/{numFrida}")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('MAITRE')")
     public ResponseEntity<FridaEntity> corrigerFrida(@PathVariable String numFrida, @RequestBody FridaEntity corrections) {
         try {
             FridaEntity updatedFrida = fridaService.corrigerEtRecalculerFrida(numFrida, corrections);

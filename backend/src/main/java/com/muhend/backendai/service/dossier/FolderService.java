@@ -114,4 +114,24 @@ public class FolderService {
             log.error("Erreur lors du nettoyage du dernier dossier: {}", e.getMessage());
         }
     }
+
+    public java.util.List<String> getPendingBatchFolders() {
+        java.util.List<String> pendingFolders = new java.util.ArrayList<>();
+        Path rootPath = Paths.get(rootPathString);
+        if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
+            return pendingFolders;
+        }
+
+        try (java.util.stream.Stream<Path> stream = Files.list(rootPath)) {
+            stream.filter(Files::isDirectory).forEach(path -> {
+                Path processedFile = path.resolve(".processed");
+                if (!Files.exists(processedFile)) {
+                    pendingFolders.add(path.getFileName().toString());
+                }
+            });
+        } catch (IOException e) {
+            log.error("Erreur lors de la récupération des dossiers batch en attente : {}", e.getMessage(), e);
+        }
+        return pendingFolders;
+    }
 }

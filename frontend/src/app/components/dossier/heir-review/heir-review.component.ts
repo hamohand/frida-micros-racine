@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FridaService } from '../../../services/frida.service';
 import { LireaiEcrirebdService } from '../../../services/lireai-ecrirebd.service';
 import { UploadStateService } from '../../../services/upload-state.service';
+import { AuthService } from '../../../services/auth.service';
 
 interface Personne {
   id?: number;
@@ -113,10 +114,16 @@ interface Personne {
         <div class="actions">
           <button class="btn btn-secondary" (click)="goBack()">Retourner au carrousel</button>
           <button class="btn btn-danger" (click)="annulerTout()">Tout annuler</button>
-          <button class="btn btn-primary" (click)="validateAndCalculate()" [disabled]="isCalculating || isAddingHeir || editingIndex !== null || editingDefunt">
-             <span *ngIf="!isCalculating">💾 Sauvegarder et Calculer les Parts</span>
-             <span *ngIf="isCalculating"><span class="spinner"></span> Sauvegarde et calcul en cours...</span>
-          </button>
+          <div class="validation-wrapper" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
+            <button class="btn btn-primary" (click)="validateAndCalculate()" 
+                    [disabled]="isCalculating || isAddingHeir || editingIndex !== null || editingDefunt || !authService.isMaitre()">
+               <span *ngIf="!isCalculating">💾 Sauvegarder et Calculer les Parts</span>
+               <span *ngIf="isCalculating"><span class="spinner"></span> Sauvegarde et calcul en cours...</span>
+            </button>
+            <span *ngIf="!authService.isMaitre()" style="font-size: 0.8rem; color: #ffb84d;">
+              ⚠️ Seul un compte Maître peut valider définitivement la Frida.
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -189,7 +196,8 @@ export class HeirReviewComponent implements OnInit {
     private router: Router,
     private fridaService: FridaService,
     private lireaiEcrirebdService: LireaiEcrirebdService,
-    private uploadStateService: UploadStateService
+    private uploadStateService: UploadStateService,
+    public authService: AuthService
   ) {}
 
   ngOnInit() {

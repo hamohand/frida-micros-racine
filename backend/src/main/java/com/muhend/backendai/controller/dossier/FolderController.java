@@ -32,4 +32,10 @@ public class FolderController {
         folderService.clearLatestFolder();
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/pending-batch")
+    @Operation(summary = "Dossiers batch en attente", description = "Retourne la liste des dossiers non encore traités par le batch (sans fichier .processed)")
+    public ResponseEntity<java.util.List<String>> getPendingBatchFolders() {
+        return ResponseEntity.ok(folderService.getPendingBatchFolders());
+    }
 }

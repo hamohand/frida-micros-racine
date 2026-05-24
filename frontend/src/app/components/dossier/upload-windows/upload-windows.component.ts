@@ -624,6 +624,13 @@ export class UploadWindowsComponent implements OnInit {
     // Sauvegarde l'état du carrousel avant de partir
     this.uploadStateService.saveState(this.windows, this.ocrMode);
     
+    // Si on est en mode batch, on s'arrête ici. Le planificateur (BatchJobScheduler)
+    // prendra le relais plus tard pour traiter le dossier.
+    if (this.ocrMode === 'batch') {
+      this.isBatchUploaded = true;
+      return;
+    }
+    
     this.isReading = true;
     this.lireaiEcrirebdService.lireAiEcrireBd(this.ocrMode).subscribe({
       next: (data) => {
