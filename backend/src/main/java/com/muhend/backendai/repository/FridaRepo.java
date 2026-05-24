@@ -27,4 +27,15 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
                         ORDER BY f.dateCreation DESC
             """)
     List<FridaDetailsDTO> findAllFridas();
+
+    // Dossiers d'un statut donné (ex: EN_ATTENTE_REVISION), triés du plus récent au plus ancien
+    @Query("""
+                    SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection)
+                        FROM FridaEntity f
+                        JOIN f.defunt d
+                        JOIN d.identite e
+                        WHERE f.statut = :statut
+                        ORDER BY f.dateCreation DESC
+            """)
+    List<FridaDetailsDTO> findByStatut(@Param("statut") String statut);
 }

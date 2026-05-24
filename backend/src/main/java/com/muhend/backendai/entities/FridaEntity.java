@@ -28,6 +28,19 @@ public class FridaEntity {
     @Column(columnDefinition = "boolean default false")
     private Boolean requiresCorrection = false;
 
+    /**
+     * Statut du dossier dans le cycle de vie.
+     * VALIDE         : traitement terminé, frida consultable.
+     * EN_ATTENTE_REVISION : traité par le batch, en attente de révision humaine.
+     * ECHEC          : traitement OCR en échec, dossier à retraiter.
+     */
+    public static final String STATUT_VALIDE = "VALIDE";
+    public static final String STATUT_EN_ATTENTE = "EN_ATTENTE_REVISION";
+    public static final String STATUT_ECHEC = "ECHEC";
+
+    @Column(name = "statut", nullable = false, columnDefinition = "varchar(255) default 'VALIDE'")
+    private String statut = STATUT_VALIDE;
+
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "calcul_id", referencedColumnName = "id")
