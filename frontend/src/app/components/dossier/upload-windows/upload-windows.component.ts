@@ -7,6 +7,8 @@ import { UploadWindowState } from './upload-window.interface';
 import { UploadConfig, DocTypeOption, UploadedFile } from '../file-upload/file-upload.interface';
 import { Router } from '@angular/router';
 import { LireaiEcrirebdService } from "../../../services/lireai-ecrirebd.service";
+import { ConstitutionService } from '../../../services/constitution.service';
+import { UploadStateService } from '../../../services/upload-state.service';
 import { forkJoin, Observable, of } from 'rxjs';
 
 @Component({
@@ -15,26 +17,35 @@ import { forkJoin, Observable, of } from 'rxjs';
   imports: [CommonModule, FormsModule, FileUploadComponent],
   template: `
     <div class="windows-container carousel-viewport">
+      <!-- DEBUG BADGE DISCRET -->
+      <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.7); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; pointer-events: none; border: 1px solid rgba(78, 204, 163, 0.3);">
+        Hajb: Fils={{ getFiche().nbGarcons }} | Père={{ getFiche().pereVivant ? 'Oui' : 'Non' }} | Fenêtres={{ getActiveWindowKeys().length }}
+      </div>
+
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
         <!-- Fenêtre Défunt -->
-        <div class="window-section">
-          <app-file-upload *ngIf="!windows['f1'].isUploading"
-              [config]="getUploadConfig('1', 'Défunt', false)"
-              [initialFiles]="windows['f1'].rawFiles || []"
-              (filesConfirmed)="onFilesConfirmed('f1', $event)"
-              (uploadCancelled)="onUploadCancelled('f1')"
-          ></app-file-upload>
+        <div class="window-section" *ngIf="isWindowActive('f1')">
+          <ng-container *ngIf="!windows['f1'].isUploading">
+            <h2 class="window-title">1. Document du Défunt</h2>
+            <app-file-upload #fileUploadF1
+                [config]="getUploadConfig('1', 'Défunt', false, '', 1)"
+                [initialFiles]="windows['f1'].rawFiles || []"
+                (filesConfirmed)="onFilesConfirmed('f1', $event)"
+                (uploadCancelled)="onUploadCancelled('f1')"
+            ></app-file-upload>
+          </ng-container>
           <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
           </div>
         </div>
 
         <!-- Fenêtre Conjoint -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f2')">
           <ng-container *ngIf="!windows['f2'].isUploading">
+            <h2 class="window-title">2. Document du Conjoint</h2>
             <app-file-upload #fileUploadF2
-                [config]="getUploadConfig('2', 'Conjoint', true, 'Continuer s\\'il n\\'y a pas de conjoint')"
+                [config]="getUploadConfig('2', 'Conjoint', true, 'Continuer s\\'il n\\'y a pas de conjoint', 4)"
                 [initialFiles]="windows['f2'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f2', $event)"
                 (previousClicked)="moveToPreviousWindow('f2')"
@@ -49,10 +60,11 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Fils (Garçons) -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_garcons')">
           <ng-container *ngIf="!windows['f_garcons'].isUploading">
+            <h2 class="window-title">3. Documents des Fils</h2>
             <app-file-upload #fileUploadFGarcons
-                [config]="getUploadConfig('3', 'Fils (Garçons)', true, 'Continuer s\\'il n\\'y a pas de fils')"
+                [config]="getUploadConfig('3', 'Fils (Garçons)', true, 'Continuer s\\'il n\\'y a pas de fils', 10)"
                 [initialFiles]="windows['f_garcons'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_garcons', $event)"
                 (previousClicked)="moveToPreviousWindow('f_garcons')"
@@ -67,10 +79,11 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Filles -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_filles')">
           <ng-container *ngIf="!windows['f_filles'].isUploading">
+            <h2 class="window-title">4. Documents des Filles</h2>
             <app-file-upload #fileUploadFFilles
-                [config]="getUploadConfig('3', 'Filles', true, 'Continuer s\\'il n\\'y a pas de filles')"
+                [config]="getUploadConfig('3', 'Filles', true, 'Continuer s\\'il n\\'y a pas de filles', 10)"
                 [initialFiles]="windows['f_filles'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_filles', $event)"
                 (previousClicked)="moveToPreviousWindow('f_filles')"
@@ -85,10 +98,11 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Père -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_pere')">
           <ng-container *ngIf="!windows['f_pere'].isUploading">
+            <h2 class="window-title">Le Défunt a-t-il un Père vivant ?</h2>
             <app-file-upload #fileUploadFPere
-                [config]="getUploadConfig('4', 'Père', true, 'Continuer s\\'il n\\'y a pas de père')"
+                [config]="getUploadConfig('4', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 1)"
                 [initialFiles]="windows['f_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_pere')"
@@ -103,10 +117,11 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Grand-père paternel -->
-        <div class="window-section" *ngIf="!shouldHideGrandPere()">
+        <div class="window-section" *ngIf="isWindowActive('f_grand_pere')">
           <ng-container *ngIf="!windows['f_grand_pere'].isUploading">
+            <h2 class="window-title">Le Défunt a-t-il un Grand-père paternel vivant ?</h2>
             <app-file-upload #fileUploadFGrandPere
-                [config]="getUploadConfig('8', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel')"
+                [config]="getUploadConfig('8', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 1)"
                 [initialFiles]="windows['f_grand_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_grand_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_grand_pere')"
@@ -121,10 +136,11 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Mère -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_mere')">
           <ng-container *ngIf="!windows['f_mere'].isUploading">
+            <h2 class="window-title">Le Défunt a-t-il une Mère vivante ?</h2>
             <app-file-upload #fileUploadFMere
-                [config]="getUploadConfig('4', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère')"
+                [config]="getUploadConfig('4', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 1)"
                 [initialFiles]="windows['f_mere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_mere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_mere')"
@@ -139,10 +155,10 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Frères et sœurs du défunt -->
-        <div class="window-section" *ngIf="!shouldHideSiblings()">
+        <div class="window-section" *ngIf="isWindowActive('f5')">
           <ng-container *ngIf="!windows['f5'].isUploading">
             <app-file-upload #fileUploadF5
-                [config]="getUploadConfig('5', 'Frères et sœurs du défunt', true, 'Continuer s\\'il n\\'y a pas de frères et sœurs')"
+                [config]="getUploadConfig('5', 'Frères et sœurs du défunt', true, 'Continuer s\\'il n\\'y a pas de frères et sœurs', 10)"
                 [initialFiles]="windows['f5'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f5', $event)"
                 (previousClicked)="moveToPreviousWindow('f5')"
@@ -157,10 +173,10 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Oncles paternels -->
-        <div class="window-section" *ngIf="!shouldHideUncles()">
+        <div class="window-section" *ngIf="isWindowActive('f6')">
           <ng-container *ngIf="!windows['f6'].isUploading">
             <app-file-upload #fileUploadF6
-                [config]="getUploadConfig('6', 'Oncles paternels', true, 'Continuer s\\'il n\\'y a pas d\\'oncles paternels')"
+                [config]="getUploadConfig('6', 'Oncles paternels', true, 'Continuer s\\'il n\\'y a pas d\\'oncles paternels', 10)"
                 [initialFiles]="windows['f6'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f6', $event)"
                 (previousClicked)="moveToPreviousWindow('f6')"
@@ -175,10 +191,10 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Cousins paternels -->
-        <div class="window-section" *ngIf="!shouldHideCousins()">
+        <div class="window-section" *ngIf="isWindowActive('f7')">
           <ng-container *ngIf="!windows['f7'].isUploading">
             <app-file-upload #fileUploadF7
-                [config]="getUploadConfig('7', 'Cousins paternels', true, 'Continuer s\\'il n\\'y a pas de cousins paternels')"
+                [config]="getUploadConfig('7', 'Cousins paternels', true, 'Continuer s\\'il n\\'y a pas de cousins paternels', 10)"
                 [initialFiles]="windows['f7'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f7', $event)"
                 (previousClicked)="moveToPreviousWindow('f7')"
@@ -193,10 +209,10 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre témoins -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_temoins')">
           <ng-container *ngIf="!windows['f_temoins'].isUploading">
             <app-file-upload #fileUploadFTemoins
-                [config]="getUploadConfig('11', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin')"
+                [config]="getUploadConfig('11', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
                 [initialFiles]="windows['f_temoins'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
                 (previousClicked)="moveToPreviousWindow('f_temoins')"
@@ -211,7 +227,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Lecture AI ---------------- -->
-        <div class="window-section">
+        <div class="window-section" *ngIf="isWindowActive('f_ai')">
           <div class="drop-zone">
             <div class="upload-container">
               <h2>Validation finale du dossier</h2>
@@ -250,10 +266,10 @@ import { forkJoin, Observable, of } from 'rxjs';
                 <!-- Bouton de lancement -->
                 <button *ngIf="!endReading && !isReading && !isBatchUploaded"
                     class="btn btn-primary continue-btn"
-                    (click)="onLireAiEcrireBd()" [disabled]="isUploadingFiles"
+                    (click)="onReviewFamily()" [disabled]="isUploadingFiles"
                 >
-                  <span *ngIf="!isUploadingFiles">Valider et Lancer</span>
-                  <span *ngIf="isUploadingFiles"><span class="spinner"></span> Envoi des fichiers en cours...</span>
+                  <span *ngIf="!isUploadingFiles">Vérifier la constitution de la famille</span>
+                  <span *ngIf="isUploadingFiles"><span class="spinner"></span> Préparation...</span>
                 </button>
 
                 <!-- Vue en mode asynchrone (Pendant l'OCR) -->
@@ -279,22 +295,6 @@ import { forkJoin, Observable, of } from 'rxjs';
                     </div>
                 </div>
                 
-                <!-- Vue terminée -->
-                <button *ngIf="endReading"
-                    class="btn btn-primary continue-btn"
-                    (click)="onAfficheFrida()" >
-                    <span>Afficher la frida</span>
-                </button>
-                <button *ngIf="endReading"
-                        class="btn btn-primary continue-btn"
-                        (click)="pageCreation()" >
-                  <span>Nouvelle frida</span>
-                </button>
-                <button *ngIf="endReading"
-                        class="btn btn-primary continue-btn"
-                        (click)="accueil()" >
-                  <span>Accueil</span>
-                </button>
               </div>
             </div>
           </div>
@@ -313,6 +313,7 @@ import { forkJoin, Observable, of } from 'rxjs';
       letter-spacing: 1px;
       font-weight: bold;
     }
+    .window-title { font-size: 1.2rem; margin-bottom: 15px; }
 
     /* Ajout du style pour le spinner */
     .spinner {
@@ -411,22 +412,42 @@ export class UploadWindowsComponent implements OnInit {
   ocrMode: 'rapide' | 'approfondi' | 'batch' = 'rapide';
 
   getActiveWindowKeys(): string[] {
+    const fiche = this.constitutionService.currentFiche;
     const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_pere'];
-    if (!this.shouldHideGrandPere()) {
+
+    // Exclusion du Grand-père paternel (exclu si le Père est vivant)
+    if (!fiche.pereVivant) {
       keys.push('f_grand_pere');
     }
+
     keys.push('f_mere');
-    if (!this.shouldHideSiblings()) {
+
+    // Exclusion des Frères et sœurs (exclus si Père vivant ou présence de Garçons)
+    const aDesGarcons = fiche.nbGarcons > 0;
+    if (!fiche.pereVivant && !aDesGarcons) {
       keys.push('f5');
     }
-    if (!this.shouldHideUncles()) {
+
+    // Exclusion des Oncles paternels (exclus si Père, Garçons, Grand-père ou Frères)
+    const aDesFreres = fiche.nbFreres > 0;
+    if (!fiche.pereVivant && !aDesGarcons && !fiche.grandPerePaternelVivant && !aDesFreres) {
       keys.push('f6');
     }
-    if (!this.shouldHideCousins()) {
+
+    // Exclusion des Cousins paternels (exclus si Père, Garçons, Grand-père, Frères ou Oncles)
+    const aDesOncles = fiche.nbOncles > 0;
+    if (!fiche.pereVivant && !aDesGarcons && !fiche.grandPerePaternelVivant && !aDesFreres && !aDesOncles) {
       keys.push('f7');
     }
+
+    // Témoins et Validation finale
     keys.push('f_temoins', 'f_ai');
+
     return keys;
+  }
+
+  isWindowActive(key: string): boolean {
+    return this.getActiveWindowKeys().includes(key);
   }
 
   getCurrentIndex(): number {
@@ -435,51 +456,27 @@ export class UploadWindowsComponent implements OnInit {
     return windowKeys.indexOf(activeKey || 'f1');
   }
 
-  shouldHideGrandPere(): boolean {
-    const hide = this.windows['f_pere'].hasFiles;
-    if (hide) {
-      this.clearWindow('f_grand_pere');
-    }
-    return hide;
-  }
-
-  shouldHideSiblings(): boolean {
-    const hide = this.windows['f_garcons'].hasFiles || this.windows['f_pere'].hasFiles || this.windows['f_grand_pere'].hasFiles;
-    if (hide) {
-      this.clearWindow('f5');
-    }
-    return hide;
-  }
-
-  shouldHideUncles(): boolean {
-    const hide = this.shouldHideSiblings() || this.windows['f5'].hasFiles;
-    if (hide) {
-      this.clearWindow('f6');
-    }
-    return hide;
-  }
-
-  shouldHideCousins(): boolean {
-    const hide = this.shouldHideUncles() || this.windows['f6'].hasFiles;
-    if (hide) {
-      this.clearWindow('f7');
-    }
-    return hide;
-  }
-
-  private clearWindow(key: string) {
-    const win = this.windows[key];
-    if (win && (win.hasFiles || win.rawFiles?.length || win.groupedFiles?.length)) {
-      win.hasFiles = false;
-      win.rawFiles = [];
-      win.groupedFiles = [];
-    }
-  }
-
   constructor(private fileUploadService: FileUploadService, private router: Router,
-    private lireaiEcrirebdService: LireaiEcrirebdService) { }
+    private lireaiEcrirebdService: LireaiEcrirebdService, private constitutionService: ConstitutionService,
+    private uploadStateService: UploadStateService) { }
 
   ngOnInit() {
+    const saved = this.uploadStateService.getState();
+    if (saved.windows) {
+      this.windows = saved.windows;
+      this.ocrMode = saved.ocrMode || 'rapide';
+      
+      // Resynchronisation forcée du ConstitutionService au cas où on revient de l'écran de synthèse
+      ['f2', 'f_garcons', 'f_filles', 'f_pere', 'f_grand_pere', 'f_mere', 'f5', 'f6', 'f7'].forEach(key => {
+        if (this.windows[key]) {
+           this.updateConstitutionState(key, this.windows[key].hasFiles, this.windows[key].rawFiles?.length || 0);
+        }
+      });
+    }
+  }
+
+  getFiche() {
+    return this.constitutionService.currentFiche;
   }
 
   /** Types de documents disponibles pour le sélecteur */
@@ -489,7 +486,7 @@ export class UploadWindowsComponent implements OnInit {
     { id: 'pp', label: 'Passeport' }
   ];
 
-  getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = ''): UploadConfig & { allowPrevious?: boolean } {
+  getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = '', maxFiles: number = 10): UploadConfig & { allowPrevious?: boolean } {
     return {
       maxFileSize: 5 * 1024 * 1024,
       allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
@@ -498,7 +495,8 @@ export class UploadWindowsComponent implements OnInit {
       docTypes: this.docTypeOptions,
       allowPrevious: allowPrevious,
       allowSkip: skipText.length > 0,
-      skipText: skipText
+      skipText: skipText,
+      maxFiles: maxFiles
     };
   }
 
@@ -514,6 +512,7 @@ export class UploadWindowsComponent implements OnInit {
         currentWindow.rawFiles = [];
         currentWindow.groupedFiles = [];
       }
+      this.updateConstitutionState(window, currentWindow.hasFiles, events.rawFiles.length);
       this.moveToNextWindow(window);
     }
   }
@@ -524,6 +523,21 @@ export class UploadWindowsComponent implements OnInit {
       currentWindow.hasFiles = false;
       currentWindow.rawFiles = [];
       currentWindow.groupedFiles = [];
+      this.updateConstitutionState(window, false, 0);
+    }
+  }
+
+  private updateConstitutionState(window: string, hasFiles: boolean, count: number) {
+    switch (window) {
+      case 'f2': this.constitutionService.updateFiche({ nbConjoints: count }); break;
+      case 'f_garcons': this.constitutionService.updateFiche({ nbGarcons: count }); break;
+      case 'f_filles': this.constitutionService.updateFiche({ nbFilles: count }); break;
+      case 'f_pere': this.constitutionService.updateFiche({ pereVivant: hasFiles }); break;
+      case 'f_grand_pere': this.constitutionService.updateFiche({ grandPerePaternelVivant: hasFiles }); break;
+      case 'f_mere': this.constitutionService.updateFiche({ mereVivante: hasFiles }); break;
+      case 'f5': this.constitutionService.updateFiche({ nbFreres: count }); break; // Par défaut, on les met dans Frères
+      case 'f6': this.constitutionService.updateFiche({ nbOncles: count }); break;
+      case 'f7': this.constitutionService.updateFiche({ nbCousins: count }); break;
     }
   }
 
@@ -558,9 +572,20 @@ export class UploadWindowsComponent implements OnInit {
     }
   }
 
-  onLireAiEcrireBd(): void {
+  onReviewFamily(): void {
     this.isUploadingFiles = true;
+    
+    // Nettoyage du dossier serveur pour éviter le dédoublement des fichiers
+    this.lireaiEcrirebdService.clearLatestFolder().subscribe({
+      next: () => this.startUploads(),
+      error: (err) => {
+        console.warn("Erreur lors du nettoyage du dossier, continuation...", err);
+        this.startUploads(); // On continue même en cas d'erreur (ex: dossier vide)
+      }
+    });
+  }
 
+  private startUploads(): void {
     const allUploadObservables: Observable<any>[] = [];
 
     this.getActiveWindowKeys().forEach(key => {
@@ -581,11 +606,7 @@ export class UploadWindowsComponent implements OnInit {
       forkJoin(allUploadObservables).subscribe({
         next: () => {
           this.isUploadingFiles = false;
-          if (this.ocrMode === 'batch') {
-            this.isBatchUploaded = true;
-          } else {
-            this.launchOcrProcess();
-          }
+          this.launchOcrAndReview();
         },
         error: (err) => {
           console.error('Erreur lors du transfert des dossiers au serveur :', err);
@@ -595,34 +616,35 @@ export class UploadWindowsComponent implements OnInit {
       });
     } else {
       this.isUploadingFiles = false;
-      if (this.ocrMode === 'batch') {
-        this.isBatchUploaded = true;
-      } else {
-        this.launchOcrProcess();
-      }
+      this.launchOcrAndReview();
     }
   }
 
-  private launchOcrProcess() {
+  private launchOcrAndReview() {
+    // Sauvegarde l'état du carrousel avant de partir
+    this.uploadStateService.saveState(this.windows, this.ocrMode);
+    
     this.isReading = true;
     this.lireaiEcrirebdService.lireAiEcrireBd(this.ocrMode).subscribe({
       next: (data) => {
-        console.log('Réponse du serveur UploadWindowsComponent: ', data);
-        this.numFrida = data.numFrida;
         this.isReading = false;
-        this.endReading = true;
+        if (data && data.numFrida) {
+           // Si l'OCR a détecté des champs à faible confiance, passer par la fiche de correction
+           if (data.requiresCorrection) {
+             this.router.navigate(['/correction'], { queryParams: { numFrida: data.numFrida } });
+           } else {
+             this.router.navigate(['/review-family'], { queryParams: { numFrida: data.numFrida } });
+           }
+        } else {
+           alert("L'analyse n'a renvoyé aucun dossier valide (aucun document n'a été reconnu).");
+        }
       },
       error: (error) => {
-        console.error('Erreur lors de l’écriture UploadWindowsComponent:', error);
+        console.error('Erreur lors de l\'analyse OCR:', error);
         this.isReading = false;
-        this.endReading = true; 
+        alert("Une erreur est survenue pendant l'analyse des documents par l'IA.");
       },
     });
-  }
-
-  onAfficheFrida() {
-    console.log('Processus onAfficheFrida !');
-    this.router.navigate(['/frida'], { queryParams: { numFrida: this.numFrida } });
   }
 
   pageCreation() {

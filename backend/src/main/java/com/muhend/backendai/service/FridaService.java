@@ -1,18 +1,22 @@
 package com.muhend.backendai.service;
 
 import com.muhend.backendai.dto.FridaDetailsDTO;
+import com.muhend.backendai.dto.OcrCorrectionFieldDto;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.CalculEntity;
+import com.muhend.backendai.entities.HeritierEntity;
+import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.repository.DefuntRepo;
 import com.muhend.backendai.repository.FridaRepo;
 import com.muhend.backendai.repository.CalculRepo;
+import com.muhend.backendai.repository.HeritierRepo;
 import com.muhend.backendai.service.aibd.HeirPartCalculatorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import java.lang.reflect.Field;
+import java.util.*;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -22,14 +26,32 @@ public class FridaService {
     private final DefuntRepo defuntRepo;
     private final CalculRepo calculRepo;
     private final HeirPartCalculatorService heirPartCalculatorService;
+    private final HeritierRepo heritierRepo;
+
+    // Seuil de confiance OCR (75%)
+    private static final double SEUIL_CONFIANCE = 0.75;
+
+    // Correspondance clé OCR -> libellé français
+    private static final Map<String, String> CHAMP_LABELS = Map.of(
+        "nom", "Nom",
+        "prenom", "Prénom",
+        "dateNaissance", "Date de naissance",
+        "lieuNaissance", "Lieu de naissance",
+        "sexe", "Sexe",
+        "nin", "NIN",
+        "pere", "Père",
+        "mere", "Mère"
+    );
 
     @Autowired
-    public FridaService(FridaRepo fridaRepository, DefuntRepo defuntRepo, 
-                        CalculRepo calculRepo, HeirPartCalculatorService calculatorService) {
+    public FridaService(FridaRepo fridaRepository, DefuntRepo defuntRepo,
+                        CalculRepo calculRepo, HeirPartCalculatorService calculatorService,
+                        HeritierRepo heritierRepo) {
         this.fridaRepo = fridaRepository;
         this.defuntRepo = defuntRepo;
         this.calculRepo = calculRepo;
         this.heirPartCalculatorService = calculatorService;
+        this.heritierRepo = heritierRepo;
     }
 
     // Méthode pour récupérer toutes les fridas
@@ -50,6 +72,10 @@ public class FridaService {
     // ai
     public List<FridaDetailsDTO> getFridas() {
         return fridaRepo.findAllFridas();
+    }
+
+    public List<FridaDetailsDTO> getFridasEnAttente() {
+        return fridaRepo.findByStatut(FridaEntity.STATUT_EN_ATTENTE);
     }
 
     public FridaEntity corrigerEtRecalculerFrida(String numFrida, FridaEntity corrections) {
@@ -78,6 +104,141 @@ public class FridaService {
         }
 
         return fridaRepo.save(corrections);
+    }
+
+    /**
+     * Retourne la liste des champs OCR dont la confiance est < SEUIL_CONFIANCE
+     * pour le défunt et tous les héritiers d'une frida.
+     */
+    public List<OcrCorrectionFieldDto> getChampsSuspects(String numFrida) {
+        List<OcrCorrectionFieldDto> suspects = new ArrayList<>();
+
+        FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                .orElseThrow(() -> new RuntimeException("Frida introuvable"));
+
+        // --- Défunt ---
+        if (frida.getDefunt() != null && frida.getDefunt().getIdentite() != null) {
+            IdentitesEntity idDefunt = frida.getDefunt().getIdentite();
+            extraireChampsSuspects(idDefunt, "Défunt", null, null, suspects);
+        }
+
+        // --- Héritiers ---
+        List<HeritierEntity> heritiers = heritierRepo.listeHeritiers(numFrida);
+        for (HeritierEntity h : heritiers) {
+            if (h.getIdentite() == null) continue;
+            String label = getRoleLabel(h.getNumParente());
+            extraireChampsSuspects(h.getIdentite(), label, h.getIdentite().getId(), h.getNumParente(), suspects);
+        }
+
+        return suspects;
+    }
+
+    private String getRoleLabel(String numParente) {
+        if (numParente == null) return "Héritier";
+        return switch (numParente) {
+            case "2" -> "Conjoint";
+            case "3" -> "Enfant (Fils/Fille)";
+            case "4" -> "Parent (Père/Mère)";
+            case "5" -> "Frère / Sœur";
+            case "6" -> "Oncle paternel";
+            case "7" -> "Cousin paternel";
+            case "8" -> "Grand-père paternel";
+            default -> "Héritier (" + numParente + ")";
+        };
+    }
+
+    private void extraireChampsSuspects(IdentitesEntity identite, String label,
+                                         Long personneId, String numParente,
+                                         List<OcrCorrectionFieldDto> suspects) {
+        String json = identite.getConfidencesJson();
+        if (json == null || json.isBlank()) return;
+
+        // Parse JSON minimal : {"nom":0.45,"prenom":0.82,...}
+        json = json.replaceAll("[{}\\s]", "");
+        for (String pair : json.split(",")) {
+            String[] kv = pair.split(":");
+            if (kv.length != 2) continue;
+            String champ = kv[0].replaceAll("\"", "");
+            double score;
+            try { score = Double.parseDouble(kv[1]); }
+            catch (NumberFormatException e) { continue; }
+
+            if (score < SEUIL_CONFIANCE) {
+                String valeur = getChampValeur(identite, champ);
+                OcrCorrectionFieldDto dto = new OcrCorrectionFieldDto();
+                dto.setPersonneId(personneId);
+                dto.setPersonneLabel(label);
+                dto.setPersonneNom(identite.getNom());
+                dto.setPersonnePrenom(identite.getPrenom());
+                dto.setPersonneNin(identite.getNin());
+                dto.setChamp(champ);
+                dto.setChampLabel(CHAMP_LABELS.getOrDefault(champ, champ));
+                dto.setValeurOcr(valeur);
+                dto.setConfiance(score);
+                dto.setNumParente(numParente);
+                suspects.add(dto);
+            }
+        }
+    }
+
+    private String getChampValeur(IdentitesEntity identite, String champ) {
+        try {
+            Field f = IdentitesEntity.class.getDeclaredField(champ);
+            f.setAccessible(true);
+            Object val = f.get(identite);
+            return val != null ? val.toString() : "";
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    /**
+     * Applique les corrections manuelles OCR champ par champ sur les identités.
+     * Chaque entrée est { "personneId": "123", "champ": "prenom", "valeur": "Mohammed" }
+     * Si personneId est null/vide -> correction sur le défunt.
+     */
+    @Transactional
+    public void appliquerCorrectionsOcr(String numFrida, List<Map<String, String>> corrections) {
+        FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                .orElseThrow(() -> new RuntimeException("Frida introuvable"));
+
+        List<HeritierEntity> heritiers = heritierRepo.listeHeritiers(numFrida);
+
+        for (Map<String, String> correction : corrections) {
+            String personneIdStr = correction.get("personneId");
+            String champ = correction.get("champ");
+            String valeur = correction.get("valeur");
+            if (champ == null || valeur == null) continue;
+
+            IdentitesEntity cible = null;
+            if (personneIdStr == null || personneIdStr.isEmpty()) {
+                // Correction sur le défunt
+                if (frida.getDefunt() != null) cible = frida.getDefunt().getIdentite();
+            } else {
+                long pid = Long.parseLong(personneIdStr);
+                cible = heritiers.stream()
+                    .filter(h -> h.getIdentite() != null && pid == h.getIdentite().getId())
+                    .map(HeritierEntity::getIdentite)
+                    .findFirst().orElse(null);
+            }
+
+            if (cible != null) appliquerChamp(cible, champ, valeur);
+        }
+
+        // Réinitialiser le flag requiresCorrection et passer le statut à VALIDE
+        frida.setRequiresCorrection(false);
+        frida.setStatut(FridaEntity.STATUT_VALIDE);
+        fridaRepo.save(frida);
+    }
+
+    private void appliquerChamp(IdentitesEntity identite, String champ, String valeur) {
+        try {
+            Field f = IdentitesEntity.class.getDeclaredField(champ);
+            f.setAccessible(true);
+            f.set(identite, valeur);
+        } catch (Exception e) {
+            log.warn("Impossible d'appliquer la correction sur le champ '{}'", champ);
+        }
     }
 
     @Transactional

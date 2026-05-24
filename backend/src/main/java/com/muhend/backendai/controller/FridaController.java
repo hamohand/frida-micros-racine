@@ -1,6 +1,7 @@
 package com.muhend.backendai.controller;
 
 import com.muhend.backendai.dto.FridaDetailsDTO;
+import com.muhend.backendai.dto.OcrCorrectionFieldDto;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.HeritierEntity;
 import com.muhend.backendai.entities.TemoinEntity;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -58,11 +60,38 @@ public class FridaController {
         }
     }
 
+    /**
+     * Retourne les champs OCR dont la confiance est inférieure au seuil (75%).
+     * Utilisé par la fiche de correction avant validation.
+     */
+    @GetMapping("/champs-suspects/{numFrida}")
+    public ResponseEntity<List<OcrCorrectionFieldDto>> getChampsSuspects(@PathVariable String numFrida) {
+        List<OcrCorrectionFieldDto> champs = fridaService.getChampsSuspects(numFrida);
+        return ResponseEntity.ok(champs);
+    }
+
+    /**
+     * Applique les corrections manuelles champ par champ.
+     */
+    @PostMapping("/appliquer-corrections/{numFrida}")
+    public ResponseEntity<Void> appliquerCorrections(
+            @PathVariable String numFrida,
+            @RequestBody List<Map<String, String>> corrections) {
+        fridaService.appliquerCorrectionsOcr(numFrida, corrections);
+        return ResponseEntity.ok().build();
+    }
+
     // Affichage de certains champs (voir FridaDetailsDTO) de toutes les fridas
     @GetMapping("/fridas")
     public ResponseEntity<List<FridaDetailsDTO>> getFridas() {
         List<FridaDetailsDTO> fridaDetails = fridaService.getFridas();
         return ResponseEntity.ok(fridaDetails);
+    }
+
+    // Dossiers traités par le batch et en attente de révision humaine
+    @GetMapping("/batch-en-attente")
+    public ResponseEntity<List<FridaDetailsDTO>> getBatchEnAttente() {
+        return ResponseEntity.ok(fridaService.getFridasEnAttente());
     }
 
     // Affiche les heritiers d'une frida par numFrida

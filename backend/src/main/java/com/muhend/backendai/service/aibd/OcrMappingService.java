@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service responsable de l'interaction avec le microservice OCR
@@ -126,14 +127,30 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
-        // Vérification du statut
-        boolean hasLowConfidence = results.values().stream()
-                .filter(res -> res != null && res.getStatut() != null)
-                .anyMatch(res -> res.getStatut().equals("faible_confiance") || res.getStatut().equals("echec"));
+        // Vérification du statut + sauvegarde des confiances par champ
+        final double SEUIL = 0.75;
+        boolean hasLowConfidence = false;
+        Map<String, Double> confiances = new HashMap<>();
+
+        for (Map.Entry<String, OcrResultDto> entry : results.entrySet()) {
+            OcrResultDto res = entry.getValue();
+            if (res == null) continue;
+            double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
+            confiances.put(entry.getKey(), score);
+            if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
+                hasLowConfidence = true;
+            }
+        }
+
+        // Sérialisation simple en JSON sans dépendance externe
+        String json = confiances.entrySet().stream()
+                .map(e -> "\"" + e.getKey() + "\"" + ":" + e.getValue())
+                .collect(Collectors.joining(",", "{", "}"));
+        entity.setConfidencesJson(json);
         
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);
-            log.warn("Extrait de Naissance ({} {}) scanné avec statut faible_confiance ou echec", prenom, nom);
+            log.warn("Extrait de Naissance ({} {}) scanné avec confiance faible", prenom, nom);
         }
 
         return entity;
@@ -164,14 +181,29 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
-        // Vérification du statut
-        boolean hasLowConfidence = results.values().stream()
-                .filter(res -> res != null && res.getStatut() != null)
-                .anyMatch(res -> res.getStatut().equals("faible_confiance") || res.getStatut().equals("echec"));
-        
+        // Vérification du statut + sauvegarde des confiances par champ
+        final double SEUIL = 0.75;
+        boolean hasLowConfidence = false;
+        Map<String, Double> confiances = new HashMap<>();
+
+        for (Map.Entry<String, OcrResultDto> entry : results.entrySet()) {
+            OcrResultDto res = entry.getValue();
+            if (res == null) continue;
+            double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
+            confiances.put(entry.getKey(), score);
+            if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
+                hasLowConfidence = true;
+            }
+        }
+
+        String json = confiances.entrySet().stream()
+                .map(e -> "\"" + e.getKey() + "\"" + ":" + e.getValue())
+                .collect(Collectors.joining(",", "{", "}"));
+        entity.setConfidencesJson(json);
+
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);
-            log.warn("Pièce d'Identité scannée avec statut faible_confiance ou echec");
+            log.warn("Pièce d'Identité scannée avec confiance faible");
         }
 
         return entity;

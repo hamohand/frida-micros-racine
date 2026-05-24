@@ -19,6 +19,18 @@ export const routes: Routes = [
     loadComponent: () => import('./components/dossier/upload-windows/upload-windows.component').then(m => m.UploadWindowsComponent) 
   },
   { 
+    path: 'review-family', 
+    loadComponent: () => import('./components/dossier/heir-review/heir-review.component').then(m => m.HeirReviewComponent) 
+  },
+  { 
+    path: 'correction', 
+    loadComponent: () => import('./components/dossier/ocr-correction/ocr-correction.component').then(m => m.OcrCorrectionComponent) 
+  },
+  {
+    path: 'batch-review',
+    loadComponent: () => import('./components/batch-review/batch-review.component').then(m => m.BatchReviewComponent)
+  },
+  { 
     path: 'frida', 
     loadComponent: () => import('./components/frida/frida.component').then(m => m.FridaComponent)
   },

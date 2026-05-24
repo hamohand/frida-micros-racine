@@ -18,6 +18,10 @@ public class IdentitesEntity {
     @Transient
     private Boolean requiresCorrection = false;
 
+    /** Scores de confiance OCR par champ, stockés en JSON. Ex: {"nom":0.82,"prenom":0.45} */
+    @Column(name = "confidences_json", columnDefinition = "TEXT")
+    private String confidencesJson;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
