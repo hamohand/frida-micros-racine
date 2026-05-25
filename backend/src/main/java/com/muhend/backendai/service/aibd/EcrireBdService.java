@@ -386,6 +386,7 @@ public class EcrireBdService {
 
         // 3. Sauvegarde
         frida.setCalcul(calcul);
+        frida.setStatut(FridaEntity.STATUT_VALIDE);
         return fridaRepo.save(frida);
     }
 
