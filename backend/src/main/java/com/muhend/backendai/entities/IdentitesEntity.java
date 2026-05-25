@@ -22,6 +22,10 @@ public class IdentitesEntity {
     @Column(name = "confidences_json", columnDefinition = "TEXT")
     private String confidencesJson;
 
+    /** Texte brut lu par l'OCR par champ, stocké en JSON. Ex: {"nom":"M0hamm3d"} */
+    @Column(name = "raw_ocr_text_json", columnDefinition = "TEXT")
+    private String rawOcrTextJson;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

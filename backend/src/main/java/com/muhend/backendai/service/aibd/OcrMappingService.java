@@ -127,26 +127,31 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
-        // Vérification du statut + sauvegarde des confiances par champ
+        // Vérification du statut + sauvegarde des confiances et textes bruts par champ
         final double SEUIL = 0.75;
         boolean hasLowConfidence = false;
         Map<String, Double> confiances = new HashMap<>();
+        Map<String, String> rawTexts = new HashMap<>();
 
         for (Map.Entry<String, OcrResultDto> entry : results.entrySet()) {
             OcrResultDto res = entry.getValue();
             if (res == null) continue;
             double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
             confiances.put(entry.getKey(), score);
+            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
+            
             if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
                 hasLowConfidence = true;
             }
         }
 
-        // Sérialisation simple en JSON sans dépendance externe
-        String json = confiances.entrySet().stream()
-                .map(e -> "\"" + e.getKey() + "\"" + ":" + e.getValue())
-                .collect(Collectors.joining(",", "{", "}"));
-        entity.setConfidencesJson(json);
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            entity.setConfidencesJson(mapper.writeValueAsString(confiances));
+            entity.setRawOcrTextJson(mapper.writeValueAsString(rawTexts));
+        } catch (Exception e) {
+            log.error("Erreur sérialisation json ocr", e);
+        }
         
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);
@@ -181,25 +186,31 @@ public class OcrMappingService {
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
-        // Vérification du statut + sauvegarde des confiances par champ
+        // Vérification du statut + sauvegarde des confiances et textes bruts par champ
         final double SEUIL = 0.75;
         boolean hasLowConfidence = false;
         Map<String, Double> confiances = new HashMap<>();
+        Map<String, String> rawTexts = new HashMap<>();
 
         for (Map.Entry<String, OcrResultDto> entry : results.entrySet()) {
             OcrResultDto res = entry.getValue();
             if (res == null) continue;
             double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
             confiances.put(entry.getKey(), score);
+            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
+            
             if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
                 hasLowConfidence = true;
             }
         }
 
-        String json = confiances.entrySet().stream()
-                .map(e -> "\"" + e.getKey() + "\"" + ":" + e.getValue())
-                .collect(Collectors.joining(",", "{", "}"));
-        entity.setConfidencesJson(json);
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            entity.setConfidencesJson(mapper.writeValueAsString(confiances));
+            entity.setRawOcrTextJson(mapper.writeValueAsString(rawTexts));
+        } catch (Exception e) {
+            log.error("Erreur sérialisation json ocr", e);
+        }
 
         if (hasLowConfidence) {
             entity.setRequiresCorrection(true);

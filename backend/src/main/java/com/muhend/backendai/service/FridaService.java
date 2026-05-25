@@ -153,6 +153,17 @@ public class FridaService {
         String json = identite.getConfidencesJson();
         if (json == null || json.isBlank()) return;
 
+        java.util.Map<String, String> rawTexts = new java.util.HashMap<>();
+        String rawOcrJson = identite.getRawOcrTextJson();
+        if (rawOcrJson != null && !rawOcrJson.isBlank()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                rawTexts = mapper.readValue(rawOcrJson, new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, String>>(){});
+            } catch (Exception e) {
+                log.warn("Erreur lecture rawOcrTextJson", e);
+            }
+        }
+
         // Parse JSON minimal : {"nom":0.45,"prenom":0.82,...}
         json = json.replaceAll("[{}\\s]", "");
         for (String pair : json.split(",")) {
@@ -164,7 +175,7 @@ public class FridaService {
             catch (NumberFormatException e) { continue; }
 
             if (score < SEUIL_CONFIANCE) {
-                String valeur = getChampValeur(identite, champ);
+                String valeur = rawTexts.containsKey(champ) ? rawTexts.get(champ) : getChampValeur(identite, champ);
                 OcrCorrectionFieldDto dto = new OcrCorrectionFieldDto();
                 dto.setPersonneId(personneId);
                 dto.setPersonneLabel(label);
