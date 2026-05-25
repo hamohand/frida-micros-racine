@@ -82,6 +82,17 @@ public class FridaController {
         return ResponseEntity.ok().build();
     }
 
+    /**
+     * Met en attente les corrections sans valider le document.
+     */
+    @PostMapping("/mettre-en-attente/{numFrida}")
+    public ResponseEntity<Void> mettreEnAttente(
+            @PathVariable String numFrida,
+            @RequestBody List<Map<String, String>> corrections) {
+        fridaService.mettreEnAttenteOcr(numFrida, corrections);
+        return ResponseEntity.ok().build();
+    }
+
     // Affichage de certains champs (voir FridaDetailsDTO) de toutes les fridas
     @GetMapping("/fridas")
     public ResponseEntity<List<FridaDetailsDTO>> getFridas() {

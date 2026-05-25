@@ -14,4 +14,5 @@ public class FridaDetailsDTO {
     private String nom; // extrait de naissance du défunt
     private String prenom; // prenom du défunt
     private Boolean requiresCorrection;
+    private String statut;
 }

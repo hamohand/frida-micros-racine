@@ -95,6 +95,9 @@ interface ChampSuspect {
         <button class="btn btn-secondary" (click)="toutAccepter()" [disabled]="isSubmitting">
           Tout accepter tel quel
         </button>
+        <button class="btn btn-secondary" (click)="mettreEnAttente()" [disabled]="isSubmitting" style="border-color: #ecc94b; color: #ecc94b;">
+          ⏳ Mettre en attente
+        </button>
         <button class="btn btn-primary" (click)="validerCorrections()" [disabled]="isSubmitting">
           <span *ngIf="!isSubmitting">✅ Valider les corrections</span>
           <span *ngIf="isSubmitting"><span class="spinner"></span> Sauvegarde...</span>
@@ -286,6 +289,7 @@ interface ChampSuspect {
     .actions {
       display: flex;
       justify-content: space-between;
+      gap: 1rem;
       padding-top: 1.5rem;
       border-top: 1px solid rgba(78, 204, 163, 0.2);
     }
@@ -320,7 +324,7 @@ interface ChampSuspect {
       font-family: inherit;
       font-weight: 600;
       font-size: 0.95rem;
-      transition: opacity 0.2s;
+      transition: opacity 0.2s, background 0.2s;
     }
     .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: var(--accent-color, #4ecca3); color: #0a1f0f; }
@@ -392,6 +396,34 @@ export class OcrCorrectionComponent implements OnInit {
         console.error('Erreur application corrections', err);
         this.isSubmitting = false;
         alert('Une erreur est survenue lors de la sauvegarde des corrections.');
+      }
+    });
+  }
+
+  mettreEnAttente() {
+    this.isSubmitting = true;
+    const corrections = this.champs
+      .filter(c => c.valeurCorrigee !== c.valeurOcr)
+      .map(c => ({
+        personneId: c.personneId,
+        champ: c.champ,
+        valeur: c.valeurCorrigee
+      }));
+
+    if (corrections.length === 0) {
+      this.router.navigate(['/']);
+      return;
+    }
+
+    this.lireaiService.mettreEnAttenteOcr(this.numFrida, corrections).subscribe({
+      next: () => {
+        this.isSubmitting = false;
+        this.router.navigate(['/']); // Retour à la liste
+      },
+      error: (err) => {
+        console.error('Erreur mise en attente', err);
+        this.isSubmitting = false;
+        alert('Une erreur est survenue lors de la mise en attente.');
       }
     });
   }

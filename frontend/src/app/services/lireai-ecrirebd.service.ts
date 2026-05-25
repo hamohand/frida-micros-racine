@@ -44,4 +44,8 @@ export class LireaiEcrirebdService {
     appliquerCorrections(numFrida: string, corrections: {personneId: string|null, champ: string, valeur: string}[]): Observable<any> {
         return this.http.post(`/api/frida/appliquer-corrections/${numFrida}`, corrections);
     }
+
+    mettreEnAttenteOcr(numFrida: string, corrections: {personneId: string|null, champ: string, valeur: string}[]): Observable<any> {
+        return this.http.post(`/api/frida/mettre-en-attente/${numFrida}`, corrections);
+    }
 }

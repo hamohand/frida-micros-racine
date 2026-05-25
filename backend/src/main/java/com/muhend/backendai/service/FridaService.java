@@ -236,9 +236,44 @@ public class FridaService {
             if (cible != null) appliquerChamp(cible, champ, valeur);
         }
 
-        // Réinitialiser le flag requiresCorrection et passer le statut à VALIDE
+    // Réinitialiser le flag requiresCorrection et passer le statut à VALIDE
         frida.setRequiresCorrection(false);
         frida.setStatut(FridaEntity.STATUT_VALIDE);
+        fridaRepo.save(frida);
+    }
+
+    /**
+     * Sauvegarde les corrections OCR en tant que brouillon (mise en attente).
+     * Ne modifie pas le statut VALIDE et laisse le dossier à corriger.
+     */
+    @Transactional
+    public void mettreEnAttenteOcr(String numFrida, List<Map<String, String>> corrections) {
+        FridaEntity frida = fridaRepo.findByNumFrida(numFrida)
+                .orElseThrow(() -> new RuntimeException("Frida introuvable"));
+
+        List<HeritierEntity> heritiers = heritierRepo.listeHeritiers(numFrida);
+
+        for (Map<String, String> correction : corrections) {
+            String personneIdStr = correction.get("personneId");
+            String champ = correction.get("champ");
+            String valeur = correction.get("valeur");
+            if (champ == null || valeur == null) continue;
+
+            IdentitesEntity cible = null;
+            if (personneIdStr == null || personneIdStr.isEmpty()) {
+                if (frida.getDefunt() != null) cible = frida.getDefunt().getIdentite();
+            } else {
+                long pid = Long.parseLong(personneIdStr);
+                cible = heritiers.stream()
+                    .filter(h -> h.getIdentite() != null && pid == h.getIdentite().getId())
+                    .map(HeritierEntity::getIdentite)
+                    .findFirst().orElse(null);
+            }
+
+            if (cible != null) appliquerChamp(cible, champ, valeur);
+        }
+
+        // On maintient le statut et on sauvegarde
         fridaRepo.save(frida);
     }
 

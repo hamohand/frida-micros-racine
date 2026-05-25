@@ -20,7 +20,7 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
     // Affiche certains champs de toutes les fridas, dans l'ordre décroissant des
     // dates de création
     @Query("""
-                    SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection)
+                    SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection, f.statut)
                         FROM FridaEntity f
                         JOIN f.defunt d
                         JOIN d.identite e
@@ -30,7 +30,7 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
 
     // Dossiers d'un statut donné (ex: EN_ATTENTE_REVISION), triés du plus récent au plus ancien
     @Query("""
-                    SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection)
+                    SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection, f.statut)
                         FROM FridaEntity f
                         JOIN f.defunt d
                         JOIN d.identite e
