@@ -32,18 +32,18 @@ import { Router } from '@angular/router';
               <tr *ngFor="let frida of filteredList">
                 <td class="font-mono">
                   <strong>{{ frida?.numFrida }}</strong>
-                  <span *ngIf="frida?.requiresCorrection && frida?.statut !== 'VALIDE'" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
-                  <span *ngIf="!frida?.requiresCorrection && frida?.statut !== 'VALIDE'" class="badge-warning" style="margin-left: 8px; background: rgba(236, 201, 75, 0.15); color: #ecc94b; border-color: rgba(236, 201, 75, 0.3);">⏳ En attente</span>
+                  <span *ngIf="frida?.requiresCorrection && frida?.statut === 'EN_ATTENTE_REVISION'" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
+                  <span *ngIf="frida?.requiresCorrection && frida?.statut === 'BROUILLON'" class="badge-warning" style="margin-left: 8px; background: rgba(236, 201, 75, 0.15); color: #ecc94b; border-color: rgba(236, 201, 75, 0.3);">⏳ En attente</span>
                 </td>
                 <td>{{ frida?.nom }} {{ frida?.prenom }}</td>
                 <td><span class="badge">{{ frida?.dateCreation }}</span></td>
                 <td>
                   <button class="btn-action" 
-                          (click)="voirFrida(frida.numFrida, frida.requiresCorrection && frida.statut !== 'VALIDE')" 
-                          [title]="(frida.requiresCorrection && frida.statut !== 'VALIDE') ? 'Corriger les données' : 'Consulter l\\'acte'">
-                    <svg *ngIf="!(frida.requiresCorrection && frida.statut !== 'VALIDE')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-                    <svg *ngIf="frida.requiresCorrection && frida.statut !== 'VALIDE'" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                    <span>{{ (frida.requiresCorrection && frida.statut !== 'VALIDE') ? 'Corriger' : 'Ouvrir' }}</span>
+                          (click)="voirFrida(frida.numFrida, frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" 
+                          [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
+                    <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                    <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                    <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
                   </button>
                 </td>
               </tr>

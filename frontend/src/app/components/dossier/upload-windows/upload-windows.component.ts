@@ -212,7 +212,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         <div class="window-section" *ngIf="isWindowActive('f_temoins')">
           <ng-container *ngIf="!windows['f_temoins'].isUploading">
             <app-file-upload #fileUploadFTemoins
-                [config]="getUploadConfig('11', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
+                [config]="getUploadConfig('0', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
                 [initialFiles]="windows['f_temoins'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
                 (previousClicked)="moveToPreviousWindow('f_temoins')"
@@ -399,7 +399,7 @@ export class UploadWindowsComponent implements OnInit {
     f6: { isVisible: false, hasFiles: false, isUploading: false, path: '6' },  // Oncles paternels
     f7: { isVisible: false, hasFiles: false, isUploading: false, path: '7' },  // Cousins paternels
     // Témoins
-    f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '11' },
+    f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '0' },
     // Lecture AI
     f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
   };

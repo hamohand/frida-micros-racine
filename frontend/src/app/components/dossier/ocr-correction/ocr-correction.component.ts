@@ -410,10 +410,7 @@ export class OcrCorrectionComponent implements OnInit {
         valeur: c.valeurCorrigee
       }));
 
-    if (corrections.length === 0) {
-      this.router.navigate(['/']);
-      return;
-    }
+    // Même sans correction, on veut appeler le backend pour changer le statut à BROUILLON
 
     this.lireaiService.mettreEnAttenteOcr(this.numFrida, corrections).subscribe({
       next: () => {

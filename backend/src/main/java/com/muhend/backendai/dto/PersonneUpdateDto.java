@@ -10,4 +10,5 @@ public class PersonneUpdateDto {
     private LocalDate dateNaissance;
     private String sexe;
     private String numParente;
+    private String nin;
 }

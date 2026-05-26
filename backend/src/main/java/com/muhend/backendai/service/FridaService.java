@@ -75,7 +75,7 @@ public class FridaService {
     }
 
     public List<FridaDetailsDTO> getFridasEnAttente() {
-        return fridaRepo.findByStatut(FridaEntity.STATUT_EN_ATTENTE);
+        return fridaRepo.findByStatutIn(java.util.Arrays.asList(FridaEntity.STATUT_EN_ATTENTE, "BROUILLON"));
     }
 
     public FridaEntity corrigerEtRecalculerFrida(String numFrida, FridaEntity corrections) {
@@ -88,8 +88,9 @@ public class FridaService {
         if (corrections.getDefunt() != null) corrections.getDefunt().setId(existing.getDefunt().getId());
         if (corrections.getCalcul() != null) corrections.getCalcul().setId(existing.getCalcul().getId());
 
-        // Remove the warning state
+        // Remove the warning state and mark as valid
         corrections.setRequiresCorrection(false);
+        corrections.setStatut(FridaEntity.STATUT_VALIDE);
 
         // Recalculate Parts! Python Call
         try {
@@ -273,7 +274,8 @@ public class FridaService {
             if (cible != null) appliquerChamp(cible, champ, valeur);
         }
 
-        // On maintient le statut et on sauvegarde
+        // On marque le dossier comme BROUILLON (en attente de reprise de correction)
+        frida.setStatut("BROUILLON");
         fridaRepo.save(frida);
     }
 

@@ -128,6 +128,9 @@ public class EcrireBdService {
             }
 
             if (indiceParente > 0) {
+                if ("0".equals(ctx.getNumFrida())) {
+                    ctx.setNumFrida(fridaIdentifierService.genererIdentifiant(""));
+                }
                 sauvegarderBrouillonFrida(ctx);
             }
 
@@ -178,11 +181,20 @@ public class EcrireBdService {
         log.info("Traitement: {} -> type={}, catégorie={}", file.getFileName(), docType, heirCategory);
 
         // OCR + mapping
-        IdentitesEntity identite = ocrMappingService.processFile(file, entityDef, docType, mode);
+        IdentitesEntity identite = null;
+        try {
+            identite = ocrMappingService.processFile(file, entityDef, docType, mode);
+        } catch (Exception e) {
+            log.error("Erreur traitement fichier OCR (fallback sur entité vide à corriger) : {} - {}", file, e.getMessage(), e);
+            identite = new IdentitesEntity();
+            identite.setRequiresCorrection(true);
+            identite.setConfidencesJson("{\"erreur\":0.0, \"nom\":0.0, \"prenom\":0.0, \"dateNaissance\":0.0, \"lieuNaissance\":0.0, \"sexe\":0.0, \"nin\":0.0}");
+            identite.setRawOcrTextJson("{\"erreur\":\"OCR a échoué: " + e.getMessage().replace("\"", "'") + "\"}");
+        }
 
         if (identite != null) {
-            // Générer l'identifiant au premier document (défunt)
-            if (indiceParente == 0 && heirCategory == HeirCategory.DEFUNT) {
+            // Générer l'identifiant au document du défunt (peu importe l'ordre de traitement)
+            if (heirCategory == HeirCategory.DEFUNT && "0".equals(ctx.getNumFrida())) {
                 String dateNaissance = identite.getDateNaissance() != null
                         ? identite.getDateNaissance().toString() : "";
                 ctx.setNumFrida(fridaIdentifierService.genererIdentifiant(dateNaissance));
@@ -298,6 +310,31 @@ public class EcrireBdService {
      * Persiste la fiche Frida à l'état de brouillon (sans lancer les calculs).
      */
     private void sauvegarderBrouillonFrida(TraitementContext ctx) {
+        String finalNumFrida = ctx.getNumFrida();
+
+        // Mettre à jour numFrida pour les entités traitées avant le défunt (ex: témoins '0_cni')
+        for (TemoinEntity t : ctx.getListeTemoins()) {
+            if ("0".equals(t.getNumFrida()) || (t.getNumFrida() != null && !t.getNumFrida().equals(finalNumFrida))) {
+                t.setNumFrida(finalNumFrida);
+                if (t.getIdentite() != null) {
+                    t.getIdentite().setNumFrida(finalNumFrida);
+                    identitesRepo.save(t.getIdentite());
+                }
+                temoinRepo.save(t);
+            }
+        }
+        
+        for (HeritierEntity h : ctx.getListeHeritiers()) {
+            if ("0".equals(h.getNumFrida()) || (h.getNumFrida() != null && !h.getNumFrida().equals(finalNumFrida))) {
+                h.setNumFrida(finalNumFrida);
+                if (h.getIdentite() != null) {
+                    h.getIdentite().setNumFrida(finalNumFrida);
+                    identitesRepo.save(h.getIdentite());
+                }
+                heritierRepo.save(h);
+            }
+        }
+
         // Constituer et sauvegarder la fiche Frida sans le calcul
         FridaEntity ficheFrida = ctx.getFicheFrida();
         ficheFrida.setDateCreation(LocalDate.now());
@@ -346,6 +383,7 @@ public class EcrireBdService {
                 identite.setPrenom(p.getPrenom());
                 identite.setDateNaissance(p.getDateNaissance());
                 identite.setSexe(p.getSexe());
+                identite.setNin(p.getNin());
                 identite = identitesRepo.save(identite);
                 
                 HeritierEntity heritier = new HeritierEntity();

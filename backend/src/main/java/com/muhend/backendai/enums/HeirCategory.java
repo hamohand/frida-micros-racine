@@ -7,7 +7,7 @@ import lombok.Getter;
  */
 @Getter
 public enum HeirCategory {
-    TEMOIN(11),
+    TEMOIN(0),
     DEFUNT(1),
     CONJOINT(2),
     ENFANT(3),

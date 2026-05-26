@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
 @Builder
@@ -20,11 +21,14 @@ public class OcrZoneConfigDto {
     // Mode de prétraitement (ex: "arabic_textured", "latin_simple")
     private String preprocess;
     // Format attendu pour la regex
+    @JsonProperty("expected_format")
     private String expected_format;
     // Filtre de caractères post-OCR
+    @JsonProperty("char_filter")
     private String char_filter;
     // Marge ajoutée au recadrage
     private Integer margin;
     // Valeurs attendues pour correction OCR
+    @JsonProperty("valeurs_attendues")
     private List<String> valeurs_attendues;
 }

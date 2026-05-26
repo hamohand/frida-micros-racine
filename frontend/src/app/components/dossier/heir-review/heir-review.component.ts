@@ -14,6 +14,7 @@ interface Personne {
   dateNaissance: string;
   sexe: string;
   numParente: string;
+  nin?: string;
 }
 
 @Component({
@@ -50,6 +51,7 @@ interface Personne {
             <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
             <input type="text" [(ngModel)]="defunt.prenom" placeholder="Prénom">
             <input type="date" [(ngModel)]="defunt.dateNaissance">
+            <input type="text" [(ngModel)]="defunt.nin" placeholder="NIN">
             <select [(ngModel)]="defunt.sexe">
               <option value="M">Homme</option>
               <option value="F">Femme</option>
@@ -73,6 +75,7 @@ interface Personne {
             <input type="text" [(ngModel)]="currentHeir.nom" placeholder="Nom">
             <input type="text" [(ngModel)]="currentHeir.prenom" placeholder="Prénom">
             <input type="date" [(ngModel)]="currentHeir.dateNaissance">
+            <input type="text" [(ngModel)]="currentHeir.nin" placeholder="NIN">
             <select [(ngModel)]="currentHeir.sexe">
               <option value="M">Homme</option>
               <option value="F">Femme</option>
@@ -182,7 +185,7 @@ export class HeirReviewComponent implements OnInit {
   isCalculating = false;
 
   // Modèles de données
-  defunt: Personne = { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '1' };
+  defunt: Personne = { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '1', nin: '' };
   heritiers: Personne[] = [];
 
   // États d'édition
@@ -289,7 +292,7 @@ export class HeirReviewComponent implements OnInit {
   }
 
   getEmptyHeir(): Personne {
-    return { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '3' };
+    return { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '3', nin: '' };
   }
 
   startAddingHeir() {
@@ -386,7 +389,8 @@ export class HeirReviewComponent implements OnInit {
       prenom: p.prenom,
       dateNaissance: p.dateNaissance,
       sexe: p.sexe === 'M' ? 'ذكر' : 'أنثى', 
-      numParente: p.numParente
+      numParente: p.numParente,
+      nin: p.nin
     });
 
     const payload = {
