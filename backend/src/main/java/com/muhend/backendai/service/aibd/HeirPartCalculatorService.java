@@ -5,6 +5,7 @@ import com.muhend.backendai.client.calculs.dto.CalculRequestDto;
 import com.muhend.backendai.client.calculs.dto.CalculResponseDto;
 import com.muhend.backendai.entities.CalculEntity;
 import com.muhend.backendai.entities.FridaEntity;
+import com.muhend.backendai.utils.SexeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +50,7 @@ public class HeirPartCalculatorService {
 
         // Mapping du sexe du défunt
         String sexeArabe = ficheFrida.getDefunt().getIdentite().getSexe();
-        String sexe = "ذكر".equals(sexeArabe) ? "M" : "F";
+        String sexe = SexeUtils.isMasculin(sexeArabe) ? "M" : "F";
 
         CalculRequestDto request = CalculRequestDto.builder()
                 .sexeDefunt(sexe)

@@ -30,14 +30,14 @@ public interface HeritierRepo extends JpaRepository<HeritierEntity, Long> {
     // Nombre de garçons
     /*
      * @Query("""
-     * SELECT count(*) FROM HeritierEntity e WHERE e.numParente='3' AND
+     * SELECT count(*) FROM HeritierEntity e WHERE e.numParente='03' AND
      * e.extraitNaissance.sexe = 'ذكر'
      * """)
      * int nbGarcons();
      * // Nombre de filles
      * 
      * @Query("""
-     * SELECT count(*) FROM HeritierEntity e WHERE e.numParente='3' AND
+     * SELECT count(*) FROM HeritierEntity e WHERE e.numParente='03' AND
      * e.extraitNaissance.sexe = 'أنثى'
      * """)
      */

@@ -24,6 +24,13 @@ public enum HeirCategory {
     }
 
     /**
+     * Retourne le code formaté sur 2 chiffres (ex: 1 -> "01", 0 -> "00")
+     */
+    public String getFormattedCode() {
+        return String.format("%02d", code);
+    }
+
+    /**
      * Trouve la catégorie à partir de son code numérique.
      */
     public static HeirCategory fromCode(int code) {

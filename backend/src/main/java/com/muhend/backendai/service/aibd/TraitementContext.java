@@ -3,6 +3,7 @@ package com.muhend.backendai.service.aibd;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.HeritierEntity;
 import com.muhend.backendai.entities.TemoinEntity;
+import com.muhend.backendai.utils.SexeUtils;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,7 +42,7 @@ public class TraitementContext {
     public void incrementGarcons() { nbGarcons++; }
     public void incrementParents(String sexe) { 
         nbParents++; 
-        if ("ذكر".equals(sexe)) {
+        if (SexeUtils.isMasculin(sexe)) {
             this.pereVivant = true;
         } else {
             this.mereVivante = true;
@@ -64,19 +65,19 @@ public class TraitementContext {
                 String sexe = heritier.getIdentite().getSexe();
                 if (numParente == null) continue;
                 switch (numParente) {
-                    case "2" -> ctx.incrementConjoints();
-                    case "3" -> {
-                        if ("ذكر".equals(sexe)) ctx.incrementGarcons();
+                    case "02" -> ctx.incrementConjoints();
+                    case "03" -> {
+                        if (SexeUtils.isMasculin(sexe)) ctx.incrementGarcons();
                         else ctx.incrementFilles();
                     }
-                    case "4" -> ctx.incrementParents(sexe);
-                    case "5" -> {
-                        if ("ذكر".equals(sexe)) ctx.incrementFreres();
+                    case "04" -> ctx.incrementParents(sexe);
+                    case "05" -> {
+                        if (SexeUtils.isMasculin(sexe)) ctx.incrementFreres();
                         else ctx.incrementSoeurs();
                     }
-                    case "6" -> ctx.incrementOnclesPaternels();
-                    case "7" -> ctx.incrementCousinsPaternels();
-                    case "8" -> ctx.setGrandPerePaternelVivant();
+                    case "06" -> ctx.incrementOnclesPaternels();
+                    case "07" -> ctx.incrementCousinsPaternels();
+                    case "08" -> ctx.setGrandPerePaternelVivant();
                 }
             }
         }

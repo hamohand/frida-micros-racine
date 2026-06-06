@@ -117,7 +117,7 @@ public class OcrMappingService {
 
         String nom = getText.apply("nom");
         String prenom = getText.apply("prenom");
-        entity.setNom((prenom + " " + nom).trim());
+        entity.setNom(nom);
         entity.setPrenom(prenom);
         entity.setSexe(getText.apply("sexe"));
         entity.setLieuNaissance(getText.apply("lieuNaissance"));

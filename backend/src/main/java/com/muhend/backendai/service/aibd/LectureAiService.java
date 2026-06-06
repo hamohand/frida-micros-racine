@@ -75,7 +75,7 @@ public class LectureAiService {
                                 try {
                                     DocumentInfo docInfo = DocumentInfo.fromFolderName(folderName);
                                     result.getFileDocumentInfoMap().put(filePath, docInfo);
-                                    result.getTableauNumParente().add(String.valueOf(docInfo.getHeirCategory().getCode()));
+                                    result.getTableauNumParente().add(docInfo.getHeirCategory().getFormattedCode());
                                     logger.info("Document: {} -> catégorie={}, type={}",
                                             filePath.getFileName(),
                                             docInfo.getHeirCategory(),

@@ -13,9 +13,18 @@ public class CalculHeritierDto {
      * part : fraction représentant l'éventuelle part de l'héritage sinon 0.
      */
     private String heritier;
+    private String baseCalcul;
     private CalculFractionDto part;
+    private CalculFractionDto partLegale;
+    private String cadreLegal;
+    private CalculFractionDto partIrreductible;
 
     public CalculHeritierDto(String heritier) {
         this.heritier = heritier;
+    }
+
+    public CalculHeritierDto(String heritier, CalculFractionDto part) {
+        this.heritier = heritier;
+        this.part = part;
     }
 }

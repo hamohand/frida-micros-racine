@@ -9,6 +9,7 @@ import com.muhend.backendai.entities.*;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.enums.HeirCategory;
 import com.muhend.backendai.repository.*;
+import com.muhend.backendai.utils.SexeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -271,25 +272,25 @@ public class EcrireBdService {
         String sexe = identite.getSexe();
 
         switch (numParente) {
-            case "2" -> ctx.incrementConjoints();
-            case "3" -> {
-                if ("ذكر".equals(sexe)) {
+            case "02" -> ctx.incrementConjoints();
+            case "03" -> {
+                if (SexeUtils.isMasculin(sexe)) {
                     ctx.incrementGarcons();
                 } else {
                     ctx.incrementFilles();
                 }
             }
-            case "4" -> ctx.incrementParents(sexe);
-            case "5" -> {
-                if ("ذكر".equals(sexe)) {
+            case "04" -> ctx.incrementParents(sexe);
+            case "05" -> {
+                if (SexeUtils.isMasculin(sexe)) {
                     ctx.incrementFreres();
                 } else {
                     ctx.incrementSoeurs();
                 }
             }
-            case "6" -> ctx.incrementOnclesPaternels();
-            case "7" -> ctx.incrementCousinsPaternels();
-            case "8" -> ctx.setGrandPerePaternelVivant();
+            case "06" -> ctx.incrementOnclesPaternels();
+            case "07" -> ctx.incrementCousinsPaternels();
+            case "08" -> ctx.setGrandPerePaternelVivant();
         }
 
         return heritier;
@@ -433,19 +434,19 @@ public class EcrireBdService {
      */
     private int determinerNumerateur(HeritierEntity heritier, CalculEntity calcul) {
         return switch (heritier.getNumParente()) {
-            case "2" -> calcul.getNumerateurConjoint();
-            case "3" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
+            case "02" -> calcul.getNumerateurConjoint();
+            case "03" -> SexeUtils.isMasculin(heritier.getIdentite().getSexe())
                     ? calcul.getNumerateurGarcons()
                     : calcul.getNumerateurFilles();
-            case "4" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
+            case "04" -> SexeUtils.isMasculin(heritier.getIdentite().getSexe())
                     ? (calcul.getNumerateurPere() != null ? calcul.getNumerateurPere() : 0)
                     : (calcul.getNumerateurMere() != null ? calcul.getNumerateurMere() : 0);
-            case "5" -> Objects.equals(heritier.getIdentite().getSexe(), "ذكر")
+            case "05" -> SexeUtils.isMasculin(heritier.getIdentite().getSexe())
                     ? (calcul.getNumerateurFreres() != null ? calcul.getNumerateurFreres() : 0)
                     : (calcul.getNumerateurSoeurs() != null ? calcul.getNumerateurSoeurs() : 0);
-            case "6" -> (calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0);
-            case "7" -> (calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0);
-            case "8" -> (calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0);
+            case "06" -> (calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0);
+            case "07" -> (calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0);
+            case "08" -> (calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0);
             default -> 0;
         };
     }

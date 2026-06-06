@@ -32,4 +32,10 @@ public class CalculRequestDto {
     private Integer nbOncles;
 
     private Integer nbCousins;
+
+    private Integer nbPetitsFils;
+
+    private Integer nbPetitesFilles;
+
+    private String sexeParentPredecede;
 }

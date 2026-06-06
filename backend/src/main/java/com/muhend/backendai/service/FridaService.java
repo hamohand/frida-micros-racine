@@ -137,13 +137,13 @@ public class FridaService {
     private String getRoleLabel(String numParente) {
         if (numParente == null) return "Héritier";
         return switch (numParente) {
-            case "2" -> "Conjoint";
-            case "3" -> "Enfant (Fils/Fille)";
-            case "4" -> "Parent (Père/Mère)";
-            case "5" -> "Frère / Sœur";
-            case "6" -> "Oncle paternel";
-            case "7" -> "Cousin paternel";
-            case "8" -> "Grand-père paternel";
+            case "02" -> "Conjoint";
+            case "03" -> "Enfant (Fils/Fille)";
+            case "04" -> "Parent (Père/Mère)";
+            case "05" -> "Frère / Sœur";
+            case "06" -> "Oncle paternel";
+            case "07" -> "Cousin paternel";
+            case "08" -> "Grand-père paternel";
             default -> "Héritier (" + numParente + ")";
         };
     }
