@@ -88,8 +88,22 @@ public class CalculEntity {
     @Column(name = "numerateurGrandPerePaternel")
     private Integer numerateurGrandPerePaternel;
 
+    @ColumnDefault("false")
+    @Column(name = "grandMerePaternelleVivante")
+    private boolean grandMerePaternelleVivante;
+
+    @ColumnDefault("0")
+    @Column(name = "numerateurGrandMerePaternelle")
+    private Integer numerateurGrandMerePaternelle;
+
     @Column(name = "denominateur")
     private Integer denominateur;
 
+    @ColumnDefault("0")
+    @Column(name = "numerateurPetitsFils")
+    private Integer numerateurPetitsFils;
 
+    @ColumnDefault("0")
+    @Column(name = "numerateurPetitesFilles")
+    private Integer numerateurPetitesFilles;
 }

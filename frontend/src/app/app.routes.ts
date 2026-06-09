@@ -56,8 +56,8 @@ export const routes: Routes = [
   },
   { 
     path: 'list', 
-    canActivate: [authGuard],
-    loadComponent: () => import('./components/frida-list/frida-list.component').then(m => m.FridaListComponent) 
+    redirectTo: 'search',
+    pathMatch: 'full'
   },
   { 
     path: 'edit/:numFrida', 

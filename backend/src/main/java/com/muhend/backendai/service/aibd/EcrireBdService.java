@@ -290,7 +290,9 @@ public class EcrireBdService {
             }
             case "06" -> ctx.incrementOnclesPaternels();
             case "07" -> ctx.incrementCousinsPaternels();
-            case "08" -> ctx.setGrandPerePaternelVivant();
+            case "08" -> ctx.setGrandPerePaternelVivant(true);
+            case "09" -> ctx.incrementPetitsFils();
+            case "10" -> ctx.incrementPetitesFilles();
         }
 
         return heritier;
@@ -366,6 +368,10 @@ public class EcrireBdService {
                 defunt.getIdentite().setSexe(dto.getDefunt().getSexe());
                 identitesRepo.save(defunt.getIdentite());
             }
+        }
+        
+        if (dto.getSexeParentPredecede() != null) {
+            frida.setSexeParentPredecede(dto.getSexeParentPredecede());
         }
         
         // 2. Remplacer les héritiers
@@ -447,6 +453,9 @@ public class EcrireBdService {
             case "06" -> (calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0);
             case "07" -> (calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0);
             case "08" -> (calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0);
+            case "09" -> (calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0);
+            case "10" -> (calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0);
+            case "11" -> (calcul.getNumerateurGrandMerePaternelle() != null ? calcul.getNumerateurGrandMerePaternelle() : 0);
             default -> 0;
         };
     }

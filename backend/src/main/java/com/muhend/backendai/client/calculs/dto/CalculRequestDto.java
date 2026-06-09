@@ -21,6 +21,8 @@ public class CalculRequestDto {
 
     private boolean grandPerePaternelVivant;
 
+    private boolean grandMerePaternelleVivante;
+
     private Integer nbFilles;
 
     private Integer nbGarcons;

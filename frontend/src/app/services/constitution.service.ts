@@ -7,12 +7,15 @@ export interface ConstitutionFiche {
   pereVivant: boolean;
   mereVivante: boolean;
   grandPerePaternelVivant: boolean;
+  grandMerePaternelleVivante: boolean;
   nbFilles: number;
   nbGarcons: number;
   nbSoeurs: number;
   nbFreres: number;
-  nbOncles: number;
-  nbCousins: number;
+  nbOnclesPaternels: number;
+  nbCousinsPaternels: number;
+  nbPetitsFils: number;
+  nbPetitesFilles: number;
 }
 
 @Injectable({
@@ -25,12 +28,15 @@ export class ConstitutionService {
     pereVivant: false,
     mereVivante: false,
     grandPerePaternelVivant: false,
+    grandMerePaternelleVivante: false,
     nbFilles: 0,
     nbGarcons: 0,
     nbSoeurs: 0,
     nbFreres: 0,
-    nbOncles: 0,
-    nbCousins: 0
+    nbOnclesPaternels: 0,
+    nbCousinsPaternels: 0,
+    nbPetitsFils: 0,
+    nbPetitesFilles: 0
   };
 
   private ficheSubject = new BehaviorSubject<ConstitutionFiche>({ ...this.initialFiche });

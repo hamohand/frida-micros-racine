@@ -37,9 +37,9 @@ interface Personne {
         </div>
         <div class="person-card defunt">
           <div class="info">
-            <span class="name">{{ defunt.nom }} {{ defunt.prenom }}</span>
+            <span class="name"><span class="demo-blur">{{ defunt.nom }}</span> {{ defunt.prenom }}</span>
             <span class="badge">{{ defunt.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
-            <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }}</span>
+            <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ defunt.nin || '-' }}</span></span>
           </div>
           <button class="btn-icon" (click)="editDefunt()" title="Modifier">✏️</button>
         </div>
@@ -81,13 +81,16 @@ interface Personne {
               <option value="F">Femme</option>
             </select>
             <select [(ngModel)]="currentHeir.numParente">
-              <option value="2">Conjoint (Époux/Épouse)</option>
-              <option value="3">Enfant (Fils/Fille)</option>
-              <option value="4">Parent (Père/Mère)</option>
-              <option value="8">Grand-Père paternel</option>
-              <option value="5">Frère / Sœur</option>
-              <option value="6">Oncle paternel</option>
-              <option value="7">Cousin paternel</option>
+              <option value="02">Conjoint (Époux/Épouse)</option>
+              <option value="03">Enfant (Fils/Fille)</option>
+              <option value="04">Parent (Père/Mère)</option>
+              <option value="08">Grand-Père paternel</option>
+              <option value="11">Grand-Mère paternelle</option>
+              <option value="09">Petit-fils</option>
+              <option value="10">Petite-fille</option>
+              <option value="05">Frère / Sœur</option>
+              <option value="06">Oncle paternel</option>
+              <option value="07">Cousin paternel</option>
             </select>
           </div>
           <div class="form-actions">
@@ -99,11 +102,12 @@ interface Personne {
         <!-- Liste des héritiers -->
         <div class="persons-list">
           <div class="person-card" *ngFor="let h of heritiers; let i = index">
-             <div class="info">
-               <span class="name">{{ h.nom }} {{ h.prenom }}</span>
-               <span class="badge role">{{ getRoleLabel(h.numParente, h.sexe) }}</span>
-               <span class="details">Né(e) le {{ h.dateNaissance || 'Inconnue' }}</span>
-             </div>
+              <div class="info">
+                <span class="name"><span class="demo-blur">{{ h.nom }}</span> {{ h.prenom }}</span>
+                <span class="badge">{{ h.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
+                <span class="badge role">{{ getRoleLabel(h.numParente, h.sexe) }}</span>
+                <span class="details">Né(e) le {{ h.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ h.nin || '-' }}</span></span>
+              </div>
              <div class="card-actions">
                <button class="btn-icon" (click)="editHeir(i)" title="Modifier">✏️</button>
                <button class="btn-icon text-danger" (click)="deleteHeir(i)" title="Retirer de la fiche">🗑️</button>
@@ -112,6 +116,18 @@ interface Personne {
         </div>
         <div *ngIf="heritiers.length === 0" class="empty-state">
           Aucun héritier enregistré. Cliquez sur "Ajouter manuellement" pour en créer un.
+        </div>
+
+        <!-- Section Wasiyya Wajiba (Petits-enfants) -->
+        <div class="edit-form highlight" *ngIf="hasGrandchildren()" style="margin-top: 1.5rem;">
+          <h4 style="color: var(--accent-color);">ℹ️ Précision pour les Petits-Enfants (Wasiyya Wajiba)</h4>
+          <p style="font-size: 0.9rem; margin-bottom: 1rem;">Les petits-enfants héritent de la part de leur parent pré-décédé. Veuillez préciser le sexe de ce parent :</p>
+          <div class="form-grid">
+            <select [(ngModel)]="sexeParentPredecede" style="width: 100%; max-width: 300px;">
+              <option value="M">Leur père est pré-décédé (Fils du défunt)</option>
+              <option value="F">Leur mère est pré-décédée (Fille du défunt)</option>
+            </select>
+          </div>
         </div>
 
         <div class="actions">
@@ -185,7 +201,8 @@ export class HeirReviewComponent implements OnInit {
   isCalculating = false;
 
   // Modèles de données
-  defunt: Personne = { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '1', nin: '' };
+  sexeParentPredecede: string = 'M';
+  defunt: Personne = { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '01', nin: '' };
   heritiers: Personne[] = [];
 
   // États d'édition
@@ -221,14 +238,18 @@ export class HeirReviewComponent implements OnInit {
         this.frida = data;
         if (data.defunt && data.defunt.identite) {
            const s = (data.defunt.identite.sexe || '').trim();
-           const isFemale = s.includes('أنثى') || s.includes('انثى') || s.includes('أنث') || s.includes('انث') || s.toUpperCase() === 'F';
+           const isFemale = s.includes('أنثى') || s.includes('انثى') || s.includes('أنث') || s.includes('انث') || s === 'ا' || s === 'أ' || s.toUpperCase() === 'F';
            this.defunt = {
              nom: data.defunt.identite.nom || '',
              prenom: data.defunt.identite.prenom || '',
              dateNaissance: data.defunt.identite.dateNaissance || '',
              sexe: isFemale ? 'F' : 'M',
-             numParente: '1'
+             numParente: '01',
+             nin: data.defunt.identite.nin || ''
            };
+        }
+        if (data.sexeParentPredecede) {
+            this.sexeParentPredecede = data.sexeParentPredecede;
         }
         this.loadHeritiers();
       },
@@ -246,13 +267,14 @@ export class HeirReviewComponent implements OnInit {
         if (data && Array.isArray(data)) {
            this.heritiers = data.map(h => {
               const s = (h.identite?.sexe || '').trim();
-              const isFemale = s.includes('أنثى') || s.includes('انثى') || s.includes('أنث') || s.includes('انث') || s.toUpperCase() === 'F';
+              const isFemale = s.includes('أنثى') || s.includes('انثى') || s.includes('أنث') || s.includes('انث') || s === 'ا' || s === 'أ' || s.toUpperCase() === 'F';
               return {
                 nom: h.identite?.nom || '',
                 prenom: h.identite?.prenom || '',
                 dateNaissance: h.identite?.dateNaissance || '',
                 sexe: isFemale ? 'F' : 'M',
-                numParente: h.numParente || '3'
+                numParente: h.numParente || '03',
+                nin: h.identite?.nin || ''
               };
            });
            
@@ -261,8 +283,8 @@ export class HeirReviewComponent implements OnInit {
            const seenRoles = new Set<string>();
            
            for (const h of this.heritiers) {
-               if (h.numParente === '4' || h.numParente === '8') {
-                   const key = h.numParente + '_' + (h.numParente === '4' ? h.sexe : '');
+               if (h.numParente === '04' || h.numParente === '08' || h.numParente === '11') {
+                   const key = h.numParente + '_' + (h.numParente === '04' ? h.sexe : '');
                    if (seenRoles.has(key)) {
                        continue; // Ignorer le doublon
                    }
@@ -292,7 +314,7 @@ export class HeirReviewComponent implements OnInit {
   }
 
   getEmptyHeir(): Personne {
-    return { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '3', nin: '' };
+    return { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '03', nin: '' };
   }
 
   startAddingHeir() {
@@ -324,14 +346,14 @@ export class HeirReviewComponent implements OnInit {
     const num = this.currentHeir.numParente;
     const sexe = this.currentHeir.sexe;
 
-    if (num === '4' || num === '8') {
+    if (num === '04' || num === '08' || num === '11') {
        const exists = this.heritiers.findIndex((h, index) => {
            if (this.editingIndex === index) return false;
-           if (num === '4') {
-              return h.numParente === '4' && h.sexe === sexe;
+           if (num === '04') {
+              return h.numParente === '04' && h.sexe === sexe;
            }
-           if (num === '8') {
-              return h.numParente === '8';
+           if (num === '08' || num === '11') {
+              return h.numParente === num;
            }
            return false;
        });
@@ -356,15 +378,22 @@ export class HeirReviewComponent implements OnInit {
   getRoleLabel(numParente: string, sexe: string): string {
     const isMale = sexe === 'M';
     switch (numParente) {
-      case '2': return isMale ? 'Époux' : 'Épouse';
-      case '3': return isMale ? 'Fils' : 'Fille';
-      case '4': return isMale ? 'Père' : 'Mère';
-      case '5': return isMale ? 'Frère' : 'Sœur';
-      case '6': return 'Oncle paternel';
-      case '7': return 'Cousin paternel';
-      case '8': return 'Grand-père paternel';
-      default: return 'Autre';
+      case '02': return isMale ? 'Époux' : 'Épouse';
+      case '03': return isMale ? 'Fils' : 'Fille';
+      case '04': return isMale ? 'Père' : 'Mère';
+      case '05': return isMale ? 'Frère' : 'Sœur';
+      case '06': return 'Oncle paternel';
+      case '07': return 'Cousin paternel';
+      case '08': return 'Grand-père paternel';
+      case '11': return 'Grand-mère paternelle';
+      case '09': return 'Petit-fils';
+      case '10': return 'Petite-fille';
+      default: return isMale ? 'Masculin' : 'Féminin';
     }
+  }
+
+  hasGrandchildren(): boolean {
+    return this.heritiers.some(h => h.numParente === '09' || h.numParente === '10');
   }
 
   goBack() {
@@ -395,7 +424,8 @@ export class HeirReviewComponent implements OnInit {
 
     const payload = {
       defunt: formatPerson(this.defunt),
-      heritiers: this.heritiers.map(formatPerson)
+      heritiers: this.heritiers.map(formatPerson),
+      sexeParentPredecede: this.hasGrandchildren() ? this.sexeParentPredecede : null
     };
 
     // On envoie le payload au backend pour remplacer la liste en base

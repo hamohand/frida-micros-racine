@@ -7,4 +7,5 @@ import java.util.List;
 public class FicheUpdateDto {
     private PersonneUpdateDto defunt;
     private List<PersonneUpdateDto> heritiers;
+    private String sexeParentPredecede;
 }

@@ -24,6 +24,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
   public heritiers: any = [];
   public temoins: any = [];
   public numerateurVerif: number = 0;
+  public showTombes: boolean = false;
 //
   public denominateur_L: string = '...chiffres en arabe...';
   public numerateurConjoint_L: string = '...chiffres en arabe...';
@@ -161,10 +162,29 @@ export class FridaComponent implements OnInit, AfterViewInit {
     this.numerateurVerif_L = this.traductionArabeService.nombreVersArabe(this.numerateurVerif);
   }
 
+  getNombreTombes(): number {
+    let tombes = 1; // Le défunt principal
+    if (this.heritiers && this.heritiers.length > 0) {
+      // Petits-fils (09) ou petites-filles (10) impliquent un enfant pré-décédé
+      const hasPetitsFils = this.heritiers.some((h: any) => h.numParente == 9 || h.numParente == 9);
+      const hasPetitesFilles = this.heritiers.some((h: any) => h.numParente == 10);
+      if (hasPetitsFils || hasPetitesFilles) {
+        tombes += 1; // Au moins un enfant pré-décédé
+      }
+    }
+    return tombes;
+  }
+
+  isMasculin(sexe: string | undefined): boolean {
+    if (!sexe) return false;
+    const s = sexe.trim();
+    return s === 'ذكر' || s === 'ذ' || s.toUpperCase() === 'M';
+  }
+
   getRelationArabe(heritier: any): string {
-    const isMaleDefunt = this.frida?.defunt?.identite?.sexe === 'ذكر';
+    const isMaleDefunt = this.isMasculin(this.frida?.defunt?.identite?.sexe);
     const numParente = heritier.numParente;
-    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+    const isMaleHeritier = this.isMasculin(heritier.identite?.sexe);
 
     if (numParente == 2) {
       return isMaleDefunt ? 'أرملته' : 'أرملها';
@@ -188,9 +208,9 @@ export class FridaComponent implements OnInit, AfterViewInit {
   }
 
   getRelationArabePourPart(heritier: any): string {
-    const isMaleDefunt = this.frida?.defunt?.identite?.sexe === 'ذكر';
+    const isMaleDefunt = this.isMasculin(this.frida?.defunt?.identite?.sexe);
     const numParente = heritier.numParente;
-    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+    const isMaleHeritier = this.isMasculin(heritier.identite?.sexe);
 
     if (numParente == 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'لأخيه' : 'لأخته';
@@ -206,7 +226,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
   }
 
   getTexteHeritier(heritier: any): string {
-    const isMaleHeritier = heritier.identite?.sexe === 'ذكر';
+    const isMaleHeritier = this.isMasculin(heritier.identite?.sexe);
     
     // Nom et prénom tels quels (pas de formatage majuscule en arabe)
     const identite = `${heritier.identite?.nom || ''} ${heritier.identite?.prenom || ''}`;
@@ -226,19 +246,19 @@ export class FridaComponent implements OnInit, AfterViewInit {
     if (heritier.numParente == 2) {
       return { num: this.frida.calcul.numerateurConjoint || 0, den: den };
     } else if (heritier.numParente == 3) {
-      if (heritier.identite?.sexe === 'ذكر') {
+      if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurGarcons || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurFilles || 0, den: den };
       }
     } else if (heritier.numParente == 4) {
-      if (heritier.identite?.sexe === 'ذكر') {
+      if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurPere || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurMere || 0, den: den };
       }
     } else if (heritier.numParente == 5) {
-      if (heritier.identite?.sexe === 'ذكر') {
+      if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurFreres || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurSoeurs || 0, den: den };

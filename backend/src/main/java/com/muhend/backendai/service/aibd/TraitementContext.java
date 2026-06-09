@@ -32,14 +32,20 @@ public class TraitementContext {
     private boolean pereVivant;
     private boolean mereVivante;
     private boolean grandPerePaternelVivant;
+    private boolean grandMerePaternelleVivante;
     private int nbFreres;
     private int nbSoeurs;
     private int nbOnclesPaternels;
     private int nbCousinsPaternels;
+    private int nbPetitsFils;
+    private int nbPetitesFilles;
+    private String sexeParentPredecede;
 
     public void incrementConjoints() { nbConjoints++; }
     public void incrementFilles() { nbFilles++; }
     public void incrementGarcons() { nbGarcons++; }
+    public void incrementPetitsFils() { nbPetitsFils++; }
+    public void incrementPetitesFilles() { nbPetitesFilles++; }
     public void incrementParents(String sexe) { 
         nbParents++; 
         if (SexeUtils.isMasculin(sexe)) {
@@ -48,7 +54,8 @@ public class TraitementContext {
             this.mereVivante = true;
         }
     }
-    public void setGrandPerePaternelVivant() { this.grandPerePaternelVivant = true; }
+    public void setGrandPerePaternelVivant(boolean b) { this.grandPerePaternelVivant = b; }
+    public void setGrandMerePaternelleVivante(boolean b) { this.grandMerePaternelleVivante = b; }
     public void incrementFreres() { nbFreres++; }
     public void incrementSoeurs() { nbSoeurs++; }
     public void incrementOnclesPaternels() { nbOnclesPaternels++; }
@@ -58,6 +65,7 @@ public class TraitementContext {
         TraitementContext ctx = new TraitementContext();
         ctx.setFicheFrida(frida);
         ctx.setNumFrida(frida.getNumFrida());
+        ctx.setSexeParentPredecede(frida.getSexeParentPredecede());
         
         if (frida.getHeritiers() != null) {
             for (HeritierEntity heritier : frida.getHeritiers()) {
@@ -77,7 +85,10 @@ public class TraitementContext {
                     }
                     case "06" -> ctx.incrementOnclesPaternels();
                     case "07" -> ctx.incrementCousinsPaternels();
-                    case "08" -> ctx.setGrandPerePaternelVivant();
+                    case "08" -> ctx.setGrandPerePaternelVivant(true);
+                    case "09" -> ctx.incrementPetitsFils();
+                    case "10" -> ctx.incrementPetitesFilles();
+                    case "11" -> ctx.setGrandMerePaternelleVivante(true);
                 }
             }
         }

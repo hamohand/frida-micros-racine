@@ -60,10 +60,14 @@ public class HeirPartCalculatorService {
                 .pereVivant(ctx.isPereVivant())
                 .mereVivante(ctx.isMereVivante())
                 .grandPerePaternelVivant(ctx.isGrandPerePaternelVivant())
+                .grandMerePaternelleVivante(ctx.isGrandMerePaternelleVivante())
                 .nbSoeurs(ctx.getNbSoeurs())
                 .nbFreres(ctx.getNbFreres())
                 .nbOncles(ctx.getNbOnclesPaternels())
                 .nbCousins(ctx.getNbCousinsPaternels())
+                .nbPetitsFils(ctx.getNbPetitsFils())
+                .nbPetitesFilles(ctx.getNbPetitesFilles())
+                .sexeParentPredecede(ctx.getSexeParentPredecede())
                 .build();
 
         CalculEntity calcul = new CalculEntity();
@@ -72,6 +76,7 @@ public class HeirPartCalculatorService {
         calcul.setNbFilles(ctx.getNbFilles());
         calcul.setNbGarcons(ctx.getNbGarcons());
         calcul.setGrandPerePaternelVivant(ctx.isGrandPerePaternelVivant());
+        calcul.setGrandMerePaternelleVivante(ctx.isGrandMerePaternelleVivante());
         calcul.setNbOnclesPaternels(ctx.getNbOnclesPaternels());
         calcul.setNbCousinsPaternels(ctx.getNbCousinsPaternels());
 
@@ -92,7 +97,10 @@ public class HeirPartCalculatorService {
 
             // Numérateur filles
             response.getHeritiers().stream()
-                    .filter(h -> h.getHeritier().toLowerCase().contains("fille"))
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("fille") && !label.contains("petite");
+                    })
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurFilles(h.getPart().getNumerateur()));
 
@@ -100,10 +108,28 @@ public class HeirPartCalculatorService {
             response.getHeritiers().stream()
                     .filter(h -> {
                         String label = h.getHeritier().toLowerCase();
-                        return label.contains("garçon") || label.contains("fils");
+                        return (label.contains("garçon") || label.contains("fils")) && !label.contains("petit");
                     })
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurGarcons(h.getPart().getNumerateur()));
+
+            // Numérateur petits-fils
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("petit-fils") || label.contains("petits-fils") || (label.contains("petit") && label.contains("fils"));
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurPetitsFils(h.getPart().getNumerateur()));
+
+            // Numérateur petites-filles
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("petite-fille") || label.contains("petites-filles") || (label.contains("petite") && label.contains("fille"));
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurPetitesFilles(h.getPart().getNumerateur()));
 
             // Numérateur père
             response.getHeritiers().stream()
@@ -122,6 +148,15 @@ public class HeirPartCalculatorService {
                     })
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurGrandPerePaternel(h.getPart().getNumerateur()));
+
+            // Numérateur grand-mère paternelle
+            response.getHeritiers().stream()
+                    .filter(h -> {
+                        String label = h.getHeritier().toLowerCase();
+                        return label.contains("grand-mère") || label.contains("grand-mere");
+                    })
+                    .findFirst()
+                    .ifPresent(h -> calcul.setNumerateurGrandMerePaternelle(h.getPart().getNumerateur()));
 
             // Numérateur mère
             response.getHeritiers().stream()

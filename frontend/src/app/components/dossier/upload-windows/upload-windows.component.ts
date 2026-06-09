@@ -22,6 +22,13 @@ import { forkJoin, Observable, of } from 'rxjs';
         Hajb: Fils={{ getFiche().nbGarcons }} | Père={{ getFiche().pereVivant ? 'Oui' : 'Non' }} | Fenêtres={{ getActiveWindowKeys().length }}
       </div>
 
+      <!-- Action Globale pour sauter aux témoins -->
+      <div class="global-skip-action" *ngIf="isHeirWindowActive()">
+        <button class="skip-all-btn" (click)="skipToTemoins()">
+          ⏭️ Il n'y a plus d'héritiers (Aller aux témoins)
+        </button>
+      </div>
+
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
         <!-- Fenêtre Défunt -->
@@ -29,7 +36,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f1'].isUploading">
             <h2 class="window-title">1. Document du Défunt</h2>
             <app-file-upload #fileUploadF1
-                [config]="getUploadConfig('1', 'Défunt', false, '', 1)"
+                [config]="getUploadConfig('01', 'Défunt', false, '', 1)"
                 [initialFiles]="windows['f1'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"
@@ -45,7 +52,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f2'].isUploading">
             <h2 class="window-title">2. Document du Conjoint</h2>
             <app-file-upload #fileUploadF2
-                [config]="getUploadConfig('2', 'Conjoint', true, 'Continuer s\\'il n\\'y a pas de conjoint', 4)"
+                [config]="getUploadConfig('02', 'Conjoint', true, 'Continuer s\\'il n\\'y a pas de conjoint', 4)"
                 [initialFiles]="windows['f2'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f2', $event)"
                 (previousClicked)="moveToPreviousWindow('f2')"
@@ -64,7 +71,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_garcons'].isUploading">
             <h2 class="window-title">3. Documents des Fils</h2>
             <app-file-upload #fileUploadFGarcons
-                [config]="getUploadConfig('3', 'Fils (Garçons)', true, 'Continuer s\\'il n\\'y a pas de fils', 10)"
+                [config]="getUploadConfig('03', 'Fils (Garçons)', true, 'Continuer s\\'il n\\'y a pas de fils', 10)"
                 [initialFiles]="windows['f_garcons'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_garcons', $event)"
                 (previousClicked)="moveToPreviousWindow('f_garcons')"
@@ -83,7 +90,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_filles'].isUploading">
             <h2 class="window-title">4. Documents des Filles</h2>
             <app-file-upload #fileUploadFFilles
-                [config]="getUploadConfig('3', 'Filles', true, 'Continuer s\\'il n\\'y a pas de filles', 10)"
+                [config]="getUploadConfig('03', 'Filles', true, 'Continuer s\\'il n\\'y a pas de filles', 10)"
                 [initialFiles]="windows['f_filles'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_filles', $event)"
                 (previousClicked)="moveToPreviousWindow('f_filles')"
@@ -97,12 +104,50 @@ import { forkJoin, Observable, of } from 'rxjs';
           </div>
         </div>
 
+        <!-- Fenêtre Petits-fils -->
+        <div class="window-section" *ngIf="isWindowActive('f_petits_fils')">
+          <ng-container *ngIf="!windows['f_petits_fils'].isUploading">
+            <h2 class="window-title">Documents des Petits-fils (Wasiyya Wajiba)</h2>
+            <app-file-upload #fileUploadFPetitsFils
+                [config]="getUploadConfig('09', 'Petits-fils', true, 'Continuer s\\'il n\\'y a pas de petits-fils', 10)"
+                [initialFiles]="windows['f_petits_fils'].rawFiles || []"
+                (filesConfirmed)="onFilesConfirmed('f_petits_fils', $event)"
+                (previousClicked)="moveToPreviousWindow('f_petits_fils')"
+                (uploadCancelled)="onUploadCancelled('f_petits_fils')"
+                (pendingFilesChanged)="onPendingFilesChanged('f_petits_fils', $event)"
+                (skipClicked)="continueToNext('f_petits_fils')"
+            ></app-file-upload>
+          </ng-container>
+          <div *ngIf="windows['f_petits_fils'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+        </div>
+
+        <!-- Fenêtre Petites-filles -->
+        <div class="window-section" *ngIf="isWindowActive('f_petites_filles')">
+          <ng-container *ngIf="!windows['f_petites_filles'].isUploading">
+            <h2 class="window-title">Documents des Petites-filles (Wasiyya Wajiba)</h2>
+            <app-file-upload #fileUploadFPetitesFilles
+                [config]="getUploadConfig('10', 'Petites-filles', true, 'Continuer s\\'il n\\'y a pas de petites-filles', 10)"
+                [initialFiles]="windows['f_petites_filles'].rawFiles || []"
+                (filesConfirmed)="onFilesConfirmed('f_petites_filles', $event)"
+                (previousClicked)="moveToPreviousWindow('f_petites_filles')"
+                (uploadCancelled)="onUploadCancelled('f_petites_filles')"
+                (pendingFilesChanged)="onPendingFilesChanged('f_petites_filles', $event)"
+                (skipClicked)="continueToNext('f_petites_filles')"
+            ></app-file-upload>
+          </ng-container>
+          <div *ngIf="windows['f_petites_filles'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+        </div>
+
         <!-- Fenêtre Père -->
         <div class="window-section" *ngIf="isWindowActive('f_pere')">
           <ng-container *ngIf="!windows['f_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Père vivant ?</h2>
             <app-file-upload #fileUploadFPere
-                [config]="getUploadConfig('4', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 1)"
+                [config]="getUploadConfig('04', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 1)"
                 [initialFiles]="windows['f_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_pere')"
@@ -121,7 +166,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_grand_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Grand-père paternel vivant ?</h2>
             <app-file-upload #fileUploadFGrandPere
-                [config]="getUploadConfig('8', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 1)"
+                [config]="getUploadConfig('08', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 1)"
                 [initialFiles]="windows['f_grand_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_grand_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_grand_pere')"
@@ -140,7 +185,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_mere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il une Mère vivante ?</h2>
             <app-file-upload #fileUploadFMere
-                [config]="getUploadConfig('4', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 1)"
+                [config]="getUploadConfig('04', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 1)"
                 [initialFiles]="windows['f_mere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_mere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_mere')"
@@ -154,11 +199,30 @@ import { forkJoin, Observable, of } from 'rxjs';
           </div>
         </div>
 
+        <!-- Fenêtre Grand-mère paternelle -->
+        <div class="window-section" *ngIf="isWindowActive('f_grand_mere_paternelle')">
+          <ng-container *ngIf="!windows['f_grand_mere_paternelle'].isUploading">
+            <h2 class="window-title">Le Défunt a-t-il une Grand-mère paternelle vivante ?</h2>
+            <app-file-upload #fileUploadFGrandMerePaternelle
+                [config]="getUploadConfig('11', 'Grand-mère paternelle', true, 'Continuer s\\'il n\\'y a pas de grand-mère paternelle', 1)"
+                [initialFiles]="windows['f_grand_mere_paternelle'].rawFiles || []"
+                (filesConfirmed)="onFilesConfirmed('f_grand_mere_paternelle', $event)"
+                (previousClicked)="moveToPreviousWindow('f_grand_mere_paternelle')"
+                (uploadCancelled)="onUploadCancelled('f_grand_mere_paternelle')"
+                (pendingFilesChanged)="onPendingFilesChanged('f_grand_mere_paternelle', $event)"
+                (skipClicked)="continueToNext('f_grand_mere_paternelle')"
+            ></app-file-upload>
+          </ng-container>
+          <div *ngIf="windows['f_grand_mere_paternelle'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+        </div>
+
         <!-- Fenêtre Frères et sœurs du défunt -->
         <div class="window-section" *ngIf="isWindowActive('f5')">
           <ng-container *ngIf="!windows['f5'].isUploading">
             <app-file-upload #fileUploadF5
-                [config]="getUploadConfig('5', 'Frères et sœurs du défunt', true, 'Continuer s\\'il n\\'y a pas de frères et sœurs', 10)"
+                [config]="getUploadConfig('05', 'Frères et sœurs du défunt', true, 'Continuer s\\'il n\\'y a pas de frères et sœurs', 10)"
                 [initialFiles]="windows['f5'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f5', $event)"
                 (previousClicked)="moveToPreviousWindow('f5')"
@@ -176,7 +240,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         <div class="window-section" *ngIf="isWindowActive('f6')">
           <ng-container *ngIf="!windows['f6'].isUploading">
             <app-file-upload #fileUploadF6
-                [config]="getUploadConfig('6', 'Oncles paternels', true, 'Continuer s\\'il n\\'y a pas d\\'oncles paternels', 10)"
+                [config]="getUploadConfig('06', 'Oncles paternels', true, 'Continuer s\\'il n\\'y a pas d\\'oncles paternels', 10)"
                 [initialFiles]="windows['f6'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f6', $event)"
                 (previousClicked)="moveToPreviousWindow('f6')"
@@ -194,7 +258,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         <div class="window-section" *ngIf="isWindowActive('f7')">
           <ng-container *ngIf="!windows['f7'].isUploading">
             <app-file-upload #fileUploadF7
-                [config]="getUploadConfig('7', 'Cousins paternels', true, 'Continuer s\\'il n\\'y a pas de cousins paternels', 10)"
+                [config]="getUploadConfig('07', 'Cousins paternels', true, 'Continuer s\\'il n\\'y a pas de cousins paternels', 10)"
                 [initialFiles]="windows['f7'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f7', $event)"
                 (previousClicked)="moveToPreviousWindow('f7')"
@@ -212,7 +276,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         <div class="window-section" *ngIf="isWindowActive('f_temoins')">
           <ng-container *ngIf="!windows['f_temoins'].isUploading">
             <app-file-upload #fileUploadFTemoins
-                [config]="getUploadConfig('0', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
+                [config]="getUploadConfig('00', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
                 [initialFiles]="windows['f_temoins'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_temoins', $event)"
                 (previousClicked)="moveToPreviousWindow('f_temoins')"
@@ -382,24 +446,49 @@ import { forkJoin, Observable, of } from 'rxjs';
     .continue-btn {
       margin-top: var(--spacing-md);
     }
+    
+    .global-skip-action {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 15px;
+      padding: 0 20px;
+    }
+    .skip-all-btn {
+      border: 1px solid #ffb84d;
+      color: #ffb84d;
+      font-size: 1rem;
+      font-weight: bold;
+      padding: 8px 20px;
+      border-radius: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    .skip-all-btn:hover {
+      background: rgba(255, 184, 77, 0.1);
+      transform: scale(1.02);
+    }
   `]
 })
 export class UploadWindowsComponent implements OnInit {
-  windows: Record<string, UploadWindowState> = {
+  windows: { [key: string]: UploadWindowState } = {
     // Défunt
-    f1: { isVisible: true, hasFiles: false, isUploading: false, path: '1' },
+    f1: { isVisible: true, hasFiles: false, isUploading: false, path: '01' },
     // Héritiers
-    f2: { isVisible: false, hasFiles: false, isUploading: false, path: '2' },  // Conjoint
-    f_garcons: { isVisible: false, hasFiles: false, isUploading: false, path: '3' }, // Fils
-    f_filles: { isVisible: false, hasFiles: false, isUploading: false, path: '3' }, // Filles
-    f_pere: { isVisible: false, hasFiles: false, isUploading: false, path: '4' }, // Père
-    f_grand_pere: { isVisible: false, hasFiles: false, isUploading: false, path: '8' }, // Grand-père paternel
-    f_mere: { isVisible: false, hasFiles: false, isUploading: false, path: '4' }, // Mère
-    f5: { isVisible: false, hasFiles: false, isUploading: false, path: '5' },  // Frères et sœurs
-    f6: { isVisible: false, hasFiles: false, isUploading: false, path: '6' },  // Oncles paternels
-    f7: { isVisible: false, hasFiles: false, isUploading: false, path: '7' },  // Cousins paternels
+    f2: { isVisible: false, hasFiles: false, isUploading: false, path: '02' },  // Conjoint
+    f_garcons: { isVisible: false, hasFiles: false, isUploading: false, path: '03' }, // Fils
+    f_filles: { isVisible: false, hasFiles: false, isUploading: false, path: '03' }, // Filles
+    f_petits_fils: { isVisible: false, hasFiles: false, isUploading: false, path: '09' }, // Petits-fils
+    f_petites_filles: { isVisible: false, hasFiles: false, isUploading: false, path: '10' }, // Petites-filles
+    f_pere: { isVisible: false, hasFiles: false, isUploading: false, path: '04' }, // Père
+    f_grand_pere: { isVisible: false, hasFiles: false, isUploading: false, path: '08' }, // Grand-père paternel
+    f_mere: { isVisible: false, hasFiles: false, isUploading: false, path: '04' }, // Mère
+    f_grand_mere_paternelle: { isVisible: false, hasFiles: false, isUploading: false, path: '11' }, // Grand-mère paternelle
+    f5: { isVisible: false, hasFiles: false, isUploading: false, path: '05' },  // Frères et sœurs
+    f6: { isVisible: false, hasFiles: false, isUploading: false, path: '06' },  // Oncles paternels
+    f7: { isVisible: false, hasFiles: false, isUploading: false, path: '07' },  // Cousins paternels
     // Témoins
-    f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '0' },
+    f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '00' },
     // Lecture AI
     f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
   };
@@ -413,7 +502,7 @@ export class UploadWindowsComponent implements OnInit {
 
   getActiveWindowKeys(): string[] {
     const fiche = this.constitutionService.currentFiche;
-    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_pere'];
+    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_petits_fils', 'f_petites_filles', 'f_pere'];
 
     // Exclusion du Grand-père paternel (exclu si le Père est vivant)
     if (!fiche.pereVivant) {
@@ -421,6 +510,11 @@ export class UploadWindowsComponent implements OnInit {
     }
 
     keys.push('f_mere');
+
+    // Exclusion de la Grand-mère paternelle (exclue par le Père ou la Mère)
+    if (!fiche.pereVivant && !fiche.mereVivante) {
+      keys.push('f_grand_mere_paternelle');
+    }
 
     // Exclusion des Frères et sœurs (exclus si Père vivant ou présence de Garçons)
     const aDesGarcons = fiche.nbGarcons > 0;
@@ -435,7 +529,7 @@ export class UploadWindowsComponent implements OnInit {
     }
 
     // Exclusion des Cousins paternels (exclus si Père, Garçons, Grand-père, Frères ou Oncles)
-    const aDesOncles = fiche.nbOncles > 0;
+    const aDesOncles = fiche.nbOnclesPaternels > 0;
     if (!fiche.pereVivant && !aDesGarcons && !fiche.grandPerePaternelVivant && !aDesFreres && !aDesOncles) {
       keys.push('f7');
     }
@@ -467,7 +561,7 @@ export class UploadWindowsComponent implements OnInit {
       this.ocrMode = saved.ocrMode || 'rapide';
       
       // Resynchronisation forcée du ConstitutionService au cas où on revient de l'écran de synthèse
-      ['f2', 'f_garcons', 'f_filles', 'f_pere', 'f_grand_pere', 'f_mere', 'f5', 'f6', 'f7'].forEach(key => {
+      ['f2', 'f_garcons', 'f_filles', 'f_petits_fils', 'f_petites_filles', 'f_pere', 'f_grand_pere', 'f_mere', 'f_grand_mere_paternelle', 'f5', 'f6', 'f7'].forEach(key => {
         if (this.windows[key]) {
            this.updateConstitutionState(key, this.windows[key].hasFiles, this.windows[key].rawFiles?.length || 0);
         }
@@ -532,12 +626,15 @@ export class UploadWindowsComponent implements OnInit {
       case 'f2': this.constitutionService.updateFiche({ nbConjoints: count }); break;
       case 'f_garcons': this.constitutionService.updateFiche({ nbGarcons: count }); break;
       case 'f_filles': this.constitutionService.updateFiche({ nbFilles: count }); break;
+      case 'f_petits_fils': this.constitutionService.updateFiche({ nbPetitsFils: count }); break;
+      case 'f_petites_filles': this.constitutionService.updateFiche({ nbPetitesFilles: count }); break;
       case 'f_pere': this.constitutionService.updateFiche({ pereVivant: hasFiles }); break;
       case 'f_grand_pere': this.constitutionService.updateFiche({ grandPerePaternelVivant: hasFiles }); break;
       case 'f_mere': this.constitutionService.updateFiche({ mereVivante: hasFiles }); break;
+      case 'f_grand_mere_paternelle': this.constitutionService.updateFiche({ grandMerePaternelleVivante: hasFiles }); break;
       case 'f5': this.constitutionService.updateFiche({ nbFreres: count }); break; // Par défaut, on les met dans Frères
-      case 'f6': this.constitutionService.updateFiche({ nbOncles: count }); break;
-      case 'f7': this.constitutionService.updateFiche({ nbCousins: count }); break;
+      case 'f6': this.constitutionService.updateFiche({ nbOnclesPaternels: count }); break;
+      case 'f7': this.constitutionService.updateFiche({ nbCousinsPaternels: count }); break;
     }
   }
 
@@ -570,6 +667,23 @@ export class UploadWindowsComponent implements OnInit {
       this.windows[currentWindow].isVisible = false;
       this.windows[windowKeys[currentIndex + 1]].isVisible = true;
     }
+  }
+
+  isHeirWindowActive(): boolean {
+    const activeKey = this.getActiveWindowKeys().find(key => this.windows[key].isVisible);
+    if (!activeKey || activeKey === 'f1' || activeKey === 'f_temoins' || activeKey === 'f_ai') {
+        return false;
+    }
+    return !this.windows[activeKey].isUploading;
+  }
+
+  skipToTemoins() {
+    const windowKeys = this.getActiveWindowKeys();
+    const activeKey = windowKeys.find(key => this.windows[key].isVisible);
+    if (activeKey) {
+      this.windows[activeKey].isVisible = false;
+    }
+    this.windows['f_temoins'].isVisible = true;
   }
 
   onReviewFamily(): void {

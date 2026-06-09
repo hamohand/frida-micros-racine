@@ -58,4 +58,7 @@ public class FridaEntity {
     @JoinColumn(name = "frida_id")
     private List<TemoinEntity> temoins;
 
+    @Column(name = "sexe_parent_predecede", length = 1)
+    private String sexeParentPredecede;
+
 }

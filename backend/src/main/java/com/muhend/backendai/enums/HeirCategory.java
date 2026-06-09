@@ -15,7 +15,10 @@ public enum HeirCategory {
     FRATRIE(5),
     ONCLE_PATERNEL(6),
     COUSIN_PATERNEL(7),
-    GRAND_PERE_PATERNEL(8);
+    GRAND_PERE_PATERNEL(8),
+    PETIT_FILS(9),
+    PETITE_FILLE(10),
+    GRAND_MERE_PATERNELLE(11);
 
     private final int code;
 

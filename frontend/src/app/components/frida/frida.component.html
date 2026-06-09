@@ -1,3 +1,22 @@
+<!-- Indicateur de complexité (Tombes) - Exclu de l'impression -->
+<div class="no-print tombes-bar" *ngIf="frida">
+    <button class="tombes-toggle" (click)="showTombes = !showTombes">
+        {{ showTombes ? '🔽' : '▶️' }} Indicateur de complexité
+    </button>
+    <div class="tombes-badge" *ngIf="showTombes">
+        <span class="tombes-icon">🪦</span>
+        <span class="tombes-count">{{ getNombreTombes() }}</span>
+        <span class="tombes-label">tombe{{ getNombreTombes() > 1 ? 's' : '' }}</span>
+        <span class="tombes-level" [ngClass]="{
+            'level-easy': getNombreTombes() <= 1,
+            'level-medium': getNombreTombes() === 2,
+            'level-hard': getNombreTombes() >= 3
+        }">
+            {{ getNombreTombes() <= 1 ? 'Simple' : (getNombreTombes() === 2 ? 'Moyen' : 'Complexe') }}
+        </span>
+    </div>
+</div>
+
 <!-- Bouton d'impression (Exclu de l'impression via CSS) -->
 <header class="print-header">
     <button class="btn btn-primary print-button" (click)="printNgContainer()">
@@ -37,7 +56,7 @@
                 <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template
                     #feminin>المرحومة</ng-template>
                 <span> : </span>
-                <span class="ocr-data">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
+                <span class="ocr-data"><span class="demo-blur">{{frida?.defunt.identite.nom}}</span> {{frida?.defunt.identite.prenom}}</span>
 
             </div>
         </div>
@@ -52,7 +71,7 @@
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'; else feminin">المرحوم</span><ng-template
                         #feminin>المرحومة</ng-template>
                     <span> : </span>
-                    <span class="ocr-data">{{frida?.defunt.identite.nom}} {{frida?.defunt.identite.prenom}}</span>
+                    <span class="ocr-data"><span class="demo-blur">{{frida?.defunt.identite.nom}}</span> {{frida?.defunt.identite.prenom}}</span>
                     <span>، </span>
                     <span *ngIf="frida?.defunt.identite.sexe == 'ذكر'">بن</span><span
                         *ngIf="frida?.defunt.identite.sexe != 'ذكر'">بنت</span>
@@ -64,9 +83,9 @@
                             class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
                     <span>من جنسية جزائرية،</span>
                     <span> الحامل</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
-                    <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data">{{frida?.defunt.identite.nin}}</span>، </span>
+                    <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data demo-blur">{{frida?.defunt.identite.nin}}</span>، </span>
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
-                    <span> رقم <span class="ocr-data">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
+                    <span> رقم <span class="ocr-data demo-blur">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
                 </div>
             </section>
 
@@ -81,7 +100,7 @@
                     <div class="dash-paragraph">
                         <div class="text-content">
                             <span> {{ i + 1 }}) - السيد</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
-                            <span class="ocr-data"> {{temoin.identite.nom}} {{temoin.identite.prenom}}</span>،
+                            <span class="ocr-data"> <span class="demo-blur">{{temoin.identite.nom}}</span> {{temoin.identite.prenom}}</span>،
                             <span> جزائري</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span><span> الجنسية،</span>
                             <span> المولود</span><span *ngIf="temoin.identite.sexe != 'ذكر'">ة</span>
                             <span> بتاريخ <span class="ocr-data">{{temoin.identite.dateNaissance}}</span>، </span>
@@ -111,11 +130,11 @@
                         <div class="text-content">
                             <span>- </span>
                             <span class="bold">{{ getRelationArabe(heritier) }} </span>
-                            <span class="ocr-data">{{heritier.identite?.nom || ''}} {{heritier.identite?.prenom || ''}}</span>
+                            <span class="ocr-data"><span class="demo-blur">{{heritier.identite?.nom || ''}}</span> {{heritier.identite?.prenom || ''}}</span>
                             <span> {{heritier.identite?.sexe === 'ذكر' ? 'المولود في' : 'المولودة في'}} </span>
                             <span class="ocr-data">{{heritier.identite?.dateNaissance || ''}}</span>
                             <span> {{heritier.identite?.sexe === 'ذكر' ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني'}} </span>
-                            <span class="ocr-data">{{heritier.identite?.nin || ''}}</span>
+                            <span class="ocr-data demo-blur">{{heritier.identite?.nin || ''}}</span>
                         </div>
                         <span class="leader-spacer"></span>
                         <div class="fraction-box">
@@ -147,11 +166,11 @@
                     <span>وبناءً على طلب
                         @if ((frida?.calcul.nbGarcons!=0 || frida?.calcul.nbFilles!=0) && (heritiers?.[1])) {
                         السيد<ng-container *ngIf="heritiers[1]?.identite.sexe != 'ذكر'">ة</ng-container>
-                        <span class="ocr-data">{{heritiers[1]?.identite.nom}} {{heritiers[1]?.identite.prenom}}</span>
+                        <span class="ocr-data"><span class="demo-blur">{{heritiers[1]?.identite.nom}}</span> {{heritiers[1]?.identite.prenom}}</span>
                         } @else {
                         @if (heritiers?.[0]) {
                         السيد<ng-container *ngIf="heritiers[0]?.identite.sexe != 'ذكر'">ة</ng-container>
-                        <span class="ocr-data">{{heritiers[0]?.identite.nom}} {{heritiers[0]?.identite.prenom}}</span>
+                        <span class="ocr-data"><span class="demo-blur">{{heritiers[0]?.identite.nom}}</span> {{heritiers[0]?.identite.prenom}}</span>
                         }
                         }
                         ، إحدى الورثة المذكورين أعلاه، تم إعداد هذه الفريضة. وقد صحت بعد العمل والحساب من أصل </span>
