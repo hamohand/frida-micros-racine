@@ -1,6 +1,7 @@
 package com.muhend.backendai.service.dossier;
 
 import com.muhend.backendai.config.exception.FolderCreationException;
+import com.muhend.backendai.dto.DocumentInfo;
 import com.muhend.backendai.dto.dossier.CreateFolderRequest;
 import com.muhend.backendai.dto.dossier.FolderResponse;
 
@@ -15,6 +16,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
 import com.muhend.backendai.config.util.PathResolver;
@@ -24,6 +29,73 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 @RequiredArgsConstructor
 public class FolderService {
+
+    // ======================= Scan de dossier =======================
+
+    public static class FolderScanResult {
+        private final List<String> tableauNumParente = new ArrayList<>();
+        private final List<Path> pdfFiles = new ArrayList<>();
+        private final Map<Path, DocumentInfo> fileDocumentInfoMap = new HashMap<>();
+
+        public List<String> getTableauNumParente() { return tableauNumParente; }
+        public List<Path> getPdfFiles() { return pdfFiles; }
+        public Map<Path, DocumentInfo> getFileDocumentInfoMap() { return fileDocumentInfoMap; }
+    }
+
+    /**
+     * Liste les fichiers du dossier configuré de manière récursive.
+     *
+     * @throws IOException           En cas d'erreur d'accès au système de fichiers.
+     */
+    public FolderScanResult listFolderContents(String folderPath) throws IOException {
+        FolderScanResult result = new FolderScanResult();
+        log.info("Analyse des fichiers dans le dossier : {}", folderPath);
+
+        try {
+            // Un tableau à 1 élément pour stocker le nom du dossier courant dans le foreach (lambda)
+            final Path[] directoryName = new Path[1];
+            Files.walk(Paths.get(folderPath))
+                    .forEach(filePath -> {
+                        if (Files.isDirectory(filePath)) {
+                            directoryName[0] = filePath;
+                            log.info("Dossier détecté : {}", filePath.getFileName());
+                        } else if (Files.isRegularFile(filePath)) {
+                            String fileName = filePath.getFileName().toString().toLowerCase();
+                            if (fileName.endsWith(".pdf") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")
+                                    || fileName.endsWith(".png")) {
+                                result.getPdfFiles().add(filePath);
+                                String folderName = directoryName[0] != null ? directoryName[0].getFileName().toString() : filePath.getParent().getFileName().toString();
+                                log.info("Fichier détecté : {} dans dossier {}", filePath.getFileName(), folderName);
+
+                                // Parse folder name format: "{code}_{type}" (ex: "2_cni")
+                                try {
+                                    DocumentInfo docInfo = DocumentInfo.fromFolderName(folderName);
+                                    result.getFileDocumentInfoMap().put(filePath, docInfo);
+                                    result.getTableauNumParente().add(docInfo.getHeirCategory().getFormattedCode());
+                                    log.info("Document: {} -> catégorie={}, type={}",
+                                            filePath.getFileName(),
+                                            docInfo.getHeirCategory(),
+                                            docInfo.getDocumentType());
+                                } catch (IllegalArgumentException e) {
+                                    // Fallback: ancien format (juste le numéro de parenté)
+                                    log.warn(
+                                            "Format de dossier non reconnu '{}', utilisation comme numéro de parenté. Erreur: ",
+                                            folderName, e);
+                                    result.getTableauNumParente().add(folderName);
+                                }
+                            } else {
+                                log.debug("Fichier ignoré : {}", filePath.getFileName());
+                            }
+                        }
+                    });
+            log.info("Analyse terminée : {} fichiers détectés.", result.getPdfFiles().size());
+        } catch (IOException e) {
+            log.error("Erreur d'accès aux fichiers du dossier : {}", folderPath, e);
+            throw e;
+        }
+        log.debug("tableauNumParente : {}", result.getTableauNumParente());
+        return result;
+    }
 
     @Value("${ROOT_PATH}")
     private String rootPathString;

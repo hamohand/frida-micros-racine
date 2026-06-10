@@ -1,7 +1,7 @@
 package com.muhend.backendai.controller;
 
 import com.muhend.backendai.entities.FridaEntity;
-import com.muhend.backendai.service.aibd.EcrireBdService;
+import com.muhend.backendai.service.pipeline.DossierProcessingService;
 import com.muhend.backendai.service.dossier.FolderService;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import java.io.IOException;
 public class OcrProcessingController {
 
     @Autowired
-    private EcrireBdService ecrireBdService;
+    private DossierProcessingService dossierProcessingService;
     private final com.muhend.backendai.config.util.PathResolver pathResolver;
 
     /**
@@ -35,7 +35,7 @@ public class OcrProcessingController {
         }
         String cheminDossierBase = path.toString();
         System.out.println("cheminDossierBase : " + cheminDossierBase + "");
-        return ecrireBdService.traiterExtraitsNaissance(cheminDossierBase, mode);
+        return dossierProcessingService.traiterExtraitsNaissance(cheminDossierBase, mode);
     }
 
     /**
@@ -43,7 +43,7 @@ public class OcrProcessingController {
      */
     @PostMapping("/sauvegarder-fiche/{numFrida}")
     public void sauvegarderFiche(@PathVariable String numFrida, @org.springframework.web.bind.annotation.RequestBody com.muhend.backendai.dto.FicheUpdateDto dto) {
-        ecrireBdService.sauvegarderFicheCorrigee(numFrida, dto);
+        dossierProcessingService.sauvegarderFicheCorrigee(numFrida, dto);
     }
 
     /**
@@ -52,7 +52,7 @@ public class OcrProcessingController {
      */
     @PostMapping("/lancer-calcul/{numFrida}")
     public FridaEntity lancerCalcul(@PathVariable String numFrida) {
-        return ecrireBdService.lancerCalcul(numFrida);
+        return dossierProcessingService.lancerCalcul(numFrida);
     }
 
 }

@@ -10,7 +10,7 @@ import com.muhend.backendai.repository.DefuntRepo;
 import com.muhend.backendai.repository.FridaRepo;
 import com.muhend.backendai.repository.CalculRepo;
 import com.muhend.backendai.repository.HeritierRepo;
-import com.muhend.backendai.service.aibd.HeirPartCalculatorService;
+import com.muhend.backendai.service.pipeline.HeirPartCalculatorService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

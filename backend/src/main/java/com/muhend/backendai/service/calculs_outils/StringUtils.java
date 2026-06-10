@@ -1,6 +1,6 @@
 package com.muhend.backendai.service.calculs_outils;
 
-public class MethodesChaine {
+public class StringUtils {
 
     public static String replaceTrimSpaces(String chaine, char caractere) {
         // Remplace tous les points par des espaces

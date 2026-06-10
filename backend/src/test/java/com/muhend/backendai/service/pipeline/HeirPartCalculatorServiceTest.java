@@ -1,4 +1,4 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.client.calculs.CalculsApiClient;
 import com.muhend.backendai.client.calculs.dto.CalculFractionDto;

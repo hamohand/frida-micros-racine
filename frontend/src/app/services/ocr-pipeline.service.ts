@@ -5,7 +5,7 @@ import { Observable } from 'rxjs';
 @Injectable({
     providedIn: 'root',
 })
-export class LireaiEcrirebdService {
+export class OcrPipelineService {
     private apiUrl = '/api/pdfs'; // Changez ce chemin si nécessaire
 
     constructor(private http: HttpClient) {}

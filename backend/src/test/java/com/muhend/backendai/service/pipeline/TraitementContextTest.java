@@ -1,4 +1,4 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

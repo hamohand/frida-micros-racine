@@ -35,6 +35,6 @@ export class FileUploadService {
   }
 
   getEntities(): Observable<any[]> {
-    return this.http.get<any[]>('http://localhost:8082/api/entites');
+    return this.http.get<any[]>('/api/entites');
   }
 }

@@ -1,11 +1,12 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
+
+import com.muhend.backendai.service.dossier.FolderService;
 
 import com.muhend.backendai.client.ocr.dto.OcrEntityDefinitionDto;
 import com.muhend.backendai.dto.DocumentInfo;
 import com.muhend.backendai.entities.*;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.enums.HeirCategory;
-import com.muhend.backendai.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,53 +24,46 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class EcrireBdServiceTest {
+class DossierProcessingServiceTest {
 
-    @Mock private LectureAiService lectureAiService;
+    @Mock private FolderService folderService;
     @Mock private OcrMappingService ocrMappingService;
     @Mock private FridaIdentifierService fridaIdentifierService;
-    @Mock private HeirPartCalculatorService heirPartCalculatorService;
-
-    @Mock private IdentitesRepo identitesRepo;
-    @Mock private FridaRepo fridaRepo;
-    @Mock private HeritierRepo heritierRepo;
-    @Mock private DefuntRepo defuntRepo;
-    @Mock private CalculRepo calculRepo;
-    @Mock private TemoinRepo temoinRepo;
+    @Mock private FridaPersistenceService fridaPersistenceService;
 
     @InjectMocks
-    private EcrireBdService ecrireBdService;
+    private DossierProcessingService dossierProcessingService;
 
     private String folderPath = "/frida-storage/test_folder";
     private Map<Path, DocumentInfo> fileDocInfoMap;
     private List<Path> pdfFiles;
-    private LectureAiService.FolderScanResult scanResult;
+    private FolderService.FolderScanResult scanResult;
 
     @BeforeEach
     void setUp() throws Exception {
         fileDocInfoMap = new HashMap<>();
         pdfFiles = new ArrayList<>();
-        scanResult = new LectureAiService.FolderScanResult();
+        scanResult = new FolderService.FolderScanResult();
 
         // Initialisation manuelle du Semaphore pour le test unitaire
-        org.springframework.test.util.ReflectionTestUtils.setField(ecrireBdService, "maxParallelFolders", 2);
-        ecrireBdService.init();
+        org.springframework.test.util.ReflectionTestUtils.setField(dossierProcessingService, "maxParallelFolders", 2);
+        dossierProcessingService.init();
 
         // Préparation du dossier mocké
         List<String> mockNumParente = List.of("1", "2", "3");
         scanResult.getTableauNumParente().addAll(mockNumParente);
         
         // Configuration lenient pour le cas où le test "WhenNoFiles" n'utilise pas le paramètre
-        lenient().when(lectureAiService.listFolderContents(anyString())).thenReturn(scanResult);
+        lenient().when(folderService.listFolderContents(anyString())).thenReturn(scanResult);
     }
 
     @Test
-    void traiterExtraitsNaissance_ShouldProcessFilesAndSaveToDb() throws Exception {
+    void traiterExtraitsNaissance_ShouldProcessFilesAndSave() throws Exception {
         // ---- Arrange ----
         // Fichier 1: Défunt
         Path fileDefunt = Paths.get(folderPath, "1_en", "doc.pdf");
@@ -113,44 +107,30 @@ class EcrireBdServiceTest {
         // Mock Identifiant
         when(fridaIdentifierService.genererIdentifiant(anyString())).thenReturn("FRIDA-12345");
 
-        // Mock Calculs
-        CalculEntity mockCalcul = new CalculEntity();
-        mockCalcul.setDenominateur(8);
-        mockCalcul.setNumerateurConjoint(1);
-        mockCalcul.setNumerateurGarcons(7); // Pour simplifier
-        when(heirPartCalculatorService.calculerParts(any())).thenReturn(mockCalcul);
-        when(heirPartCalculatorService.calculerCoefficient(anyInt(), anyInt())).thenReturn(0.125f);
-
         // ---- Act ----
-        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath, "rapide");
+        FridaEntity result = dossierProcessingService.traiterExtraitsNaissance(folderPath, "rapide");
 
         // ---- Assert ----
         assertNotNull(result, "La fiche Frida ne doit pas être null");
         assertEquals("FRIDA-12345", result.getNumFrida());
 
-        // Vérification des appels de sauvegarde Identites
-        verify(identitesRepo, times(3)).save(any(IdentitesEntity.class));
-        
-        // Vérification des appels de sauvegarde Defunt et Heritiers
-        verify(defuntRepo, times(1)).save(any(DefuntEntity.class));
-        verify(heritierRepo, times(2)).save(any(HeritierEntity.class)); // 1 conjoint, 1 enfant
-        
-        // Vérification de la création de la fiche finale
-        verify(fridaRepo, times(1)).save(any(FridaEntity.class));
-        
-        // Vérification de l'appel au service de calcul
-        verify(heirPartCalculatorService, times(1)).calculerParts(any(TraitementContext.class));
-        verify(calculRepo, times(1)).save(any(CalculEntity.class));
+        // Vérification : sauvegarderDocument appelé pour chaque fichier (3 fois)
+        verify(fridaPersistenceService, times(3)).sauvegarderDocument(
+                any(TraitementContext.class), any(IdentitesEntity.class),
+                any(HeirCategory.class), anyInt());
+
+        // Vérification : brouillon sauvegardé une fois
+        verify(fridaPersistenceService, times(1)).sauvegarderBrouillonFrida(any(TraitementContext.class));
     }
 
     @Test
     void traiterExtraitsNaissance_WhenNoFiles_ShouldReturnNull() throws Exception {
         scanResult.getPdfFiles().clear();
 
-        FridaEntity result = ecrireBdService.traiterExtraitsNaissance(folderPath, "rapide");
+        FridaEntity result = dossierProcessingService.traiterExtraitsNaissance(folderPath, "rapide");
 
         assertNull(result);
-        verify(identitesRepo, never()).save(any());
-        verify(fridaRepo, never()).save(any());
+        verify(fridaPersistenceService, never()).sauvegarderDocument(any(), any(), any(), anyInt());
+        verify(fridaPersistenceService, never()).sauvegarderBrouillonFrida(any());
     }
 }

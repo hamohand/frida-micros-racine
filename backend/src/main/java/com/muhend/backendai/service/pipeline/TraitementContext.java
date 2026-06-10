@@ -1,4 +1,4 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.HeritierEntity;

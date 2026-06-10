@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FridaService } from '../../../services/frida.service';
-import { LireaiEcrirebdService } from '../../../services/lireai-ecrirebd.service';
+import { OcrPipelineService } from '../../../services/ocr-pipeline.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { AuthService } from '../../../services/auth.service';
 
@@ -215,7 +215,7 @@ export class HeirReviewComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fridaService: FridaService,
-    private lireaiEcrirebdService: LireaiEcrirebdService,
+    private ocrPipelineService: OcrPipelineService,
     private uploadStateService: UploadStateService,
     public authService: AuthService
   ) {}
@@ -429,10 +429,10 @@ export class HeirReviewComponent implements OnInit {
     };
 
     // On envoie le payload au backend pour remplacer la liste en base
-    this.lireaiEcrirebdService.sauvegarderFiche(this.numFrida, payload).subscribe({
+    this.ocrPipelineService.sauvegarderFiche(this.numFrida, payload).subscribe({
       next: () => {
         // Une fois sauvegardé, on lance le calcul
-        this.lireaiEcrirebdService.lancerCalcul(this.numFrida).subscribe({
+        this.ocrPipelineService.lancerCalcul(this.numFrida).subscribe({
           next: () => {
              this.isCalculating = false;
              this.router.navigate(['/frida'], { queryParams: { numFrida: this.numFrida } });

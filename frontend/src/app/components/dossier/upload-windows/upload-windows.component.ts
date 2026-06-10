@@ -6,7 +6,7 @@ import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
 import { UploadConfig, DocTypeOption, UploadedFile } from '../file-upload/file-upload.interface';
 import { Router } from '@angular/router';
-import { LireaiEcrirebdService } from "../../../services/lireai-ecrirebd.service";
+import { OcrPipelineService } from "../../../services/ocr-pipeline.service";
 import { ConstitutionService } from '../../../services/constitution.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { forkJoin, Observable, of } from 'rxjs';
@@ -551,7 +551,7 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
-    private lireaiEcrirebdService: LireaiEcrirebdService, private constitutionService: ConstitutionService,
+    private ocrPipelineService: OcrPipelineService, private constitutionService: ConstitutionService,
     private uploadStateService: UploadStateService) { }
 
   ngOnInit() {
@@ -690,7 +690,7 @@ export class UploadWindowsComponent implements OnInit {
     this.isUploadingFiles = true;
     
     // Nettoyage du dossier serveur pour éviter le dédoublement des fichiers
-    this.lireaiEcrirebdService.clearLatestFolder().subscribe({
+    this.ocrPipelineService.clearLatestFolder().subscribe({
       next: () => this.startUploads(),
       error: (err) => {
         console.warn("Erreur lors du nettoyage du dossier, continuation...", err);
@@ -746,7 +746,7 @@ export class UploadWindowsComponent implements OnInit {
     }
     
     this.isReading = true;
-    this.lireaiEcrirebdService.lireAiEcrireBd(this.ocrMode).subscribe({
+    this.ocrPipelineService.lireAiEcrireBd(this.ocrMode).subscribe({
       next: (data) => {
         this.isReading = false;
         if (data && data.numFrida) {

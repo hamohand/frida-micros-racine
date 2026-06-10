@@ -1,10 +1,10 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.client.ocr.OcrApiClient;
 import com.muhend.backendai.client.ocr.dto.*;
 import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.enums.DocumentType;
-import com.muhend.backendai.service.calculs_outils.MethodesChaine;
+import com.muhend.backendai.service.calculs_outils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
@@ -244,7 +244,7 @@ public class OcrMappingService {
 
     private void parseDateNaissance(IdentitesEntity entity, String dateTxt) {
         try {
-            java.time.LocalDate parsedDate = MethodesChaine.parseOcrDate(dateTxt);
+            java.time.LocalDate parsedDate = StringUtils.parseOcrDate(dateTxt);
             entity.setDateNaissance(parsedDate);
         } catch (Exception e) {
             log.warn("Impossible de parser la date de naissance '{}', elle restera vide.", dateTxt);

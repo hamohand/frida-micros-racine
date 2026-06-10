@@ -1,6 +1,6 @@
-package com.muhend.backendai.service.aibd;
+package com.muhend.backendai.service.pipeline;
 
-import com.muhend.backendai.service.calculs_outils.MethodesChaine;
+import com.muhend.backendai.service.calculs_outils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,9 +24,9 @@ public class FridaIdentifierService {
      */
     public String genererIdentifiant(String dateNaissance) {
         String base = dateNaissance != null ? dateNaissance : "";
-        base = MethodesChaine.replaceTrimSpaces(base, '.');
-        base = MethodesChaine.replaceAllTrimSpaces(base, '/');
-        base = MethodesChaine.replaceAllTrimSpaces(base, '-');
+        base = StringUtils.replaceTrimSpaces(base, '.');
+        base = StringUtils.replaceAllTrimSpaces(base, '/');
+        base = StringUtils.replaceAllTrimSpaces(base, '-');
         return base + genererTimestamp();
     }
 

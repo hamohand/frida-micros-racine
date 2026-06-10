@@ -2,7 +2,7 @@ package com.muhend.backendai.scheduler;
 
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.repository.FridaRepo;
-import com.muhend.backendai.service.aibd.EcrireBdService;
+import com.muhend.backendai.service.pipeline.DossierProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 public class BatchJobScheduler {
 
-    private final EcrireBdService ecrireBdService;
+    private final DossierProcessingService dossierProcessingService;
     private final FridaRepo fridaRepo;
 
     @Value("${ROOT_PATH}")
@@ -68,7 +68,7 @@ public class BatchJobScheduler {
             log.info("Dossier en attente trouvé (Batch) : {}", folderPath);
 
             // Lancer l'OCR approfondi — retourne la Frida créée
-            FridaEntity frida = ecrireBdService.traiterExtraitsNaissance(folderPath.toString(), "approfondi");
+            FridaEntity frida = dossierProcessingService.traiterExtraitsNaissance(folderPath.toString(), "approfondi");
 
             // Marquer le dossier EN_ATTENTE_REVISION pour que l'utilisateur le révise
             if (frida != null) {

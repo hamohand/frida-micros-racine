@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { LireaiEcrirebdService } from '../../../services/lireai-ecrirebd.service';
+import { OcrPipelineService } from '../../../services/ocr-pipeline.service';
 
 interface ChampSuspect {
   personneId: string | null;
@@ -342,7 +342,7 @@ export class OcrCorrectionComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private lireaiService: LireaiEcrirebdService
+    private ocrPipelineService: OcrPipelineService
   ) {}
 
   ngOnInit() {
@@ -357,7 +357,7 @@ export class OcrCorrectionComponent implements OnInit {
   }
 
   chargerChampsSuspects() {
-    this.lireaiService.getChampsSuspects(this.numFrida).subscribe({
+    this.ocrPipelineService.getChampsSuspects(this.numFrida).subscribe({
       next: (data) => {
         this.champs = data.map(c => ({ ...c, valeurCorrigee: c.valeurOcr || '' }));
         this.isLoading = false;
@@ -387,7 +387,7 @@ export class OcrCorrectionComponent implements OnInit {
       return;
     }
 
-    this.lireaiService.appliquerCorrections(this.numFrida, corrections).subscribe({
+    this.ocrPipelineService.appliquerCorrections(this.numFrida, corrections).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.continuer();
@@ -412,7 +412,7 @@ export class OcrCorrectionComponent implements OnInit {
 
     // Même sans correction, on veut appeler le backend pour changer le statut à BROUILLON
 
-    this.lireaiService.mettreEnAttenteOcr(this.numFrida, corrections).subscribe({
+    this.ocrPipelineService.mettreEnAttenteOcr(this.numFrida, corrections).subscribe({
       next: () => {
         this.isSubmitting = false;
         this.router.navigate(['/']); // Retour à la liste
