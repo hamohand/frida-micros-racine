@@ -45,12 +45,14 @@ services:
     container_name: frida-backend
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - DB_URL=jdbc:postgresql://db:5432/${DB_NAME:-frida_db}
-      - DB_USERNAME=${DB_USER:-muhend}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-frida_db}
+      - DB_USER=${DB_USER:-muhend}
       - DB_PASSWORD=${DB_PASSWORD:-motdepassetresfortVPS2026}
       - SERVICES_OCR_URL=http://ocr-api:8082
-      - CORS_ALLOWED_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com
-      - DEMO_MODE=false
+      - CORS_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com
+      - APP_DEMO_MODE=true
     volumes:
       - frida_uploads:/app/uploads
     depends_on:
