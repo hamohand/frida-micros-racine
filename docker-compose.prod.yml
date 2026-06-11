@@ -64,6 +64,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frida-backend.rule=Host(`frida.enclume-numerique.com`) && PathPrefix(`/api`)"
       - "traefik.http.routers.frida-backend.entrypoints=websecure"
+      - "traefik.http.routers.frida-backend.tls=true"
       - "traefik.http.routers.frida-backend.tls.certresolver=myresolver"
       - "traefik.http.services.frida-backend.loadbalancer.server.port=8080"
     restart: always
@@ -84,9 +85,15 @@ services:
       - webproxy
     labels:
       - "traefik.enable=true"
-      # Le frontend gère tout le reste du trafic sur ce domaine
+      # Configuration HTTP vers HTTPS
+      - "traefik.http.routers.frida-frontend-http.rule=Host(`frida.enclume-numerique.com`)"
+      - "traefik.http.routers.frida-frontend-http.entrypoints=web"
+      - "traefik.http.routers.frida-frontend-http.middlewares=frida-redirect"
+      - "traefik.http.middlewares.frida-redirect.redirectscheme.scheme=https"
+      # Configuration HTTPS
       - "traefik.http.routers.frida-frontend.rule=Host(`frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend.entrypoints=websecure"
+      - "traefik.http.routers.frida-frontend.tls=true"
       - "traefik.http.routers.frida-frontend.tls.certresolver=myresolver"
       - "traefik.http.services.frida-frontend.loadbalancer.server.port=80"
     restart: always
