@@ -575,9 +575,7 @@ export class UploadWindowsComponent implements OnInit {
 
   /** Types de documents disponibles pour le sélecteur */
   docTypeOptions: DocTypeOption[] = [
-    { id: 'cni', label: 'Carte nationale d\'identité' },
-    { id: 'en', label: 'Extrait de naissance' },
-    { id: 'pp', label: 'Passeport' }
+    { id: 'en', label: 'Extrait de naissance' }
   ];
 
   getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = '', maxFiles: number = 10): UploadConfig & { allowPrevious?: boolean } {
