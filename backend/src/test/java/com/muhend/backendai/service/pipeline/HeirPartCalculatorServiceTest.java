@@ -1,10 +1,10 @@
 package com.muhend.backendai.service.pipeline;
 
-import com.muhend.backendai.client.calculs.CalculsApiClient;
-import com.muhend.backendai.client.calculs.dto.CalculFractionDto;
-import com.muhend.backendai.client.calculs.dto.CalculHeritierDto;
-import com.muhend.backendai.client.calculs.dto.CalculRequestDto;
-import com.muhend.backendai.client.calculs.dto.CalculResponseDto;
+import com.muhend.backendai.calculs.enums.HeirType;
+import com.muhend.backendai.calculs.model.FamilyRequest;
+import com.muhend.backendai.calculs.model.Fraction;
+import com.muhend.backendai.calculs.model.Heritier;
+import com.muhend.backendai.calculs.service.CalculPartsService;
 import com.muhend.backendai.entities.CalculEntity;
 import com.muhend.backendai.entities.DefuntEntity;
 import com.muhend.backendai.entities.FridaEntity;
@@ -28,16 +28,16 @@ import static org.mockito.Mockito.*;
 class HeirPartCalculatorServiceTest {
 
     @Mock
-    private CalculsApiClient calculsApiClient;
+    private CalculPartsService calculPartsService;
 
     @InjectMocks
     private HeirPartCalculatorService calculatorService;
 
     private TraitementContext ctx;
-    private CalculResponseDto mockResponse;
+    private List<Heritier> mockResponse;
 
     @Captor
-    private ArgumentCaptor<CalculRequestDto> requestCaptor;
+    private ArgumentCaptor<FamilyRequest> requestCaptor;
 
     @BeforeEach
     void setUp() {
@@ -59,25 +59,22 @@ class HeirPartCalculatorServiceTest {
         ctx.setNbFilles(1);
         // Pas de parents/fratrie pour simplifier ce test
 
-        // Configuration de la réponse mockée de l'API
-        mockResponse = new CalculResponseDto();
-        mockResponse.setDenominateurCommun(40);
-        
-        CalculHeritierDto conjointDto = new CalculHeritierDto("conjoint survivant / épouse", new CalculFractionDto(5, 40));
-        CalculHeritierDto garconDto = new CalculHeritierDto("2 fils (garçons)", new CalculFractionDto(14, 40)); // chaque garçon aura 14
-        CalculHeritierDto filleDto = new CalculHeritierDto("fille", new CalculFractionDto(7, 40));
+        // Configuration de la réponse mockée
+        Heritier conjoint = new Heritier(HeirType.SPOUSE, new Fraction(5, 40));
+        Heritier garcon = new Heritier(HeirType.SON, new Fraction(14, 40));
+        Heritier fille = new Heritier(HeirType.DAUGHTER, new Fraction(7, 40));
 
-        mockResponse.setHeritiers(List.of(conjointDto, garconDto, filleDto));
+        mockResponse = List.of(conjoint, garcon, fille);
     }
 
     @Test
-    void calculerParts_ShouldCallApiWithCorrectParameters() {
-        when(calculsApiClient.calculerParts(any(CalculRequestDto.class))).thenReturn(mockResponse);
+    void calculerParts_ShouldCallServiceWithCorrectParameters() {
+        when(calculPartsService.calculParts(any(FamilyRequest.class))).thenReturn(mockResponse);
 
         calculatorService.calculerParts(ctx);
 
-        verify(calculsApiClient).calculerParts(requestCaptor.capture());
-        CalculRequestDto request = requestCaptor.getValue();
+        verify(calculPartsService).calculParts(requestCaptor.capture());
+        FamilyRequest request = requestCaptor.getValue();
 
         assertEquals("M", request.getSexeDefunt());
         assertEquals(1, request.getNbConjoints());
@@ -91,7 +88,7 @@ class HeirPartCalculatorServiceTest {
 
     @Test
     void calculerParts_ShouldMapResponseToCalculEntity() {
-        when(calculsApiClient.calculerParts(any(CalculRequestDto.class))).thenReturn(mockResponse);
+        when(calculPartsService.calculParts(any(FamilyRequest.class))).thenReturn(mockResponse);
 
         CalculEntity result = calculatorService.calculerParts(ctx);
 
@@ -108,28 +105,22 @@ class HeirPartCalculatorServiceTest {
     }
 
     @Test
-    void calculerParts_WhenApiThrowsException_ShouldWrapAndRethrow() {
-        when(calculsApiClient.calculerParts(any(CalculRequestDto.class)))
-                .thenThrow(new RuntimeException("API Down"));
+    void calculerParts_WhenServiceThrowsException_ShouldWrapAndRethrow() {
+        when(calculPartsService.calculParts(any(FamilyRequest.class)))
+                .thenThrow(new RuntimeException("Moteur Down"));
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
             calculatorService.calculerParts(ctx);
         });
 
-        assertTrue(exception.getMessage().contains("Erreur microservice calculs"));
-        assertEquals("API Down", exception.getCause().getMessage());
+        assertTrue(exception.getMessage().contains("Erreur calcul interne"));
+        assertEquals("Moteur Down", exception.getCause().getMessage());
     }
 
     @Test
     void calculerCoefficient_ShouldCalculateCorrectPercentage() {
-        // Test cas normal: 5/40 = 0.125 = 12.5% -> retour attendu 0.13 (arrondi à 2 décimales)
-        // La méthode float Math.round(0.125 * 100) / 100.0f donne 0.13f
         assertEquals(0.13f, calculatorService.calculerCoefficient(5, 40));
-        
-        // 14/40 = 0.35 -> retour 0.35
         assertEquals(0.35f, calculatorService.calculerCoefficient(14, 40));
-        
-        // 7/40 = 0.175 -> retour 0.18 (arrondi)
         assertEquals(0.18f, calculatorService.calculerCoefficient(7, 40));
     }
 

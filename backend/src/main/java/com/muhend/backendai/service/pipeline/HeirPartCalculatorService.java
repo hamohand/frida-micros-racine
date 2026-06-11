@@ -1,34 +1,36 @@
 package com.muhend.backendai.service.pipeline;
 
-import com.muhend.backendai.client.calculs.CalculsApiClient;
-import com.muhend.backendai.client.calculs.dto.CalculRequestDto;
-import com.muhend.backendai.client.calculs.dto.CalculResponseDto;
+import com.muhend.backendai.calculs.model.FamilyRequest;
+import com.muhend.backendai.calculs.model.HeritageResponse;
+import com.muhend.backendai.calculs.model.Heritier;
+import com.muhend.backendai.calculs.service.CalculPartsService;
 import com.muhend.backendai.entities.CalculEntity;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.utils.SexeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Service responsable du calcul des parts d'héritage
- * via le microservice calculs-api.
+ * via le moteur de calcul intégré.
  */
 @Slf4j
 @Service
 public class HeirPartCalculatorService {
 
-    private final CalculsApiClient calculsApiClient;
+    private final CalculPartsService calculPartsService;
 
-    public HeirPartCalculatorService(CalculsApiClient calculsApiClient) {
-        this.calculsApiClient = calculsApiClient;
+    public HeirPartCalculatorService(CalculPartsService calculPartsService) {
+        this.calculPartsService = calculPartsService;
     }
 
     /**
-     * Calcule les parts des héritiers en appelant le microservice calculs-api à partir d'un contexte.
+     * Calcule les parts des héritiers en appelant le moteur intégré à partir d'un contexte.
      *
      * @param ctx Contexte du traitement contenant les compteurs d'héritiers.
      * @return L'entité CalculEntity peuplée avec les résultats.
-     * @throws RuntimeException si l'appel au microservice échoue.
      */
     public CalculEntity calculerParts(TraitementContext ctx) {
         return executerCalcul(ctx);
@@ -52,7 +54,7 @@ public class HeirPartCalculatorService {
         String sexeArabe = ficheFrida.getDefunt().getIdentite().getSexe();
         String sexe = SexeUtils.isMasculin(sexeArabe) ? "M" : "F";
 
-        CalculRequestDto request = CalculRequestDto.builder()
+        FamilyRequest request = FamilyRequest.builder()
                 .sexeDefunt(sexe)
                 .nbConjoints(ctx.getNbConjoints())
                 .nbFilles(ctx.getNbFilles())
@@ -81,12 +83,16 @@ public class HeirPartCalculatorService {
         calcul.setNbCousinsPaternels(ctx.getNbCousinsPaternels());
 
         try {
-            CalculResponseDto response = calculsApiClient.calculerParts(request);
+            // Appel direct au service interne
+            List<Heritier> heritiers = calculPartsService.calculParts(request);
+            HeritageResponse response = HeritageResponse.fromCalculation(request, heritiers, "Succès");
+            
             calcul.setDenominateur(response.getDenominateurCommun());
 
             // Numérateur conjoint
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("conjoint")
                                 || label.contains("épouse")
@@ -98,6 +104,7 @@ public class HeirPartCalculatorService {
             // Numérateur filles
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("fille") && !label.contains("petite");
                     })
@@ -107,6 +114,7 @@ public class HeirPartCalculatorService {
             // Numérateur garçons
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return (label.contains("garçon") || label.contains("fils")) && !label.contains("petit");
                     })
@@ -116,6 +124,7 @@ public class HeirPartCalculatorService {
             // Numérateur petits-fils
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("petit-fils") || label.contains("petits-fils") || (label.contains("petit") && label.contains("fils"));
                     })
@@ -125,6 +134,7 @@ public class HeirPartCalculatorService {
             // Numérateur petites-filles
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("petite-fille") || label.contains("petites-filles") || (label.contains("petite") && label.contains("fille"));
                     })
@@ -134,6 +144,7 @@ public class HeirPartCalculatorService {
             // Numérateur père
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return (label.contains("père") || label.contains("pere")) && !label.contains("grand");
                     })
@@ -143,6 +154,7 @@ public class HeirPartCalculatorService {
             // Numérateur grand-père
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("grand-père") || label.contains("grand-pere");
                     })
@@ -152,6 +164,7 @@ public class HeirPartCalculatorService {
             // Numérateur grand-mère paternelle
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("grand-mère") || label.contains("grand-mere");
                     })
@@ -161,6 +174,7 @@ public class HeirPartCalculatorService {
             // Numérateur mère
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("mère") || label.contains("mere");
                     })
@@ -170,6 +184,7 @@ public class HeirPartCalculatorService {
             // Numérateur frères
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("frère") || label.contains("frere");
                     })
@@ -179,6 +194,7 @@ public class HeirPartCalculatorService {
             // Numérateur soeurs
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("sœur") || label.contains("soeur");
                     })
@@ -188,6 +204,7 @@ public class HeirPartCalculatorService {
             // Numérateur oncles paternels
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("oncle");
                     })
@@ -197,6 +214,7 @@ public class HeirPartCalculatorService {
             // Numérateur cousins paternels
             response.getHeritiers().stream()
                     .filter(h -> {
+                        if (h.getHeritier() == null) return false;
                         String label = h.getHeritier().toLowerCase();
                         return label.contains("cousin");
                     })
@@ -204,8 +222,8 @@ public class HeirPartCalculatorService {
                     .ifPresent(h -> calcul.setNumerateurCousinsPaternels(h.getPart().getNumerateur()));
 
         } catch (Exception e) {
-            log.error("Erreur appel microservice calculs : {}", e.getMessage(), e);
-            throw new RuntimeException("Erreur microservice calculs", e);
+            log.error("Erreur calcul interne : {}", e.getMessage(), e);
+            throw new RuntimeException("Erreur calcul interne", e);
         }
 
         return calcul;
