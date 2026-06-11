@@ -16,9 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@RestControllerAdvice("calculsExceptionHandler")
+@RestControllerAdvice
 @Slf4j
-public class GlobalExceptionHandler {
+public class CalculsExceptionHandler {
 
     /**
      * Gestion des erreurs de validation Bean Validation (annotations @Valid)
