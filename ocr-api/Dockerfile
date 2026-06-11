@@ -1,4 +1,4 @@
-﻿FROM python:3.10-slim
+FROM python:3.10-slim
 
 # Seulement libzbar (pour pyzbar) et libgl1 (pour OpenCV)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -20,7 +20,8 @@ RUN pip install --no-cache-dir \
     Pillow numpy \
     pypdfium2 pdfplumber \
     python-dotenv \
-    gunicorn
+    gunicorn \
+    flasgger
 
 WORKDIR /app/app_ocr
 
