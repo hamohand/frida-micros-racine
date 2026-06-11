@@ -5,9 +5,9 @@ import lombok.Data;
 
 @Data
 public class CreateFolderRequest {
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "Le nom doit contenir uniquement des lettres")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-]+$", message = "Le nom contient des caractères non autorisés")
     private String nom;
     
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "Le prénom doit contenir uniquement des lettres")
+    @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-]+$", message = "Le prénom contient des caractères non autorisés")
     private String prenom;
 }
