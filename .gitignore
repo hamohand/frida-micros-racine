@@ -59,7 +59,7 @@ node_modules/
 *_logs_*.txt
 logs_*.txt
 *.html
-!src/**/*.html
+!**/src/**/*.html
 # Ignore credentials
 *-credentials.json
 # Ignore git conflict temporary files

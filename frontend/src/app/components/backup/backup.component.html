@@ -1,0 +1,159 @@
+<div class="backup-page">
+  <!-- En-tête -->
+  <div class="page-header">
+    <h1>Sauvegardes & Archives</h1>
+    <p class="subtitle">Protégez et organisez vos données</p>
+  </div>
+
+  <!-- Onglets -->
+  <div class="tabs">
+    <button class="tab" [class.active]="activeTab === 'backups'" (click)="switchTab('backups')">
+      <span class="tab-icon">💾</span>
+      <span class="tab-label">Sauvegardes</span>
+      <span class="tab-badge" *ngIf="backups.length">{{ backups.length }}</span>
+    </button>
+    <button class="tab" [class.active]="activeTab === 'archives'" (click)="switchTab('archives')">
+      <span class="tab-icon">📦</span>
+      <span class="tab-label">Archives</span>
+      <span class="tab-badge" *ngIf="archives.length">{{ archives.length }}</span>
+    </button>
+  </div>
+
+  <!-- Message d'alerte -->
+  <div *ngIf="message" class="alert" [class.error]="isError" [class.success]="!isError">
+    <span class="alert-icon">{{ isError ? '⚠️' : '✅' }}</span>
+    <span>{{ message }}</span>
+    <button class="alert-close" (click)="message = ''">✕</button>
+  </div>
+
+  <!-- Overlay de chargement -->
+  <div class="loading-overlay" *ngIf="loading">
+    <div class="spinner"></div>
+    <p>Opération en cours...</p>
+  </div>
+
+  <!-- ==================== ONGLET SAUVEGARDES ==================== -->
+  <div class="tab-content" *ngIf="activeTab === 'backups'">
+    <div class="section-header">
+      <div class="section-info">
+        <h2>Sauvegardes de la base active</h2>
+        <p>Copies de sécurité de votre base de données (sans les fichiers images)</p>
+      </div>
+      <button class="btn-primary" (click)="createBackup()" [disabled]="loading">
+        <span>➕</span> Nouvelle sauvegarde
+      </button>
+    </div>
+
+    <div class="card-list" *ngIf="backups.length > 0">
+      <div class="card" *ngFor="let backup of backups">
+        <div class="card-icon">💾</div>
+        <div class="card-body">
+          <div class="card-title">{{ backup.fileName }}</div>
+          <div class="card-meta">
+            <span>{{ formatBytes(backup.sizeBytes) }}</span>
+            <span class="separator">•</span>
+            <span>{{ formatDate(backup.createdAt) }}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <a [href]="downloadBackupUrl(backup.fileName)" class="action-btn download" title="Télécharger">
+            <span>⬇️</span>
+          </a>
+          <button class="action-btn restore" (click)="restoreBackup(backup.fileName)" title="Restaurer la base depuis cette sauvegarde" [disabled]="loading">
+            <span>🔄</span>
+          </button>
+          <button class="action-btn delete" (click)="deleteBackup(backup.fileName)" title="Supprimer" [disabled]="loading">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="backups.length === 0 && !loading">
+      <div class="empty-icon">📭</div>
+      <h3>Aucune sauvegarde</h3>
+      <p>Créez votre première sauvegarde pour protéger vos données.</p>
+    </div>
+  </div>
+
+  <!-- ==================== ONGLET ARCHIVES ==================== -->
+  <div class="tab-content" *ngIf="activeTab === 'archives'">
+    <div class="section-header">
+      <div class="section-info">
+        <h2>Dossiers archivés</h2>
+        <p>Dossiers Frida retirés de la base active, conservés avec leurs fichiers</p>
+      </div>
+      <div class="btn-group">
+        <button class="btn-secondary" (click)="loadArchivableFridas()" [disabled]="loading">
+          <span>📋</span> {{ showArchivableList ? 'Masquer' : 'Archiver un dossier' }}
+        </button>
+        <button class="btn-accent" (click)="autoArchive()" [disabled]="loading">
+          <span>⚡</span> Archivage auto
+        </button>
+      </div>
+    </div>
+
+    <!-- Liste des dossiers archivables -->
+    <div class="archivable-panel" *ngIf="showArchivableList">
+      <div class="panel-header">
+        <h3>📋 Dossiers éligibles à l'archivage</h3>
+        <p class="panel-subtitle">Ces dossiers ont plus de 6 mois et peuvent être archivés</p>
+      </div>
+
+      <div class="archivable-list" *ngIf="archivableFridas.length > 0">
+        <div class="archivable-item" *ngFor="let frida of archivableFridas">
+          <div class="archivable-info">
+            <span class="archivable-num">{{ frida.numFrida }}</span>
+            <span class="archivable-name">{{ frida.nom }} {{ frida.prenom }}</span>
+            <span class="archivable-date">{{ formatDate(frida.dateCreation) }}</span>
+          </div>
+          <button class="btn-archive" (click)="archiveFrida(frida.numFrida, frida.nom)" [disabled]="loading">
+            📦 Archiver
+          </button>
+        </div>
+      </div>
+
+      <div class="empty-archivable" *ngIf="archivableFridas.length === 0 && !loading">
+        <p>✨ Aucun dossier éligible à l'archivage pour le moment.</p>
+      </div>
+    </div>
+
+    <!-- Liste des archives existantes -->
+    <div class="card-list" *ngIf="archives.length > 0">
+      <div class="card archive-card" *ngFor="let archive of archives">
+        <div class="card-icon">📦</div>
+        <div class="card-body">
+          <div class="card-title">
+            {{ archive.nomDefunt }} {{ archive.prenomDefunt }}
+            <span class="badge-frida">{{ archive.numFrida }}</span>
+          </div>
+          <div class="card-meta">
+            <span>{{ formatBytes(archive.sizeBytes) }}</span>
+            <span class="separator">•</span>
+            <span>Archivé le {{ formatDate(archive.dateArchivage) }}</span>
+            <span class="separator" *ngIf="archive.includesFiles">•</span>
+            <span class="badge-files" *ngIf="archive.includesFiles">📄 Fichiers inclus</span>
+          </div>
+          <div class="card-file">{{ archive.fileName }}</div>
+        </div>
+        <div class="card-actions">
+          <a [href]="downloadArchiveUrl(archive.fileName)" class="action-btn download" title="Télécharger l'archive">
+            <span>⬇️</span>
+          </a>
+          <button class="action-btn restore" (click)="restoreArchive(archive.fileName)" title="Restaurer dans la base active" [disabled]="loading">
+            <span>🔄</span>
+          </button>
+          <button class="action-btn delete" (click)="deleteArchive(archive.fileName)" title="Supprimer définitivement" [disabled]="loading">
+            <span>🗑️</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" *ngIf="archives.length === 0 && !loading && !showArchivableList">
+      <div class="empty-icon">📦</div>
+      <h3>Aucune archive</h3>
+      <p>Archivez les anciens dossiers pour alléger votre base de données.</p>
+    </div>
+  </div>
+</div>
