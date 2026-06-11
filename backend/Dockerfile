@@ -27,7 +27,9 @@ RUN apt-get update && apt-get install -y curl lsb-release gnupg2 \
     && echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg \
     && apt-get update && apt-get install -y postgresql-client-16 \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/uploads \
+    && chown -R spring:spring /app/uploads
 USER spring:spring
 
 # Copier le JAR (sois plus spécifique si possible sur le nom du JAR)
