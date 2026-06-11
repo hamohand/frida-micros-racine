@@ -63,6 +63,7 @@ services:
       - webproxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=webproxy"
       - "traefik.http.routers.frida-backend.rule=(Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.frida-backend.entrypoints=websecure"
       - "traefik.http.routers.frida-backend.tls=true"
