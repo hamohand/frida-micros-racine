@@ -26,7 +26,7 @@ public class BatchJobScheduler {
     private final DossierProcessingService dossierProcessingService;
     private final FridaRepo fridaRepo;
 
-    @Value("${ROOT_PATH}")
+    @Value("${ROOT_PATH:/app/uploads}")
     private String rootPathString;
 
     @Scheduled(fixedDelay = 3600000)

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class BackupService {
 
-    @Value("${ROOT_PATH}")
+    @Value("${ROOT_PATH:/app/uploads}")
     private String rootPath;
 
     @Value("${DB_HOST:db}")

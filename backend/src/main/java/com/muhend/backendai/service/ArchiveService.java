@@ -29,7 +29,7 @@ import java.util.zip.ZipOutputStream;
 @Slf4j
 public class ArchiveService {
 
-    @Value("${ROOT_PATH}")
+    @Value("${ROOT_PATH:/app/uploads}")
     private String rootPath;
 
     @Value("${app.archive.path:}")
