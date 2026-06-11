@@ -1,0 +1,115 @@
+{
+  "nom": "cni_algo_recto_001",
+  "description": "essai",
+  "date_creation": "2026-04-18T10:20:38.183648",
+  "image_reference": "C:\\Users\\hamoh\\Documents\\projets\\frida\\frida-micros\\easytess_ocr_api\\backend\\app_ocr\\uploads\\entities\\cni_algo_recto_001\\reference.jpeg",
+  "zones": [
+    {
+      "coords": [
+        -0.005613636363636361,
+        -2.5723472668811474e-05,
+        0.2538604545454546,
+        0.07599292604501609
+      ],
+      "id": 1776391851225,
+      "lang": "ara",
+      "nom": "num",
+      "preprocess": "arabic_textured",
+      "type": "text"
+    },
+    {
+      "coords": [
+        0.6267049999999998,
+        0.503473,
+        0.91108,
+        0.778778
+      ],
+      "id": 1776391950194,
+      "lang": "ara",
+      "nom": "nom",
+      "preprocess": "arabic_textured",
+      "type": "text"
+    },
+    {
+      "coords": [
+        0.525701,
+        0.656018,
+        0.915052,
+        0.7846649999999997
+      ],
+      "id": 1776392019634,
+      "lang": "ara",
+      "nom": "prenom",
+      "preprocess": "arabic_textured",
+      "type": "text"
+    },
+    {
+      "id": 1776500407240,
+      "nom": "ville",
+      "type": "text",
+      "lang": "ara",
+      "preprocess": "arabic_textured",
+      "coords": [
+        0.5820454545454545,
+        0.8968829581993569,
+        0.8252459090909092,
+        0.9933681672025723
+      ]
+    }
+  ],
+  "cadre_reference": {
+    "image_base_dimensions": {
+      "width": 663,
+      "height": 433,
+      "dpi_x": 200.0,
+      "dpi_y": 200.0
+    },
+    "haut": {
+      "labels": [
+        "regex:\\d{9}"
+      ],
+      "position_base": [
+        0.39441930618401205,
+        0.22401847575057737
+      ]
+    },
+    "droite": {
+      "labels": [],
+      "position_base": [
+        0.9773755656108597,
+        0.5
+      ],
+      "manuel_formula": "G + largeur "
+    },
+    "gauche": {
+      "labels": [
+        "regex:\\d{9}"
+      ],
+      "position_base": [
+        0.3137254901960784,
+        0.24364896073903003
+      ]
+    },
+    "bas": {
+      "labels": [],
+      "position_base": [
+        0.5,
+        0.9422632794457275
+      ],
+      "fallback_formula": "H + 336",
+      "manuel_formula": "H + hauteur"
+    },
+    "dimensions_absolues": {
+      "largeur": 440,
+      "hauteur": 311,
+      "angle": 0
+    }
+  },
+  "metadata": {
+    "nombre_zones": 4,
+    "image_dimensions": {
+      "width": 663,
+      "height": 433
+    }
+  }
+}

@@ -22,14 +22,14 @@ services:
   # OCR Léger (QR code uniquement)
   ocr-api:
     build:
-      context: ../easytess_ocr_api/backend
-      dockerfile: Dockerfile.qrcode
+      context: ./ocr-api
+      dockerfile: Dockerfile
     container_name: frida-ocr-api
     environment:
       - PORT=8082
       - OCR_MODE=qrcode_only
     volumes:
-      - ../easytess_ocr_api/backend/ocr-entities-qr:/app/app_ocr/entities
+      - ./ocr-api/entities:/app/app_ocr/entities
     networks:
       - internal
     restart: always
