@@ -97,7 +97,7 @@ public class FolderService {
         return result;
     }
 
-    @Value("${ROOT_PATH}")
+    @Value("${ROOT_PATH:/app/uploads}")
     private String rootPathString;
     
     private final PathResolver pathResolver;

@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 @Component
 public class PathResolver {
 
-    @Value("${ROOT_PATH}")
+    @Value("${ROOT_PATH:/app/uploads}")
     private String rootPathString;
 
     public Path resolveTargetPath(String subFolder) throws IOException {
