@@ -1,0 +1,94 @@
+════════════════════════════════════════════════════
+           FRIDA — Guide d'installation
+     Logiciel de gestion de successions notariales
+════════════════════════════════════════════════════
+
+PRÉREQUIS
+─────────
+• Windows 10 ou 11 (64 bits)
+• 8 Go de RAM minimum (16 Go recommandé)
+• 10 Go d'espace disque libre
+• Connexion Internet (uniquement pour l'installation)
+
+
+ÉTAPE 1 : Installer Docker Desktop
+───────────────────────────────────
+1. Téléchargez Docker Desktop :
+   https://www.docker.com/products/docker-desktop/
+
+2. Lancez l'installation et suivez les instructions.
+   ⚠ Si Windows vous demande d'activer WSL2, acceptez.
+
+3. Redémarrez votre ordinateur si demandé.
+
+4. Lancez Docker Desktop depuis le menu Démarrer.
+   Attendez que l'icône de la baleine (🐳) dans la
+   barre des tâches devienne verte et stable.
+
+
+ÉTAPE 2 : Installer Frida
+──────────────────────────
+1. Décompressez le fichier .zip reçu dans un dossier
+   de votre choix (ex: C:\Frida).
+
+2. Double-cliquez sur « installer.bat »
+
+3. Patientez 5 à 15 minutes (première installation).
+   Le script télécharge et construit les composants.
+
+4. Votre navigateur s'ouvrira automatiquement sur :
+   http://localhost
+
+
+UTILISATION QUOTIDIENNE
+───────────────────────
+• Pour DÉMARRER Frida :
+  Ouvrez Docker Desktop, puis double-cliquez sur
+  « installer.bat » (le démarrage sera instantané
+  les fois suivantes).
+
+• Pour ARRÊTER Frida :
+  Double-cliquez sur « desinstaller.bat » et choisissez
+  de CONSERVER vos données (répondez O).
+
+• Pour SAUVEGARDER vos données :
+  Double-cliquez sur « sauvegarder.bat ».
+  Copiez le dossier de sauvegarde créé sur une clé USB
+  ou un disque externe.
+
+
+OÙ SONT MES DONNÉES ?
+──────────────────────
+Toutes vos données sont dans le dossier « data\ » :
+
+  data\
+  ├── uploads\    ← Vos documents scannés (PDF, images)
+  ├── postgres\   ← Base de données (fiches, calculs)
+  └── backups\    ← Vos sauvegardes
+
+⚠ IMPORTANT : Aucune donnée ne quitte votre ordinateur.
+  Les documents d'identité et extraits de naissance
+  restent strictement sur cette machine.
+
+
+EN CAS DE PROBLÈME
+───────────────────
+• « Docker n'est pas démarré » :
+  → Lancez Docker Desktop et attendez la baleine verte.
+
+• « Port 80 déjà utilisé » :
+  → Modifiez PORT_WEB=8080 dans le fichier .env
+  → Relancez installer.bat
+  → Accédez à http://localhost:8080
+
+• L'application est très lente :
+  → Vérifiez que vous avez au moins 8 Go de RAM.
+  → Fermez les applications gourmandes en mémoire.
+
+• Autre problème :
+  → Contactez le support : [votre email ici]
+
+
+════════════════════════════════════════════════════
+         © Enclume Numérique — 2026
+════════════════════════════════════════════════════

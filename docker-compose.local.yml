@@ -1,0 +1,95 @@
+
+services:
+  # ==========================================
+  # FRIDA — Installation Locale (Notaire)
+  # ==========================================
+
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: frida-db
+    environment:
+      POSTGRES_DB: ${DB_NAME:-frida_db}
+      POSTGRES_USER: ${DB_USER:-frida}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-frida_local_2026}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    networks:
+      - frida-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # OCR — Lecture des documents (QR codes, extraits de naissance)
+  ocr-api:
+    build:
+      context: ./ocr-api
+      dockerfile: Dockerfile
+    container_name: frida-ocr-api
+    environment:
+      - PORT=8082
+      - OCR_MODE=qrcode_only
+    volumes:
+      - ./ocr-api/entities:/app/app_ocr/entities
+    networks:
+      - frida-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # Backend — Logique métier et calculs d'héritage
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: frida-backend
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-frida_db}
+      - DB_USER=${DB_USER:-frida}
+      - DB_PASSWORD=${DB_PASSWORD:-frida_local_2026}
+      - SERVICES_OCR_URL=http://ocr-api:8082
+      - CORS_ORIGINS=http://localhost:${PORT_WEB:-80}
+      - APP_DEMO_MODE=false
+      - ROOT_PATH=/app/uploads
+      - BACKUP_AUTO_ENABLED=true
+      - BACKUP_RETENTION_DAYS=30
+    volumes:
+      - ./data/uploads:/app/uploads
+      - ./data/backups:/app/backups
+    depends_on:
+      - db
+      - ocr-api
+    networks:
+      - frida-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 800M
+
+  # Frontend — Interface utilisateur (accessible sur http://localhost)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frida-frontend
+    ports:
+      - "${PORT_WEB:-80}:80"
+    networks:
+      - frida-net
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+
+networks:
+  frida-net:
+    driver: bridge
