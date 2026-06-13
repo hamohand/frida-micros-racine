@@ -36,7 +36,6 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
-      SERVICES_CALCULS_URL: http://calculs-api:8081
       # SERVICES_OCR_URL pointe vers le serveur Python local (host Windows)
       SERVICES_OCR_URL: http://${WINDOWS_HOST_IP}:8082
       MAX_PARALLEL_FOLDERS: ${MAX_PARALLEL_FOLDERS:-2}
@@ -44,8 +43,6 @@ services:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
     depends_on:
       db:
-        condition: service_healthy
-      calculs-api:
         condition: service_healthy
     networks:
       - frida-network
@@ -71,38 +68,6 @@ services:
       - frida-network
     restart: unless-stopped
 
-  # ===== Service Calculs (Spring Boot) =====
-  calculs-api:
-    build:
-      context: ../frida_calculs_api/backend
-      dockerfile: Dockerfile
-    ports:
-      - "8085:8081"
-    environment:
-      SERVER_PORT: 8081
-      CORS_ORIGINS: ${CORS_ORIGINS}
-    networks:
-      - frida-network
-    healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8081/calculs/actuator/health" ]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    restart: unless-stopped
-
-  # ===== Frontend Calculs (Angular + Nginx) — Mode étendu multi-tombes =====
-  calculs-frontend:
-    build:
-      context: ../frida_calculs_api/frontend
-      dockerfile: Dockerfile
-      network: host
-    ports:
-      - "4201:80"
-    depends_on:
-      - calculs-api
-    networks:
-      - frida-network
-    restart: unless-stopped
   # ===== Service OCR =====
   # OCR tourne en local sur Windows (run.py), pas dans Docker.
   # Le backend l'appelle via host.docker.internal:8082.
