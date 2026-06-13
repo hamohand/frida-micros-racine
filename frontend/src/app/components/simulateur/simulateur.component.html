@@ -70,19 +70,19 @@
         <section class="form-section">
           <h2>4. Ascendants (Parents & Grands-parents)</h2>
           <div class="toggle-grid">
-            <label class="toggle-label">
+            <label class="toggle-label" [class.disabled-label]="simForm.get('pereVivant')?.disabled">
               <input type="checkbox" formControlName="pereVivant">
               <span class="toggle-text">Père vivant</span>
             </label>
-            <label class="toggle-label">
+            <label class="toggle-label" [class.disabled-label]="simForm.get('mereVivante')?.disabled">
               <input type="checkbox" formControlName="mereVivante">
               <span class="toggle-text">Mère vivante</span>
             </label>
-            <label class="toggle-label">
+            <label class="toggle-label" [class.disabled-label]="simForm.get('grandPerePaternelVivant')?.disabled">
               <input type="checkbox" formControlName="grandPerePaternelVivant">
               <span class="toggle-text">Grand-père paternel vivant</span>
             </label>
-            <label class="toggle-label">
+            <label class="toggle-label" [class.disabled-label]="simForm.get('grandMerePaternelleVivante')?.disabled">
               <input type="checkbox" formControlName="grandMerePaternelleVivante">
               <span class="toggle-text">Grand-mère paternelle vivante</span>
             </label>

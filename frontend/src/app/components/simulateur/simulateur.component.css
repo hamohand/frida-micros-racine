@@ -184,6 +184,17 @@
   color: #475569;
 }
 
+.toggle-label.disabled-label {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+}
+
+.toggle-label.disabled-label input[type="checkbox"] {
+  cursor: not-allowed;
+}
+
 /* Colonne Résultats (Droite - Fixe) */
 .sim-results-column {
   position: sticky;
