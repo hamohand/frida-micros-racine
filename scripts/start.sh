@@ -5,6 +5,9 @@
 
 set -e
 
+# Se placer à la racine du projet (un niveau au-dessus du dossier scripts)
+cd "$(dirname "$0")/.."
+
 echo "======================================"
 echo "🚀 FridaAI - Démarrage Application"
 echo "======================================"

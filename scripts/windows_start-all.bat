@@ -5,6 +5,10 @@ echo   🚀 FridaAI - Démarrage Complet (Docker + OCR Natif)
 echo ==============================================================
 echo.
 
+:: Se placer à la racine du projet
+cd /d "%~dp0\.."
+
+
 :: Vérifier si le fichier .env existe, sinon le créer
 if not exist .env (
     echo ⚠️ Le fichier .env n'existe pas.
