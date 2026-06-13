@@ -33,10 +33,22 @@ export interface HeritierPart {
   partIrreductible?: Fraction;
 }
 
+export interface TombeDetail {
+  identifiant?: string;
+  sexeParentPredecede?: string;
+  lienParente?: string;
+  partSimulee?: Fraction;
+  wasiyyaEffective?: Fraction;
+  plafonnee?: boolean;
+  beneficiaires?: any[];
+}
+
 export interface HeritageResponse {
   denominateurCommun: number;
   heritiers: HeritierPart[];
   message: string;
+  detailTombes?: TombeDetail[];
+  nombreTombes?: number;
 }
 
 @Injectable({

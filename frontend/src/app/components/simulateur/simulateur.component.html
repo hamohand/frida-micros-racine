@@ -204,6 +204,30 @@
             </tbody>
           </table>
           
+          <!-- Tombes details -->
+          <div class="tombes-section" *ngIf="resultats.detailTombes && resultats.detailTombes.length > 0">
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
+              Détail de la Représentation (Système de Tombes)
+            </h3>
+            
+            <div *ngFor="let tombe of resultats.detailTombes" class="tombe-card" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+              <div style="font-weight: bold; margin-bottom: 0.75rem; color: #0f172a;">
+                Parent prédécédé : {{ tombe.sexeParentPredecede === 'M' ? 'Fils' : 'Fille' }}
+              </div>
+              <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+                <div>
+                  <span style="color: #64748b; font-size: 0.9rem;">Part simulée (avant plafonnement) :</span>
+                  <span style="font-weight: bold; margin-left: 0.5rem;">{{ tombe.partSimulee?.numerateur || 0 }} / {{ tombe.partSimulee?.denominateur || 1 }}</span>
+                </div>
+                <div>
+                  <span style="color: #64748b; font-size: 0.9rem;">Wasiya effective :</span>
+                  <span style="font-weight: bold; margin-left: 0.5rem; color: #10b981;">{{ tombe.wasiyyaEffective?.numerateur || 0 }} / {{ tombe.wasiyyaEffective?.denominateur || 1 }}</span>
+                  <span *ngIf="tombe.plafonnee" style="color: #ef4444; font-size: 0.8rem; margin-left: 0.5rem; font-weight: bold;">(Plafonnée au 1/3)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
           <div class="result-message" *ngIf="resultats.message && resultats.message !== 'Calcul réussi'">
             {{ resultats.message }}
           </div>
