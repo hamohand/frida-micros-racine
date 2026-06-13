@@ -20,11 +20,17 @@ export interface FamilyRequest {
   sexeParentPredecede: string;
 }
 
-export interface HeritierPart {
-  heritier: string;
+export interface Fraction {
   numerateur: number;
   denominateur: number;
-  pourcentage: number;
+}
+
+export interface HeritierPart {
+  heritier: string;
+  baseCalcul?: string;
+  cadreLegal?: string;
+  part?: Fraction;
+  partIrreductible?: Fraction;
 }
 
 export interface HeritageResponse {

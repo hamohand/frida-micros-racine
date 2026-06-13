@@ -103,6 +103,13 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     });
   }
 
+  getPourcentage(h: any): number {
+    if (!h.part || !h.part.denominateur || h.part.denominateur === 0) {
+      return 0;
+    }
+    return (h.part.numerateur / h.part.denominateur) * 100;
+  }
+
   // Helper pour les compteurs dans le template
   increment(controlName: string): void {
     const current = this.simForm.get(controlName)?.value || 0;

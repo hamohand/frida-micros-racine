@@ -146,13 +146,13 @@
             </thead>
             <tbody>
               <tr *ngFor="let h of resultats.heritiers">
-                <td>{{ h.heritier }}</td>
+                <td>{{ h.heritier }} <small *ngIf="h.cadreLegal" style="display:block;color:#888;">({{ h.cadreLegal }})</small></td>
                 <td class="fraction-cell">
-                  <span class="numerator">{{ h.numerateur }}</span>
+                  <span class="numerator">{{ h.part?.numerateur || 0 }}</span>
                   <span class="divider">/</span>
-                  <span class="denominator">{{ h.denominateur }}</span>
+                  <span class="denominator">{{ h.part?.denominateur || 1 }}</span>
                 </td>
-                <td>{{ h.pourcentage | number:'1.2-2' }} %</td>
+                <td>{{ getPourcentage(h) | number:'1.2-2' }} %</td>
               </tr>
             </tbody>
           </table>
