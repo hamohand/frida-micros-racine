@@ -46,6 +46,14 @@ import { AuthService } from '../../../services/auth.service';
               <h3>Rechercher / Archive</h3>
               <p>Consulter, rechercher et trier les dossiers</p>
             </a>
+
+            <a routerLink="/simulateur" class="action-card card-teal">
+              <div class="card-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M280-400q-33 0-56.5-23.5T200-480q0-33 23.5-56.5T280-560q33 0 56.5 23.5T360-480q0 33-23.5 56.5T280-400Zm400 0q-33 0-56.5-23.5T600-480q0-33 23.5-56.5T680-560q33 0 56.5 23.5T760-480q0 33-23.5 56.5T680-400ZM480-240q-33 0-56.5-23.5T400-320q0-33 23.5-56.5T480-400q33 0 56.5 23.5T560-320q0 33-23.5 56.5T480-240ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
+              </div>
+              <h3>Simulateur de parts</h3>
+              <p>Calculez instantanément un héritage</p>
+            </a>
           </div>
 
           <!-- Section Administration (Maître uniquement) -->

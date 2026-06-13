@@ -1,0 +1,171 @@
+<div class="simulateur-container">
+  <header class="sim-header">
+    <h1>Simulateur d'Héritage</h1>
+    <p>Calculez instantanément les parts d'héritage en renseignant la composition de la famille.</p>
+  </header>
+
+  <div class="sim-layout">
+    <!-- Colonne Gauche : Formulaire de Saisie -->
+    <div class="sim-form-column">
+      <form [formGroup]="simForm" class="sim-form">
+        
+        <!-- SECTION 1 : LE DÉFUNT -->
+        <section class="form-section">
+          <h2>1. Le Défunt</h2>
+          <div class="gender-selector">
+            <button type="button" 
+                    class="gender-btn" 
+                    [class.active]="simForm.get('sexeDefunt')?.value === 'M'"
+                    (click)="setSexeDefunt('M')">
+              <span class="icon">👨</span> Homme
+            </button>
+            <button type="button" 
+                    class="gender-btn" 
+                    [class.active]="simForm.get('sexeDefunt')?.value === 'F'"
+                    (click)="setSexeDefunt('F')">
+              <span class="icon">👩</span> Femme
+            </button>
+          </div>
+        </section>
+
+        <!-- SECTION 2 : CONJOINTS -->
+        <section class="form-section">
+          <h2>2. Conjoint(s) survivant(s)</h2>
+          <div class="counter-group">
+            <label>{{ simForm.get('sexeDefunt')?.value === 'M' ? 'Épouse(s)' : 'Époux' }}</label>
+            <div class="counter-controls">
+              <button type="button" class="btn-circle" (click)="decrement('nbConjoints')">-</button>
+              <input type="number" formControlName="nbConjoints" readonly>
+              <button type="button" class="btn-circle" 
+                      [disabled]="simForm.get('sexeDefunt')?.value === 'F' && simForm.get('nbConjoints')?.value >= 1"
+                      (click)="increment('nbConjoints')">+</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3 : DESCENDANTS -->
+        <section class="form-section">
+          <h2>3. Descendants (Enfants)</h2>
+          <div class="counter-grid">
+            <div class="counter-group">
+              <label>Fils</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbGarcons')">-</button>
+                <input type="number" formControlName="nbGarcons" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbGarcons')">+</button>
+              </div>
+            </div>
+            <div class="counter-group">
+              <label>Filles</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbFilles')">-</button>
+                <input type="number" formControlName="nbFilles" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbFilles')">+</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4 : ASCENDANTS -->
+        <section class="form-section">
+          <h2>4. Ascendants (Parents & Grands-parents)</h2>
+          <div class="toggle-grid">
+            <label class="toggle-label">
+              <input type="checkbox" formControlName="pereVivant">
+              <span class="toggle-text">Père vivant</span>
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" formControlName="mereVivante">
+              <span class="toggle-text">Mère vivante</span>
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" formControlName="grandPerePaternelVivant">
+              <span class="toggle-text">Grand-père paternel vivant</span>
+            </label>
+            <label class="toggle-label">
+              <input type="checkbox" formControlName="grandMerePaternelleVivante">
+              <span class="toggle-text">Grand-mère paternelle vivante</span>
+            </label>
+          </div>
+        </section>
+
+        <!-- SECTION 5 : COLLATÉRAUX -->
+        <section class="form-section">
+          <h2>5. Collatéraux (Frères & Sœurs)</h2>
+          <div class="counter-grid">
+            <div class="counter-group">
+              <label>Frères</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbFreres')">-</button>
+                <input type="number" formControlName="nbFreres" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbFreres')">+</button>
+              </div>
+            </div>
+            <div class="counter-group">
+              <label>Sœurs</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')">-</button>
+                <input type="number" formControlName="nbSoeurs" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbSoeurs')">+</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </form>
+    </div>
+
+    <!-- Colonne Droite : Résultats (Fixe) -->
+    <div class="sim-results-column">
+      <div class="results-card" [class.loading]="enChargement">
+        
+        <h2>Résultats de la répartition</h2>
+
+        <div *ngIf="erreur" class="alert alert-danger">
+          {{ erreur }}
+        </div>
+
+        <div *ngIf="!resultats && !erreur" class="empty-state">
+          <span class="material-icons-outlined empty-icon">calculate</span>
+          <p>Ajoutez au moins un héritier pour voir les résultats.</p>
+        </div>
+
+        <div *ngIf="resultats" class="results-content">
+          <div class="denominateur-box">
+            <span class="label">Dénominateur commun (Asl al-Mas'ala) :</span>
+            <span class="value">{{ resultats.denominateurCommun }}</span>
+          </div>
+
+          <table class="results-table">
+            <thead>
+              <tr>
+                <th>Héritier</th>
+                <th>Part (Fraction)</th>
+                <th>Pourcentage</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let h of resultats.heritiers">
+                <td>{{ h.heritier }}</td>
+                <td class="fraction-cell">
+                  <span class="numerator">{{ h.numerateur }}</span>
+                  <span class="divider">/</span>
+                  <span class="denominator">{{ h.denominateur }}</span>
+                </td>
+                <td>{{ h.pourcentage | number:'1.2-2' }} %</td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <div class="result-message" *ngIf="resultats.message && resultats.message !== 'Calcul réussi'">
+            {{ resultats.message }}
+          </div>
+        </div>
+
+        <div class="loading-overlay" *ngIf="enChargement">
+          <div class="spinner"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
