@@ -47,37 +47,49 @@
         <section class="form-section">
           <h2>3. Descendants (Enfants)</h2>
           <div class="counter-grid">
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbGarcons')?.disabled">
+            <div class="counter-group">
               <label>Fils</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbGarcons')" [disabled]="simForm.get('nbGarcons')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbGarcons')">-</button>
                 <input type="number" formControlName="nbGarcons" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbGarcons')" [disabled]="simForm.get('nbGarcons')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbGarcons')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbFilles')?.disabled">
+            <div class="counter-group">
               <label>Filles</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbFilles')" [disabled]="simForm.get('nbFilles')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbFilles')">-</button>
                 <input type="number" formControlName="nbFilles" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbFilles')" [disabled]="simForm.get('nbFilles')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbFilles')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbPetitsFils')?.disabled">
-              <label>Petits-fils (par les fils)</label>
+            <div class="counter-group">
+              <label>Petits-fils</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbPetitsFils')" [disabled]="simForm.get('nbPetitsFils')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbPetitsFils')">-</button>
                 <input type="number" formControlName="nbPetitsFils" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbPetitsFils')" [disabled]="simForm.get('nbPetitsFils')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbPetitsFils')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbPetitesFilles')?.disabled">
-              <label>Petites-filles (par les fils)</label>
+            <div class="counter-group">
+              <label>Petites-filles</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbPetitesFilles')" [disabled]="simForm.get('nbPetitesFilles')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbPetitesFilles')">-</button>
                 <input type="number" formControlName="nbPetitesFilles" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbPetitesFilles')" [disabled]="simForm.get('nbPetitesFilles')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbPetitesFilles')">+</button>
               </div>
+            </div>
+          </div>
+          
+          <div class="parent-predecede-selector" *ngIf="simForm.get('nbPetitsFils')?.value > 0 || simForm.get('nbPetitesFilles')?.value > 0">
+            <label>Sexe du parent prédécédé des petits-enfants :</label>
+            <div class="gender-selector-small">
+              <label class="radio-label">
+                <input type="radio" formControlName="sexeParentPredecede" value="M"> Fils (Père)
+              </label>
+              <label class="radio-label">
+                <input type="radio" formControlName="sexeParentPredecede" value="F"> Fille (Mère)
+              </label>
             </div>
           </div>
         </section>
@@ -86,19 +98,19 @@
         <section class="form-section">
           <h2>4. Ascendants (Parents & Grands-parents)</h2>
           <div class="toggle-grid">
-            <label class="toggle-label" [class.disabled-label]="simForm.get('pereVivant')?.disabled">
+            <label class="toggle-label">
               <input type="checkbox" formControlName="pereVivant">
               <span class="toggle-text">Père vivant</span>
             </label>
-            <label class="toggle-label" [class.disabled-label]="simForm.get('mereVivante')?.disabled">
+            <label class="toggle-label">
               <input type="checkbox" formControlName="mereVivante">
               <span class="toggle-text">Mère vivante</span>
             </label>
-            <label class="toggle-label" [class.disabled-label]="simForm.get('grandPerePaternelVivant')?.disabled">
+            <label class="toggle-label">
               <input type="checkbox" formControlName="grandPerePaternelVivant">
               <span class="toggle-text">Grand-père paternel vivant</span>
             </label>
-            <label class="toggle-label" [class.disabled-label]="simForm.get('grandMerePaternelleVivante')?.disabled">
+            <label class="toggle-label">
               <input type="checkbox" formControlName="grandMerePaternelleVivante">
               <span class="toggle-text">Grand-mère paternelle vivante</span>
             </label>
@@ -109,36 +121,36 @@
         <section class="form-section">
           <h2>5. Collatéraux (Frères & Sœurs)</h2>
           <div class="counter-grid">
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbFreres')?.disabled">
+            <div class="counter-group">
               <label>Frères</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbFreres')" [disabled]="simForm.get('nbFreres')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbFreres')">-</button>
                 <input type="number" formControlName="nbFreres" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbFreres')" [disabled]="simForm.get('nbFreres')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbFreres')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbSoeurs')?.disabled">
+            <div class="counter-group">
               <label>Sœurs</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')" [disabled]="simForm.get('nbSoeurs')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')">-</button>
                 <input type="number" formControlName="nbSoeurs" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbSoeurs')" [disabled]="simForm.get('nbSoeurs')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbSoeurs')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbOncles')?.disabled">
+            <div class="counter-group">
               <label>Oncles paternels</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbOncles')" [disabled]="simForm.get('nbOncles')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbOncles')">-</button>
                 <input type="number" formControlName="nbOncles" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbOncles')" [disabled]="simForm.get('nbOncles')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbOncles')">+</button>
               </div>
             </div>
-            <div class="counter-group" [class.disabled-group]="simForm.get('nbCousins')?.disabled">
+            <div class="counter-group">
               <label>Cousins paternels</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbCousins')" [disabled]="simForm.get('nbCousins')?.disabled">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbCousins')">-</button>
                 <input type="number" formControlName="nbCousins" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbCousins')" [disabled]="simForm.get('nbCousins')?.disabled">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbCousins')">+</button>
               </div>
             </div>
           </div>

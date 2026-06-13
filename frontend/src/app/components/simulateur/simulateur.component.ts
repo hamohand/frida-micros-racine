@@ -64,75 +64,10 @@ export class SimulateurComponent implements OnInit, OnDestroy {
         debounceTime(300)
       )
       .subscribe(() => {
-        this.applyEliminations();
         if (this.simForm.valid) {
           this.calculerParts();
         }
       });
-  }
-
-  private applyEliminations(): void {
-    // Les valeurs brutes pour inspecter l'état même des champs désactivés
-    const valeurs = this.simForm.getRawValue();
-    const patch: any = {};
-    const disableList: string[] = [];
-    const enableList: string[] = [
-      'grandPerePaternelVivant', 'grandMerePaternelleVivante',
-      'nbFreres', 'nbSoeurs', 'nbOncles', 'nbCousins', 'nbPetitsFils', 'nbPetitesFilles'
-    ];
-
-    // 1. La mère élimine les grands-mères
-    if (valeurs.mereVivante) {
-      patch.grandMerePaternelleVivante = false;
-      disableList.push('grandMerePaternelleVivante');
-    }
-
-    // 2. Le père élimine le grand-père, les frères/sœurs, oncles, cousins
-    if (valeurs.pereVivant) {
-      patch.grandPerePaternelVivant = false;
-      patch.nbFreres = 0; patch.nbSoeurs = 0; patch.nbOncles = 0; patch.nbCousins = 0;
-      disableList.push('grandPerePaternelVivant', 'nbFreres', 'nbSoeurs', 'nbOncles', 'nbCousins');
-    }
-
-    // 3. Le fils (garçon) élimine les petits-enfants, frères/sœurs, oncles, cousins
-    if (valeurs.nbGarcons > 0) {
-      patch.nbPetitsFils = 0; patch.nbPetitesFilles = 0;
-      patch.nbFreres = 0; patch.nbSoeurs = 0; patch.nbOncles = 0; patch.nbCousins = 0;
-      disableList.push('nbPetitsFils', 'nbPetitesFilles', 'nbFreres', 'nbSoeurs', 'nbOncles', 'nbCousins');
-    }
-
-    // 4. Le petit-fils élimine frères/sœurs, oncles, cousins
-    if (valeurs.nbPetitsFils > 0 && !disableList.includes('nbFreres')) {
-      patch.nbFreres = 0; patch.nbSoeurs = 0; patch.nbOncles = 0; patch.nbCousins = 0;
-      disableList.push('nbFreres', 'nbSoeurs', 'nbOncles', 'nbCousins');
-    }
-
-    // 5. Le frère élimine oncles, cousins
-    if (valeurs.nbFreres > 0 && !disableList.includes('nbOncles')) {
-      patch.nbOncles = 0; patch.nbCousins = 0;
-      disableList.push('nbOncles', 'nbCousins');
-    }
-
-    // 6. L'oncle élimine cousins
-    if (valeurs.nbOncles > 0 && !disableList.includes('nbCousins')) {
-      patch.nbCousins = 0;
-      disableList.push('nbCousins');
-    }
-
-    // Application des états (désactiver/activer)
-    enableList.forEach(ctrl => {
-      const control = this.simForm.get(ctrl);
-      if (disableList.includes(ctrl)) {
-        if (control?.enabled) {
-          control.setValue(patch[ctrl], { emitEvent: false });
-          control.disable({ emitEvent: false });
-        }
-      } else {
-        if (control?.disabled) {
-          control.enable({ emitEvent: false });
-        }
-      }
-    });
   }
 
   calculerParts(): void {
@@ -178,13 +113,11 @@ export class SimulateurComponent implements OnInit, OnDestroy {
 
   // Helper pour les compteurs dans le template
   increment(controlName: string): void {
-    if (this.simForm.get(controlName)?.disabled) return;
     const current = this.simForm.get(controlName)?.value || 0;
     this.simForm.get(controlName)?.setValue(current + 1);
   }
 
   decrement(controlName: string): void {
-    if (this.simForm.get(controlName)?.disabled) return;
     const current = this.simForm.get(controlName)?.value || 0;
     if (current > 0) {
       this.simForm.get(controlName)?.setValue(current - 1);

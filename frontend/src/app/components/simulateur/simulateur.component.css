@@ -89,6 +89,35 @@
   font-size: 1.5rem;
 }
 
+/* Sélection du sexe du parent prédécédé */
+.parent-predecede-selector {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+.parent-predecede-selector label {
+  display: block;
+  font-weight: 500;
+  color: #475569;
+  margin-bottom: 0.75rem;
+}
+
+.gender-selector-small {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.radio-label {
+  display: flex !important;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: normal !important;
+}
+
 /* Compteurs (+/-) */
 .counter-grid {
   display: grid;
