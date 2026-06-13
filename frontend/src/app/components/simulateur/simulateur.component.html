@@ -81,14 +81,17 @@
             </div>
           </div>
           
-          <div class="parent-predecede-selector" *ngIf="simForm.get('nbPetitsFils')?.value > 0 || simForm.get('nbPetitesFilles')?.value > 0">
-            <label>Sexe du parent prédécédé des petits-enfants :</label>
+          <div class="parent-predecede-selector">
+            <label>Système de tombes (Si un ou plusieurs enfants du défunt sont prédécédés) :</label>
+            <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1rem;">
+              Indiquez le sexe du parent prédécédé pour calculer la part revenant aux petits-enfants (Wasiya Wajiba / Représentation).
+            </p>
             <div class="gender-selector-small">
               <label class="radio-label">
-                <input type="radio" formControlName="sexeParentPredecede" value="M"> Fils (Père)
+                <input type="radio" formControlName="sexeParentPredecede" value="M"> Le parent prédécédé était un Fils (Père des petits-enfants)
               </label>
               <label class="radio-label">
-                <input type="radio" formControlName="sexeParentPredecede" value="F"> Fille (Mère)
+                <input type="radio" formControlName="sexeParentPredecede" value="F"> Le parent prédécédé était une Fille (Mère des petits-enfants)
               </label>
             </div>
           </div>
