@@ -10,7 +10,7 @@ services:
       - "${DATABASE_PORT}:5432"
     volumes:
       - frida_data:/var/lib/postgresql/data
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - frida-network
     healthcheck:
