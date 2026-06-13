@@ -4,7 +4,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
-import { SimulateurService, HeritageResponse } from '../../../services/simulateur.service';
+import { SimulateurService, HeritageResponse } from '../../services/simulateur.service';
 
 @Component({
   selector: 'app-simulateur',
@@ -90,11 +90,11 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     }
 
     this.simulateurService.simulerCalcul(valeurs).subscribe({
-      next: (response) => {
+      next: (response: HeritageResponse) => {
         this.resultats = response;
         this.enChargement = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Erreur de simulation', err);
         this.erreur = err.error?.message || "Erreur lors du calcul des parts.";
         this.resultats = null;
