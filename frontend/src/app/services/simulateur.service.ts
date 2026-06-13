@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
 
 export interface FamilyRequest {
   sexeDefunt: string;
@@ -38,7 +37,7 @@ export interface HeritageResponse {
   providedIn: 'root'
 })
 export class SimulateurService {
-  private apiUrl = `${environment.apiUrl}/calculs/simuler`;
+  private apiUrl = '/api/calculs/simuler';
 
   constructor(private http: HttpClient) {}
 
