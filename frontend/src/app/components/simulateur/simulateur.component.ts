@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -53,8 +53,41 @@ export class SimulateurComponent implements OnInit, OnDestroy {
       nbCousins: [0, [Validators.min(0)]],
       nbPetitsFils: [0, [Validators.min(0)]],
       nbPetitesFilles: [0, [Validators.min(0)]],
-      sexeParentPredecede: ['M']
+      sexeParentPredecede: ['M'],
+      tombes: this.fb.array([])
     });
+  }
+
+  get tombes(): FormArray {
+    return this.simForm.get('tombes') as FormArray;
+  }
+
+  addTombe(): void {
+    const tombeGroup = this.fb.group({
+      lienParente: ['enfant'],
+      sexeParentPredecede: ['M'],
+      nbDescendantsMales: [0, Validators.min(0)],
+      nbDescendantesFemelles: [0, Validators.min(0)]
+    });
+    this.tombes.push(tombeGroup);
+  }
+
+  removeTombe(index: number): void {
+    this.tombes.removeAt(index);
+  }
+
+  incrementTombe(index: number, controlName: string): void {
+    const group = this.tombes.at(index) as FormGroup;
+    const current = group.get(controlName)?.value || 0;
+    group.get(controlName)?.setValue(current + 1);
+  }
+
+  decrementTombe(index: number, controlName: string): void {
+    const group = this.tombes.at(index) as FormGroup;
+    const current = group.get(controlName)?.value || 0;
+    if (current > 0) {
+      group.get(controlName)?.setValue(current - 1);
+    }
   }
 
   private setupAutoCalculate(): void {

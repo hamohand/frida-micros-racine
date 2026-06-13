@@ -147,7 +147,28 @@ public class HeritageResponse {
                                                 .nbFreres(request.getNbFreres() != null ? request.getNbFreres() : 0)
                                                 .nbOncles(request.getNbOncles() != null ? request.getNbOncles() : 0)
                                                 .nbCousins(request.getNbCousins() != null ? request.getNbCousins() : 0)
+                                                .nbPetitsFils(request.getNbPetitsFils() != null
+                                                                ? request.getNbPetitsFils()
+                                                                : 0)
+                                                .nbPetitesFilles(request.getNbPetitesFilles() != null
+                                                                ? request.getNbPetitesFilles()
+                                                                : 0)
                                                 .build())
                                 .build();
+        }
+
+        /**
+         * Crée une réponse à partir d'un résultat de calcul étendu (multi-tombes)
+         */
+        public static HeritageResponse fromCalculEtendu(
+                        com.muhend.backendai.calculs.model.ExtendedFamilyRequest request,
+                        com.muhend.backendai.calculs.service.CalculPartsEtenduService.CalculEtenduResult result,
+                        String message) {
+            
+            HeritageResponse response = fromCalculation(request, result.getHeritiers(), message);
+            response.setDetailTombes(result.getDetailTombes());
+            response.setNombreTombes(result.getNombreTombes());
+            
+            return response;
         }
 }

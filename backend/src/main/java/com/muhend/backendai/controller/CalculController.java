@@ -1,9 +1,11 @@
 package com.muhend.backendai.controller;
 
+import com.muhend.backendai.calculs.model.ExtendedFamilyRequest;
 import com.muhend.backendai.calculs.model.FamilyRequest;
 import com.muhend.backendai.calculs.model.HeritageResponse;
 import com.muhend.backendai.calculs.model.Heritier;
-import com.muhend.backendai.calculs.service.CalculPartsService;
+import com.muhend.backendai.calculs.service.CalculPartsEtenduService;
+import com.muhend.backendai.calculs.service.CalculPartsEtenduService.CalculEtenduResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -19,19 +21,19 @@ import java.util.List;
 @Tag(name = "Simulateur Calculs", description = "API pour simuler les parts d'héritage manuellement")
 public class CalculController {
 
-    private final CalculPartsService calculPartsService;
+    private final CalculPartsEtenduService calculPartsEtenduService;
 
-    public CalculController(CalculPartsService calculPartsService) {
-        this.calculPartsService = calculPartsService;
+    public CalculController(CalculPartsEtenduService calculPartsEtenduService) {
+        this.calculPartsEtenduService = calculPartsEtenduService;
     }
 
     @Operation(summary = "Simuler la répartition d'un héritage", description = "Calcule les parts d'héritage basées sur la composition familiale fournie manuellement.")
     @PostMapping("/simuler")
-    public ResponseEntity<HeritageResponse> simulerCalcul(@Valid @RequestBody FamilyRequest request) {
+    public ResponseEntity<HeritageResponse> simulerCalcul(@Valid @RequestBody ExtendedFamilyRequest request) {
         log.info("Requête de simulation reçue : {}", request);
         try {
-            List<Heritier> heritiers = calculPartsService.calculParts(request);
-            HeritageResponse response = HeritageResponse.fromCalculation(request, heritiers, "Calcul réussi");
+            CalculEtenduResult result = calculPartsEtenduService.calculPartsEtendu(request);
+            HeritageResponse response = HeritageResponse.fromCalculEtendu(request, result, "Calcul réussi");
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             log.error("Erreur lors de la simulation : ", e);

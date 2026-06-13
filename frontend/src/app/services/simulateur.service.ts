@@ -2,6 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+export interface Tombe {
+  sexeParentPredecede: string;
+  lienParente: string;
+  nbDescendantsMales: number;
+  nbDescendantesFemelles: number;
+}
+
 export interface FamilyRequest {
   sexeDefunt: string;
   nbConjoints: number;
@@ -17,7 +24,8 @@ export interface FamilyRequest {
   nbCousins: number;
   nbPetitsFils: number;
   nbPetitesFilles: number;
-  sexeParentPredecede: string;
+  sexeParentPredecede: string; // Gardé pour compatibilité
+  tombes?: Tombe[]; // Le nouveau tableau pour le mode étendu
 }
 
 export interface Fraction {
