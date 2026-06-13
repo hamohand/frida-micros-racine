@@ -47,20 +47,36 @@
         <section class="form-section">
           <h2>3. Descendants (Enfants)</h2>
           <div class="counter-grid">
-            <div class="counter-group">
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbGarcons')?.disabled">
               <label>Fils</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbGarcons')">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbGarcons')" [disabled]="simForm.get('nbGarcons')?.disabled">-</button>
                 <input type="number" formControlName="nbGarcons" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbGarcons')">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbGarcons')" [disabled]="simForm.get('nbGarcons')?.disabled">+</button>
               </div>
             </div>
-            <div class="counter-group">
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbFilles')?.disabled">
               <label>Filles</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbFilles')">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbFilles')" [disabled]="simForm.get('nbFilles')?.disabled">-</button>
                 <input type="number" formControlName="nbFilles" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbFilles')">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbFilles')" [disabled]="simForm.get('nbFilles')?.disabled">+</button>
+              </div>
+            </div>
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbPetitsFils')?.disabled">
+              <label>Petits-fils (par les fils)</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbPetitsFils')" [disabled]="simForm.get('nbPetitsFils')?.disabled">-</button>
+                <input type="number" formControlName="nbPetitsFils" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbPetitsFils')" [disabled]="simForm.get('nbPetitsFils')?.disabled">+</button>
+              </div>
+            </div>
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbPetitesFilles')?.disabled">
+              <label>Petites-filles (par les fils)</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbPetitesFilles')" [disabled]="simForm.get('nbPetitesFilles')?.disabled">-</button>
+                <input type="number" formControlName="nbPetitesFilles" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbPetitesFilles')" [disabled]="simForm.get('nbPetitesFilles')?.disabled">+</button>
               </div>
             </div>
           </div>
@@ -93,20 +109,36 @@
         <section class="form-section">
           <h2>5. Collatéraux (Frères & Sœurs)</h2>
           <div class="counter-grid">
-            <div class="counter-group">
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbFreres')?.disabled">
               <label>Frères</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbFreres')">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbFreres')" [disabled]="simForm.get('nbFreres')?.disabled">-</button>
                 <input type="number" formControlName="nbFreres" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbFreres')">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbFreres')" [disabled]="simForm.get('nbFreres')?.disabled">+</button>
               </div>
             </div>
-            <div class="counter-group">
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbSoeurs')?.disabled">
               <label>Sœurs</label>
               <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')">-</button>
+                <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')" [disabled]="simForm.get('nbSoeurs')?.disabled">-</button>
                 <input type="number" formControlName="nbSoeurs" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbSoeurs')">+</button>
+                <button type="button" class="btn-circle" (click)="increment('nbSoeurs')" [disabled]="simForm.get('nbSoeurs')?.disabled">+</button>
+              </div>
+            </div>
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbOncles')?.disabled">
+              <label>Oncles paternels</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbOncles')" [disabled]="simForm.get('nbOncles')?.disabled">-</button>
+                <input type="number" formControlName="nbOncles" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbOncles')" [disabled]="simForm.get('nbOncles')?.disabled">+</button>
+              </div>
+            </div>
+            <div class="counter-group" [class.disabled-group]="simForm.get('nbCousins')?.disabled">
+              <label>Cousins paternels</label>
+              <div class="counter-controls">
+                <button type="button" class="btn-circle" (click)="decrement('nbCousins')" [disabled]="simForm.get('nbCousins')?.disabled">-</button>
+                <input type="number" formControlName="nbCousins" readonly>
+                <button type="button" class="btn-circle" (click)="increment('nbCousins')" [disabled]="simForm.get('nbCousins')?.disabled">+</button>
               </div>
             </div>
           </div>

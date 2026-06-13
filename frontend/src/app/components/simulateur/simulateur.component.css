@@ -134,8 +134,20 @@
 }
 
 .btn-circle[disabled] {
-  opacity: 0.5;
+  opacity: 0.3;
   cursor: not-allowed;
+  background: #f8fafc;
+}
+
+.counter-group.disabled-group label {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+
+.counter-group.disabled-group input {
+  opacity: 0.4;
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 
 .counter-controls input {
@@ -185,10 +197,15 @@
 }
 
 .toggle-label.disabled-label {
-  opacity: 0.5;
+  opacity: 0.35;
   cursor: not-allowed;
   background: #f1f5f9;
-  border-color: #e2e8f0;
+  border-color: #cbd5e1;
+}
+
+.toggle-label.disabled-label .toggle-text {
+  text-decoration: line-through;
+  color: #94a3b8;
 }
 
 .toggle-label.disabled-label input[type="checkbox"] {
