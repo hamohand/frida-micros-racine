@@ -27,8 +27,9 @@ export class SimulateurComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.initForm();
+    this.setupHajbRules();
     this.setupAutoCalculate();
-    // Déclencher un premier calcul
+    // Lancer un premier calcul
     this.calculerParts();
   }
 
@@ -116,6 +117,84 @@ export class SimulateurComponent implements OnInit, OnDestroy {
       });
   }
 
+  private setupHajbRules(): void {
+    this.simForm.valueChanges
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.applyHajbLogic();
+      });
+    // Appliquer au démarrage
+    this.applyHajbLogic();
+  }
+
+  private applyHajbLogic(): void {
+    const val = this.simForm.getRawValue();
+
+    // 1. Le Père exclut Grand-père et Grand-mère paternelle
+    if (val.pereVivant) {
+      this.disableControl('grandPerePaternelVivant');
+      this.disableControl('grandMerePaternelleVivante');
+    } else {
+      this.enableControl('grandPerePaternelVivant');
+      if (!val.mereVivante) {
+        this.enableControl('grandMerePaternelleVivante');
+      }
+    }
+
+    // 2. La Mère exclut Grand-mère paternelle
+    if (val.mereVivante) {
+      this.disableControl('grandMerePaternelleVivante');
+    } else if (!val.pereVivant) {
+      this.enableControl('grandMerePaternelleVivante');
+    }
+
+    // 3. Père, Grand-père ou Fils excluent Frères, Sœurs (et Tombes Fratrie)
+    const excludeFratrie = val.pereVivant || val.grandPerePaternelVivant || val.nbGarcons > 0;
+    if (excludeFratrie) {
+      this.disableControl('nbFreres');
+      this.disableControl('nbSoeurs');
+      if (!this.tombesFratrie.disabled) this.tombesFratrie.disable({ emitEvent: false });
+    } else {
+      this.enableControl('nbFreres');
+      this.enableControl('nbSoeurs');
+      if (this.tombesFratrie.disabled) this.tombesFratrie.enable({ emitEvent: false });
+    }
+
+    // 4. Père, Grand-père, Fils ou Frères excluent Oncles
+    const excludeOncles = excludeFratrie || val.nbFreres > 0;
+    if (excludeOncles) {
+      this.disableControl('nbOncles');
+    } else {
+      this.enableControl('nbOncles');
+    }
+
+    // 5. Père, Grand-père, Fils, Frères ou Oncles excluent Cousins
+    const excludeCousins = excludeOncles || val.nbOncles > 0;
+    if (excludeCousins) {
+      this.disableControl('nbCousins');
+    } else {
+      this.enableControl('nbCousins');
+    }
+  }
+
+  private disableControl(name: string): void {
+    const ctrl = this.simForm.get(name);
+    if (ctrl && !ctrl.disabled) {
+      ctrl.disable({ emitEvent: false });
+      // Reset value visually if disabled to avoid confusion
+      if (typeof ctrl.value === 'boolean') {
+        ctrl.setValue(false, { emitEvent: false });
+      }
+    }
+  }
+
+  private enableControl(name: string): void {
+    const ctrl = this.simForm.get(name);
+    if (ctrl && ctrl.disabled) {
+      ctrl.enable({ emitEvent: false });
+    }
+  }
+
   calculerParts(): void {
     this.enChargement = true;
     this.erreur = null;
@@ -175,14 +254,18 @@ export class SimulateurComponent implements OnInit, OnDestroy {
 
   // Helper pour les compteurs dans le template
   increment(controlName: string): void {
-    const current = this.simForm.get(controlName)?.value || 0;
-    this.simForm.get(controlName)?.setValue(current + 1);
+    const control = this.simForm.get(controlName);
+    if (control?.disabled) return;
+    const current = control?.value || 0;
+    control?.setValue(current + 1);
   }
 
   decrement(controlName: string): void {
-    const current = this.simForm.get(controlName)?.value || 0;
+    const control = this.simForm.get(controlName);
+    if (control?.disabled) return;
+    const current = control?.value || 0;
     if (current > 0) {
-      this.simForm.get(controlName)?.setValue(current - 1);
+      control?.setValue(current - 1);
     }
   }
 
