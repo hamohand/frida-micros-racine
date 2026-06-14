@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -89,12 +89,14 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     this.tombesFratrie.removeAt(index);
   }
 
-  incrementTombe(group: FormGroup, controlName: string): void {
+  incrementTombe(control: AbstractControl, controlName: string): void {
+    const group = control as FormGroup;
     const current = group.get(controlName)?.value || 0;
     group.get(controlName)?.setValue(current + 1);
   }
 
-  decrementTombe(group: FormGroup, controlName: string): void {
+  decrementTombe(control: AbstractControl, controlName: string): void {
+    const group = control as FormGroup;
     const current = group.get(controlName)?.value || 0;
     if (current > 0) {
       group.get(controlName)?.setValue(current - 1);
