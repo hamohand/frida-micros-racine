@@ -43,6 +43,55 @@
   border: 1px solid #edf2f7;
 }
 
+.tombe-card {
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+/* Badges types héritiers */
+.type-badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-top: 0.35rem;
+}
+
+.badge-wasiya {
+  background-color: #f3e8ff;
+  color: #7e22ce;
+  border: 1px solid #d8b4fe;
+}
+
+.badge-fard {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+
+.badge-asaba {
+  background-color: #dcfce7;
+  color: #15803d;
+  border: 1px solid #bbf7d0;
+}
+
+.badge-restant {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.base-calcul {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #64748b;
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+  border-top: 1px dashed #e2e8f0;
+}
+
 .form-section h2 {
   font-size: 1.2rem;
   color: #2c3e50;

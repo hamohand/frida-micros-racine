@@ -232,8 +232,21 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     }
 
     this.simulateurService.simulerCalcul(valeurs).subscribe({
-      next: (response: HeritageResponse) => {
-        this.resultats = response;
+      next: (res: HeritageResponse) => {
+        if (res && res.heritiers) {
+          // Tri des héritiers : Wasiya Wajiba (1), Fard (2), Asaba (3), Part restante (4)
+          res.heritiers.sort((a, b) => {
+            const getOrder = (h: any) => {
+              if (h.cadreLegal?.includes('الوصية') || h.heritier.includes('petit')) return 1;
+              if (h.cadreLegal?.includes('الفرض')) return 2;
+              if (h.cadreLegal?.includes('العصبة')) return 3;
+              if (h.heritier === 'part restant') return 4;
+              return 5;
+            };
+            return getOrder(a) - getOrder(b);
+          });
+        }
+        this.resultats = res;
         this.enChargement = false;
       },
       error: (err: any) => {
@@ -243,6 +256,13 @@ export class SimulateurComponent implements OnInit, OnDestroy {
         this.enChargement = false;
       }
     });
+  }
+
+  getBadgeClass(h: any): string {
+    if (h.cadreLegal?.includes('الوصية') || h.heritier.includes('petit')) return 'badge-wasiya';
+    if (h.cadreLegal?.includes('الفرض')) return 'badge-fard';
+    if (h.cadreLegal?.includes('العصبة')) return 'badge-asaba';
+    return 'badge-restant';
   }
 
   getPourcentage(h: any): number {
