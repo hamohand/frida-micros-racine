@@ -92,6 +92,12 @@ public class HeritageResponse {
 
                 @Schema(description = "Nombre de cousins", example = "0")
                 private int nbCousins;
+
+                @Schema(description = "Nombre de petits-fils", example = "0")
+                private int nbPetitsFils;
+
+                @Schema(description = "Nombre de petites-filles", example = "0")
+                private int nbPetitesFilles;
         }
 
         /**
