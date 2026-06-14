@@ -78,7 +78,10 @@ public class CalculPartsEtenduService {
             sommeWasiyya = sommeWasiyya.ajouter(part);
         }
 
-        boolean plafonnee = estSuperieur(sommeWasiyya, unTiers);
+        boolean hasLivingChildren = (request.getNbFilles() != null && request.getNbFilles() > 0) ||
+                                    (request.getNbGarcons() != null && request.getNbGarcons() > 0);
+
+        boolean plafonnee = hasLivingChildren && estSuperieur(sommeWasiyya, unTiers);
         List<Fraction> wasiyyaEffectives = new ArrayList<>();
 
         if (plafonnee) {

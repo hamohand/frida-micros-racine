@@ -51,9 +51,6 @@ export class SimulateurComponent implements OnInit, OnDestroy {
       nbFreres: [0, [Validators.min(0)]],
       nbOncles: [0, [Validators.min(0)]],
       nbCousins: [0, [Validators.min(0)]],
-      nbPetitsFils: [0, [Validators.min(0)]],
-      nbPetitesFilles: [0, [Validators.min(0)]],
-      sexeParentPredecede: ['M'],
       tombes: this.fb.array([])
     });
   }
@@ -110,12 +107,16 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     // Si aucun héritier n'est sélectionné, on ne simule pas (le backend renverrait une erreur logique)
     // On utilise getRawValue pour inclure les champs qui ont été désactivés (ex: grand-père = false)
     const valeurs = this.simForm.getRawValue();
+    valeurs.nbPetitsFils = 0;
+    valeurs.nbPetitesFilles = 0;
+    valeurs.sexeParentPredecede = 'M';
+
     const hasAtLeastOneHeir = valeurs.nbConjoints > 0 || valeurs.pereVivant || valeurs.mereVivante || 
                               valeurs.grandPerePaternelVivant || valeurs.grandMerePaternelleVivante ||
                               valeurs.nbFilles > 0 || valeurs.nbGarcons > 0 || 
                               valeurs.nbSoeurs > 0 || valeurs.nbFreres > 0 || 
                               valeurs.nbOncles > 0 || valeurs.nbCousins > 0 ||
-                              valeurs.nbPetitsFils > 0 || valeurs.nbPetitesFilles > 0;
+                              (valeurs.tombes && valeurs.tombes.length > 0);
 
     if (!hasAtLeastOneHeir) {
       this.resultats = null;
