@@ -51,36 +51,50 @@ export class SimulateurComponent implements OnInit, OnDestroy {
       nbFreres: [0, [Validators.min(0)]],
       nbOncles: [0, [Validators.min(0)]],
       nbCousins: [0, [Validators.min(0)]],
-      tombes: this.fb.array([])
+      tombesEnfants: this.fb.array([]),
+      tombesFratrie: this.fb.array([])
     });
   }
 
-  get tombes(): FormArray {
-    return this.simForm.get('tombes') as FormArray;
+  get tombesEnfants(): FormArray {
+    return this.simForm.get('tombesEnfants') as FormArray;
   }
 
-  addTombe(): void {
-    const tombeGroup = this.fb.group({
-      lienParente: ['enfant'],
+  get tombesFratrie(): FormArray {
+    return this.simForm.get('tombesFratrie') as FormArray;
+  }
+
+  addTombeEnfant(): void {
+    this.tombesEnfants.push(this.createTombeGroup('enfant'));
+  }
+
+  addTombeFratrie(): void {
+    this.tombesFratrie.push(this.createTombeGroup('frere/soeur'));
+  }
+
+  private createTombeGroup(lien: string): FormGroup {
+    return this.fb.group({
+      lienParente: [lien],
       sexeParentPredecede: ['M'],
       nbDescendantsMales: [0, Validators.min(0)],
       nbDescendantesFemelles: [0, Validators.min(0)]
     });
-    this.tombes.push(tombeGroup);
   }
 
-  removeTombe(index: number): void {
-    this.tombes.removeAt(index);
+  removeTombeEnfant(index: number): void {
+    this.tombesEnfants.removeAt(index);
   }
 
-  incrementTombe(index: number, controlName: string): void {
-    const group = this.tombes.at(index) as FormGroup;
+  removeTombeFratrie(index: number): void {
+    this.tombesFratrie.removeAt(index);
+  }
+
+  incrementTombe(group: FormGroup, controlName: string): void {
     const current = group.get(controlName)?.value || 0;
     group.get(controlName)?.setValue(current + 1);
   }
 
-  decrementTombe(index: number, controlName: string): void {
-    const group = this.tombes.at(index) as FormGroup;
+  decrementTombe(group: FormGroup, controlName: string): void {
     const current = group.get(controlName)?.value || 0;
     if (current > 0) {
       group.get(controlName)?.setValue(current - 1);
@@ -116,7 +130,19 @@ export class SimulateurComponent implements OnInit, OnDestroy {
                               valeurs.nbFilles > 0 || valeurs.nbGarcons > 0 || 
                               valeurs.nbSoeurs > 0 || valeurs.nbFreres > 0 || 
                               valeurs.nbOncles > 0 || valeurs.nbCousins > 0 ||
-                              (valeurs.tombes && valeurs.tombes.length > 0);
+                              (valeurs.tombesEnfants && valeurs.tombesEnfants.length > 0) ||
+                              (valeurs.tombesFratrie && valeurs.tombesFratrie.length > 0);
+
+    // Fusionner les tombes pour le backend
+    valeurs.tombes = [...(valeurs.tombesEnfants || []), ...(valeurs.tombesFratrie || [])];
+    // Générer un identifiant unique pour chaque tombe au moment de l'envoi
+    valeurs.tombes.forEach((t: any, i: number) => {
+      t.identifiant = `T${i + 1}`;
+    });
+    
+    // Supprimer les champs spécifiques au frontend
+    delete valeurs.tombesEnfants;
+    delete valeurs.tombesFratrie;
 
     if (!hasAtLeastOneHeir) {
       this.resultats = null;

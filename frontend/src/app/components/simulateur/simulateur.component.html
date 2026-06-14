@@ -63,87 +63,58 @@
                 <button type="button" class="btn-circle" (click)="increment('nbFilles')">+</button>
               </div>
             </div>
-            <div class="counter-group">
-              <label>Petits-fils</label>
-              <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbPetitsFils')">-</button>
-                <input type="number" formControlName="nbPetitsFils" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbPetitsFils')">+</button>
-              </div>
-            </div>
-            <div class="counter-group">
-              <label>Petites-filles</label>
-              <div class="counter-controls">
-                <button type="button" class="btn-circle" (click)="decrement('nbPetitesFilles')">-</button>
-                <input type="number" formControlName="nbPetitesFilles" readonly>
-                <button type="button" class="btn-circle" (click)="increment('nbPetitesFilles')">+</button>
-              </div>
-            </div>
           </div>
-        </section>
-
-        <!-- SECTION TOMBES DYNAMIQUES -->
-        <section class="form-section">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h2>Système de tombes (Testament obligatoire / Wasiya Wajiba)</h2>
-            <button type="button" class="btn btn-outline" (click)="addTombe()" style="padding: 0.5rem 1rem; border: 1px solid #4ecca3; color: #4ecca3; border-radius: 4px; background: transparent; cursor: pointer; font-weight: bold;">
-              + Ajouter une tombe
-            </button>
-          </div>
-          <p style="font-size: 0.9rem; color: #64748b; margin-bottom: 1rem;">
-            Déclarez ici les héritiers (enfants ou frères/sœurs) décédés avant le défunt pour calculer la part de représentation revenant à leurs propres enfants.
-          </p>
-
-          <div formArrayName="tombes">
-            <div *ngFor="let tombe of tombes.controls; let i=index" [formGroupName]="i" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; position: relative;">
-              
-              <button type="button" (click)="removeTombe(i)" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold;">&times;</button>
-              
-              <h4 style="margin-top: 0; color: #334155;">Tombe #{{ i + 1 }}</h4>
-              
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                <div>
-                  <label style="display: block; font-weight: 500; color: #475569; margin-bottom: 0.5rem;">Lien de parenté avec le défunt :</label>
-                  <select formControlName="lienParente" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
-                    <option value="enfant">Enfant (Fils/Fille)</option>
-                    <option value="frere_soeur">Frère/Sœur</option>
-                  </select>
-                </div>
-                <div>
-                  <label style="display: block; font-weight: 500; color: #475569; margin-bottom: 0.5rem;">Sexe du parent prédécédé :</label>
-                  <select formControlName="sexeParentPredecede" style="width: 100%; padding: 0.5rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white;">
-                    <option value="M">Masculin</option>
-                    <option value="F">Féminin</option>
-                  </select>
-                </div>
-              </div>
-
-              <label style="display: block; font-weight: 500; color: #475569; margin-bottom: 0.5rem;">Descendants (bénéficiaires de la tombe) :</label>
-              <div class="counter-grid">
-                <div class="counter-group">
-                  <label>Garçons</label>
-                  <div class="counter-controls">
-                    <button type="button" class="btn-circle" (click)="decrementTombe(i, 'nbDescendantsMales')">-</button>
-                    <input type="number" formControlName="nbDescendantsMales" readonly style="width: 40px; text-align: center;">
-                    <button type="button" class="btn-circle" (click)="incrementTombe(i, 'nbDescendantsMales')">+</button>
-                  </div>
-                </div>
-                <div class="counter-group">
-                  <label>Filles</label>
-                  <div class="counter-controls">
-                    <button type="button" class="btn-circle" (click)="decrementTombe(i, 'nbDescendantesFemelles')">-</button>
-                    <input type="number" formControlName="nbDescendantesFemelles" readonly style="width: 40px; text-align: center;">
-                    <button type="button" class="btn-circle" (click)="incrementTombe(i, 'nbDescendantesFemelles')">+</button>
-                  </div>
-                </div>
-              </div>
+          
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h3 style="font-size: 1rem; color: #475569; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #64748b;">
+                  <path d="M5 22h14"/>
+                  <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
+                </svg>
+                Enfants prédécédés <span title="Ajoutez ici les enfants décédés avant le défunt pour calculer la part (Wasiya Wajiba) revenant à leurs propres enfants (vos petits-enfants)." style="cursor: help; background: #e2e8f0; color: #475569; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">?</span>
+              </h3>
+              <button type="button" class="btn btn-outline" (click)="addTombeEnfant()" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border: 1px solid #4ecca3; color: #4ecca3; border-radius: 4px; background: transparent; cursor: pointer; font-weight: bold;">
+                + Ajouter
+              </button>
             </div>
             
-            <div *ngIf="tombes.length === 0" style="text-align: center; padding: 1.5rem; border: 2px dashed #cbd5e1; border-radius: 8px; color: #94a3b8;">
-              Aucune tombe déclarée. Le calcul s'effectuera de manière simple.
+            <div formArrayName="tombesEnfants">
+              <div *ngFor="let tombe of tombesEnfants.controls; let i=index" [formGroupName]="i" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; position: relative;">
+                <button type="button" (click)="removeTombeEnfant(i)" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">&times;</button>
+                
+                <div style="margin-bottom: 0.75rem; padding-right: 20px;">
+                  <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Sexe de l'enfant prédécédé :</label>
+                  <select formControlName="sexeParentPredecede" style="width: 100%; padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-size: 0.9rem;">
+                    <option value="M">Fils</option>
+                    <option value="F">Fille</option>
+                  </select>
+                </div>
+
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Petits-enfants du défunt) :</label>
+                <div class="counter-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                  <div class="counter-group" style="padding: 0.5rem;">
+                    <label style="font-size: 0.85rem;">Garçons</label>
+                    <div class="counter-controls">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantsMales')">-</button>
+                      <input type="number" formControlName="nbDescendantsMales" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantsMales')">+</button>
+                    </div>
+                  </div>
+                  <div class="counter-group" style="padding: 0.5rem;">
+                    <label style="font-size: 0.85rem;">Filles</label>
+                    <div class="counter-controls">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantesFemelles')">-</button>
+                      <input type="number" formControlName="nbDescendantesFemelles" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantesFemelles')">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>
+
 
         <!-- SECTION 4 : ASCENDANTS -->
         <section class="form-section">
@@ -202,6 +173,55 @@
                 <button type="button" class="btn-circle" (click)="decrement('nbCousins')">-</button>
                 <input type="number" formControlName="nbCousins" readonly>
                 <button type="button" class="btn-circle" (click)="increment('nbCousins')">+</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+              <h3 style="font-size: 1rem; color: #475569; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #64748b;">
+                  <path d="M5 22h14"/>
+                  <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
+                </svg>
+                Frères/Sœurs prédécédés <span title="Ajoutez ici les frères/sœurs décédés avant le défunt pour calculer la part revenant à leurs enfants." style="cursor: help; background: #e2e8f0; color: #475569; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">?</span>
+              </h3>
+              <button type="button" class="btn btn-outline" (click)="addTombeFratrie()" style="padding: 0.25rem 0.75rem; font-size: 0.85rem; border: 1px solid #4ecca3; color: #4ecca3; border-radius: 4px; background: transparent; cursor: pointer; font-weight: bold;">
+                + Ajouter
+              </button>
+            </div>
+            
+            <div formArrayName="tombesFratrie">
+              <div *ngFor="let tombe of tombesFratrie.controls; let i=index" [formGroupName]="i" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; position: relative;">
+                <button type="button" (click)="removeTombeFratrie(i)" style="position: absolute; top: 10px; right: 10px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">&times;</button>
+                
+                <div style="margin-bottom: 0.75rem; padding-right: 20px;">
+                  <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Sexe du frère/sœur prédécédé :</label>
+                  <select formControlName="sexeParentPredecede" style="width: 100%; padding: 0.4rem; border: 1px solid #cbd5e1; border-radius: 4px; background: white; font-size: 0.9rem;">
+                    <option value="M">Frère</option>
+                    <option value="F">Sœur</option>
+                  </select>
+                </div>
+
+                <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Neveux/Nièces) :</label>
+                <div class="counter-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                  <div class="counter-group" style="padding: 0.5rem;">
+                    <label style="font-size: 0.85rem;">Garçons</label>
+                    <div class="counter-controls">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantsMales')">-</button>
+                      <input type="number" formControlName="nbDescendantsMales" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantsMales')">+</button>
+                    </div>
+                  </div>
+                  <div class="counter-group" style="padding: 0.5rem;">
+                    <label style="font-size: 0.85rem;">Filles</label>
+                    <div class="counter-controls">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantesFemelles')">-</button>
+                      <input type="number" formControlName="nbDescendantesFemelles" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantesFemelles')">+</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
