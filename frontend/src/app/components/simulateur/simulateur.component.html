@@ -96,17 +96,17 @@
                   <div class="counter-group" style="padding: 0.5rem;">
                     <label style="font-size: 0.85rem;">Garçons</label>
                     <div class="counter-controls">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantsMales')">-</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesEnfants, i, 'nbDescendantsMales')">-</button>
                       <input type="number" formControlName="nbDescendantsMales" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantsMales')">+</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombesEnfants, i, 'nbDescendantsMales')">+</button>
                     </div>
                   </div>
                   <div class="counter-group" style="padding: 0.5rem;">
                     <label style="font-size: 0.85rem;">Filles</label>
                     <div class="counter-controls">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantesFemelles')">-</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesEnfants, i, 'nbDescendantesFemelles')">-</button>
                       <input type="number" formControlName="nbDescendantesFemelles" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantesFemelles')">+</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombesEnfants, i, 'nbDescendantesFemelles')">+</button>
                     </div>
                   </div>
                 </div>
@@ -208,17 +208,17 @@
                   <div class="counter-group" style="padding: 0.5rem;">
                     <label style="font-size: 0.85rem;">Garçons</label>
                     <div class="counter-controls">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantsMales')">-</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesFratrie, i, 'nbDescendantsMales')">-</button>
                       <input type="number" formControlName="nbDescendantsMales" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantsMales')">+</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombesFratrie, i, 'nbDescendantsMales')">+</button>
                     </div>
                   </div>
                   <div class="counter-group" style="padding: 0.5rem;">
                     <label style="font-size: 0.85rem;">Filles</label>
                     <div class="counter-controls">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombe, 'nbDescendantesFemelles')">-</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesFratrie, i, 'nbDescendantesFemelles')">-</button>
                       <input type="number" formControlName="nbDescendantesFemelles" readonly style="width: 30px; text-align: center; height: 24px; font-size: 0.9rem;">
-                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombe, 'nbDescendantesFemelles')">+</button>
+                      <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="incrementTombe(tombesFratrie, i, 'nbDescendantesFemelles')">+</button>
                     </div>
                   </div>
                 </div>

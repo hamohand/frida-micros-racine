@@ -89,14 +89,14 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     this.tombesFratrie.removeAt(index);
   }
 
-  incrementTombe(control: AbstractControl, controlName: string): void {
-    const group = control as FormGroup;
+  incrementTombe(formArray: FormArray, index: number, controlName: string): void {
+    const group = formArray.at(index) as FormGroup;
     const current = group.get(controlName)?.value || 0;
     group.get(controlName)?.setValue(current + 1);
   }
 
-  decrementTombe(control: AbstractControl, controlName: string): void {
-    const group = control as FormGroup;
+  decrementTombe(formArray: FormArray, index: number, controlName: string): void {
+    const group = formArray.at(index) as FormGroup;
     const current = group.get(controlName)?.value || 0;
     if (current > 0) {
       group.get(controlName)?.setValue(current - 1);
