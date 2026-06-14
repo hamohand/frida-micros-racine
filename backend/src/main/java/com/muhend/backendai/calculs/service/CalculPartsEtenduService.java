@@ -81,7 +81,12 @@ public class CalculPartsEtenduService {
         boolean hasLivingChildren = (request.getNbFilles() != null && request.getNbFilles() > 0) ||
                                     (request.getNbGarcons() != null && request.getNbGarcons() > 0);
 
-        boolean plafonnee = hasLivingChildren && estSuperieur(sommeWasiyya, unTiers);
+        if (!hasLivingChildren) {
+            log.info("Aucun enfant vivant : Représentation pure (les petits-enfants remplacent leurs parents)");
+            return calculerRepresentationPure(request, tombesActives);
+        }
+
+        boolean plafonnee = estSuperieur(sommeWasiyya, unTiers);
         List<Fraction> wasiyyaEffectives = new ArrayList<>();
 
         if (plafonnee) {
@@ -133,6 +138,102 @@ public class CalculPartsEtenduService {
                 .plafonnee(plafonnee)
                 .beneficiaires(beneficiaires)
                 .build());
+        }
+
+        // Réduction au même dénominateur final
+        List<Fraction> allFractions = new ArrayList<>();
+        for (Heritier h : finalResult) {
+            allFractions.add(h.getPart());
+        }
+        List<Fraction> allFractionsMemeDen = Fraction.reduireAuMemDenominateur(allFractions);
+        for (int i = 0; i < finalResult.size(); i++) {
+            finalResult.get(i).setPart(allFractionsMemeDen.get(i));
+        }
+
+        return new CalculEtenduResult(finalResult, detailTombes, tombesActives.size());
+    }
+
+    /**
+     * Calcule la répartition lorsque tous les enfants sont décédés.
+     * Les petits-enfants prennent exactement la place de leurs parents (Représentation pure).
+     */
+    private CalculEtenduResult calculerRepresentationPure(FamilyRequest request, List<Tombe> tombesActives) {
+        // 1. Créer une requête simulant que tous les parents décédés (Tombes) sont vivants
+        FamilyRequest simRequest = FamilyRequest.builder()
+                .sexeDefunt(request.getSexeDefunt())
+                .nbConjoints(request.getNbConjoints())
+                .pereVivant(request.isPereVivant())
+                .mereVivante(request.isMereVivante())
+                .grandPerePaternelVivant(request.isGrandPerePaternelVivant())
+                .grandMerePaternelleVivante(request.isGrandMerePaternelleVivante())
+                .nbSoeurs(request.getNbSoeurs() != null ? request.getNbSoeurs() : 0)
+                .nbFreres(request.getNbFreres() != null ? request.getNbFreres() : 0)
+                .nbOncles(request.getNbOncles() != null ? request.getNbOncles() : 0)
+                .nbCousins(request.getNbCousins() != null ? request.getNbCousins() : 0)
+                .build();
+
+        int simGarcons = 0;
+        int simFilles = 0;
+        for (Tombe t : tombesActives) {
+            if ("M".equalsIgnoreCase(t.getSexeParentPredecede())) {
+                simGarcons++;
+            } else {
+                simFilles++;
+            }
+        }
+        simRequest.setNbGarcons(simGarcons);
+        simRequest.setNbFilles(simFilles);
+
+        // 2. Calculer les parts avec ces enfants simulés
+        List<Heritier> simResult = calculPartsService.calculPartsInterne(simRequest, new Fraction(1));
+
+        // 3. Récupérer la part d'un seul Fils simulé et d'une seule Fille simulée
+        Fraction partOneSon = new Fraction(0);
+        Fraction partOneDaughter = new Fraction(0);
+        for (Heritier h : simResult) {
+            if ("fils".equalsIgnoreCase(h.getHeritier()) || HeirType.SON.equals(h.getType())) {
+                partOneSon = h.getPart(); // La part retournée est déjà celle d'un seul enfant
+            }
+            if ("fille".equalsIgnoreCase(h.getHeritier()) || HeirType.DAUGHTER.equals(h.getType())) {
+                partOneDaughter = h.getPart();
+            }
+        }
+
+        // 4. Construire le résultat final
+        List<Heritier> finalResult = new ArrayList<>();
+        // Conserver tous les héritiers classiques (conjoint, parents...) sauf les enfants simulés et la part restante
+        for (Heritier h : simResult) {
+            if (!"fils".equalsIgnoreCase(h.getHeritier()) && !HeirType.SON.equals(h.getType()) &&
+                !"fille".equalsIgnoreCase(h.getHeritier()) && !HeirType.DAUGHTER.equals(h.getType()) &&
+                !"part restant".equalsIgnoreCase(h.getHeritier())) {
+                finalResult.add(h);
+            }
+        }
+
+        // 5. Distribuer la part de chaque parent simulé à ses propres bénéficiaires (la Tombe)
+        List<TombeDetail> detailTombes = new ArrayList<>();
+        for (Tombe t : tombesActives) {
+            Fraction parentShare = "M".equalsIgnoreCase(t.getSexeParentPredecede()) ? partOneSon : partOneDaughter;
+            
+            List<Heritier> beneficiaires = distribuerWasiyya(t, parentShare);
+            finalResult.addAll(beneficiaires);
+
+            detailTombes.add(TombeDetail.builder()
+                .identifiant(t.getIdentifiant())
+                .sexeParentPredecede(t.getSexeParentPredecede())
+                .lienParente(t.getLienParente())
+                .partSimulee(parentShare)
+                .wasiyyaEffective(parentShare)
+                .plafonnee(false)
+                .beneficiaires(beneficiaires)
+                .build());
+        }
+
+        // Réinsérer la part restante à la fin si elle existe
+        for (Heritier h : simResult) {
+            if ("part restant".equalsIgnoreCase(h.getHeritier())) {
+                finalResult.add(h);
+            }
         }
 
         // Réduction au même dénominateur final
