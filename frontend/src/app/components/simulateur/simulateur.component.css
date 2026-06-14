@@ -41,7 +41,14 @@
   margin-bottom: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
   border: 1px solid #edf2f7;
+  border-top-width: 4px;
 }
+
+.section-defunt { border-top-color: #94a3b8; }
+.section-conjoints { border-top-color: #ec4899; }
+.section-descendants { border-top-color: #10b981; }
+.section-ascendants { border-top-color: #f59e0b; }
+.section-collateraux { border-top-color: #8b5cf6; }
 
 .tombe-card {
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);

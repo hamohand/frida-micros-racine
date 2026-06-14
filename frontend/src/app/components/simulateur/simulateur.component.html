@@ -10,8 +10,8 @@
       <form [formGroup]="simForm" class="sim-form">
         
         <!-- SECTION 1 : LE DÉFUNT -->
-        <section class="form-section">
-          <h2>1. Le Défunt</h2>
+        <section class="form-section section-defunt">
+          <h2>1. Informations sur le Défunt</h2>
           <div class="gender-selector">
             <button type="button" 
                     class="gender-btn" 
@@ -29,8 +29,8 @@
         </section>
 
         <!-- SECTION 2 : CONJOINTS -->
-        <section class="form-section">
-          <h2>2. Conjoint(s) survivant(s)</h2>
+        <section class="form-section section-conjoints">
+          <h2>2. Conjoints (Époux / Épouses)</h2>
           <div class="counter-group">
             <label>{{ simForm.get('sexeDefunt')?.value === 'M' ? 'Épouse(s)' : 'Époux' }}</label>
             <div class="counter-controls">
@@ -44,8 +44,8 @@
         </section>
 
         <!-- SECTION 3 : DESCENDANTS -->
-        <section class="form-section">
-          <h2>3. Descendants (Enfants)</h2>
+        <section class="form-section section-descendants">
+          <h2>3. Descendants (Enfants & Petits-enfants)</h2>
           <div class="counter-grid">
             <div class="counter-group">
               <label>Fils</label>
@@ -117,7 +117,7 @@
 
 
         <!-- SECTION 4 : ASCENDANTS -->
-        <section class="form-section">
+        <section class="form-section section-ascendants">
           <h2>4. Ascendants (Parents & Grands-parents)</h2>
           <div class="toggle-grid">
             <label class="toggle-label">
@@ -140,7 +140,7 @@
         </section>
 
         <!-- SECTION 5 : COLLATÉRAUX -->
-        <section class="form-section">
+        <section class="form-section section-collateraux">
           <h2>5. Collatéraux (Frères & Sœurs)</h2>
           <div class="counter-grid">
             <div class="counter-group" [class.disabled-item]="simForm.get('nbFreres')?.disabled">
