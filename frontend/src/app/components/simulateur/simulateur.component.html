@@ -99,7 +99,7 @@
               <div *ngFor="let tombe of tombesEnfants.controls; let i=index" [formGroupName]="i" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
                 
                 <h4 style="margin: 0 0 0.75rem 0; color: #334155; font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
-                  {{ tombe.get('sexeParentPredecede')?.value === 'M' ? 'Fils prédécédé' : 'Fille prédécédée' }}
+                  {{ tombe.get('sexeParentPredecede')?.value === 'M' ? 'Fils prédécédé' : 'Fille prédécédée' }} {{ i + 1 }}
                 </h4>
 
                 <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Petits-enfants du défunt) :</label>
@@ -222,7 +222,7 @@
               <div *ngFor="let tombe of tombesFratrie.controls; let i=index" [formGroupName]="i" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem;">
                 
                 <h4 style="margin: 0 0 0.75rem 0; color: #334155; font-size: 0.95rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.5rem;">
-                  {{ tombe.get('sexeParentPredecede')?.value === 'M' ? 'Frère prédécédé' : 'Sœur prédécédée' }}
+                  {{ tombe.get('sexeParentPredecede')?.value === 'M' ? 'Frère prédécédé' : 'Sœur prédécédée' }} {{ i + 1 }}
                 </h4>
 
                 <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Neveux/Nièces) :</label>
