@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../../services/auth.service';
 
@@ -266,7 +266,7 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class HomeComponent {
   authService = inject(AuthService);
-  private router = inject(import('@angular/router').Router);
+  private router = inject(Router);
 
   ngOnInit() {
     if (window.location.hostname.includes('simul-frida')) {
