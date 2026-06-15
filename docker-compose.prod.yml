@@ -51,7 +51,7 @@ services:
       - DB_USER=${DB_USER:-muhend}
       - DB_PASSWORD=${DB_PASSWORD:-motdepassetresfortVPS2026}
       - SERVICES_OCR_URL=http://ocr-api:8082
-      - CORS_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com
+      - CORS_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com,https://simul-frida.enclume-numerique.com
       - APP_DEMO_MODE=true
     volumes:
       - frida_uploads:/app/uploads
@@ -64,7 +64,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=webproxy"
-      - "traefik.http.routers.frida-backend.rule=(Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`)) && PathPrefix(`/api`)"
+      - "traefik.http.routers.frida-backend.rule=(Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)) && PathPrefix(`/api`)"
       - "traefik.http.routers.frida-backend.entrypoints=websecure"
       - "traefik.http.routers.frida-backend.tls=true"
       - "traefik.http.routers.frida-backend.tls.certresolver=myresolver"
@@ -88,12 +88,12 @@ services:
     labels:
       - "traefik.enable=true"
       # Configuration HTTP vers HTTPS
-      - "traefik.http.routers.frida-frontend-http.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`)"
+      - "traefik.http.routers.frida-frontend-http.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend-http.entrypoints=web"
       - "traefik.http.routers.frida-frontend-http.middlewares=frida-redirect"
       - "traefik.http.middlewares.frida-redirect.redirectscheme.scheme=https"
       # Configuration HTTPS
-      - "traefik.http.routers.frida-frontend.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`)"
+      - "traefik.http.routers.frida-frontend.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend.entrypoints=websecure"
       - "traefik.http.routers.frida-frontend.tls=true"
       - "traefik.http.routers.frida-frontend.tls.certresolver=myresolver"
