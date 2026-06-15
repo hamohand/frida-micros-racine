@@ -70,13 +70,13 @@ export class SimulateurComponent implements OnInit, OnDestroy {
   }
 
   addTombeFratrie(): void {
-    this.tombesFratrie.push(this.createTombeGroup('frere/soeur'));
+    this.tombesFratrie.push(this.createTombeGroup('frere_soeur'));
   }
 
-  private createTombeGroup(lien: string): FormGroup {
+  private createTombeGroup(type: 'enfant' | 'frere_soeur'): FormGroup {
     return this.fb.group({
-      lienParente: [lien],
-      sexeParentPredecede: ['M'],
+      lienParente: [type],
+      sexeParentPredecede: ['M', Validators.required],
       nbDescendantsMales: [0, Validators.min(0)],
       nbDescendantesFemelles: [0, Validators.min(0)]
     });
