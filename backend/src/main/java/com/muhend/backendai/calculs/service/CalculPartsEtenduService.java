@@ -316,7 +316,7 @@ public class CalculPartsEtenduService {
         if (totalParts == 0) return beneficiaires;
 
         boolean isEnfant = "enfant".equalsIgnoreCase(tombe.getLienParente());
-        String cadreLegal = "الوصية الواجبة (Testament Obligatoire)";
+        String cadreLegal = "الوصية الواجبة (Testament Obligatoire - " + tombe.getIdentifiant() + ")";
 
         if (nbMales > 0) {
             Fraction partMale = wasiyya.multiplier(2).diviser(totalParts);

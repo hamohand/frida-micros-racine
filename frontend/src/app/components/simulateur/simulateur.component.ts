@@ -214,12 +214,20 @@ export class SimulateurComponent implements OnInit, OnDestroy {
                               (valeurs.tombesEnfants && valeurs.tombesEnfants.length > 0) ||
                               (valeurs.tombesFratrie && valeurs.tombesFratrie.length > 0);
 
+    let compteurEnfants = 1;
+    valeurs.tombesEnfants?.forEach((t: any) => {
+      const parentLabel = t.sexeParentPredecede === 'M' ? 'Fils prédécédé' : 'Fille prédécédée';
+      t.identifiant = `${parentLabel} ${compteurEnfants++}`;
+    });
+
+    let compteurFratrie = 1;
+    valeurs.tombesFratrie?.forEach((t: any) => {
+      const parentLabel = t.sexeParentPredecede === 'M' ? 'Frère prédécédé' : 'Sœur prédécédée';
+      t.identifiant = `${parentLabel} ${compteurFratrie++}`;
+    });
+
     // Fusionner les tombes pour le backend
     valeurs.tombes = [...(valeurs.tombesEnfants || []), ...(valeurs.tombesFratrie || [])];
-    // Générer un identifiant unique pour chaque tombe au moment de l'envoi
-    valeurs.tombes.forEach((t: any, i: number) => {
-      t.identifiant = `T${i + 1}`;
-    });
     
     // Supprimer les champs spécifiques au frontend
     delete valeurs.tombesEnfants;
