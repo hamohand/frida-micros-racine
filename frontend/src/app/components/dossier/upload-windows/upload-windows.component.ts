@@ -104,43 +104,82 @@ import { forkJoin, Observable, of } from 'rxjs';
           </div>
         </div>
 
-        <!-- Fenêtre Petits-fils -->
-        <div class="window-section" *ngIf="isWindowActive('f_petits_fils')">
-          <ng-container *ngIf="!windows['f_petits_fils'].isUploading">
-            <h2 class="window-title">Documents des Petits-fils (Wasiyya Wajiba)</h2>
-            <app-file-upload #fileUploadFPetitsFils
-                [config]="getUploadConfig('09', 'Petits-fils', true, 'Continuer s\\'il n\\'y a pas de petits-fils', 10)"
-                [initialFiles]="windows['f_petits_fils'].rawFiles || []"
-                (filesConfirmed)="onFilesConfirmed('f_petits_fils', $event)"
-                (previousClicked)="moveToPreviousWindow('f_petits_fils')"
-                (uploadCancelled)="onUploadCancelled('f_petits_fils')"
-                (pendingFilesChanged)="onPendingFilesChanged('f_petits_fils', $event)"
-                (skipClicked)="continueToNext('f_petits_fils')"
-            ></app-file-upload>
-          </ng-container>
-          <div *ngIf="windows['f_petits_fils'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+        <!-- Fenêtre Déclaration Tombes -->
+        <div class="window-section" *ngIf="isWindowActive('f_tombes_declare')">
+          <div class="upload-container" style="max-width: 600px; margin: 0 auto; text-align: center;">
+            <h2 class="window-title">Enfants prédécédés (Tombes)</h2>
+            <p style="color: #64748b; margin-bottom: 2rem;">Avez-vous des enfants décédés avant le défunt (laissant des descendants) ?</p>
+            
+            <div style="display: flex; justify-content: center; gap: 3rem; margin-bottom: 2rem;">
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <label style="font-weight: bold; color: #475569;">Fils décédés</label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <button type="button" (click)="nbFilsDecedes = Math.max(0, nbFilsDecedes - 1)" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">-</button>
+                  <span style="font-size: 1.5rem; font-weight: bold; min-width: 30px;">{{ nbFilsDecedes }}</span>
+                  <button type="button" (click)="nbFilsDecedes = nbFilsDecedes + 1" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">+</button>
+                </div>
+              </div>
+              
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+                <label style="font-weight: bold; color: #475569;">Filles décédées</label>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                  <button type="button" (click)="nbFillesDecedees = Math.max(0, nbFillesDecedees - 1)" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">-</button>
+                  <span style="font-size: 1.5rem; font-weight: bold; min-width: 30px;">{{ nbFillesDecedees }}</span>
+                  <button type="button" (click)="nbFillesDecedees = nbFillesDecedees + 1" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">+</button>
+                </div>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
+              <button class="btn btn-outline" (click)="moveToPreviousWindow('f_tombes_declare')">Précédent</button>
+              <button class="btn btn-primary" (click)="continueToNext('f_tombes_declare')">Continuer</button>
+            </div>
           </div>
         </div>
 
-        <!-- Fenêtre Petites-filles -->
-        <div class="window-section" *ngIf="isWindowActive('f_petites_filles')">
-          <ng-container *ngIf="!windows['f_petites_filles'].isUploading">
-            <h2 class="window-title">Documents des Petites-filles (Wasiyya Wajiba)</h2>
-            <app-file-upload #fileUploadFPetitesFilles
-                [config]="getUploadConfig('10', 'Petites-filles', true, 'Continuer s\\'il n\\'y a pas de petites-filles', 10)"
-                [initialFiles]="windows['f_petites_filles'].rawFiles || []"
-                (filesConfirmed)="onFilesConfirmed('f_petites_filles', $event)"
-                (previousClicked)="moveToPreviousWindow('f_petites_filles')"
-                (uploadCancelled)="onUploadCancelled('f_petites_filles')"
-                (pendingFilesChanged)="onPendingFilesChanged('f_petites_filles', $event)"
-                (skipClicked)="continueToNext('f_petites_filles')"
-            ></app-file-upload>
-          </ng-container>
-          <div *ngIf="windows['f_petites_filles'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+        <!-- Fenêtres dynamiques Fils Prédécédés -->
+        <ng-container *ngFor="let idx of getRange(nbFilsDecedes)">
+          <div class="window-section" *ngIf="isWindowActive('tombe_M_' + (idx + 1))">
+            <ng-container *ngIf="!getWindow('tombe_M_' + (idx + 1)).isUploading">
+              <h2 class="window-title">Tombe {{ idx + 1 }} (Fils prédécédé)</h2>
+              <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
+              <app-file-upload 
+                  [config]="getUploadConfig('09', 'Tombe ' + (idx + 1) + ' (Fils)', true, 'Continuer s\\'il n\\'y a pas de documents', 10)"
+                  [initialFiles]="getWindow('tombe_M_' + (idx + 1)).rawFiles || []"
+                  (filesConfirmed)="onFilesConfirmed('tombe_M_' + (idx + 1), $event)"
+                  (previousClicked)="moveToPreviousWindow('tombe_M_' + (idx + 1))"
+                  (uploadCancelled)="onUploadCancelled('tombe_M_' + (idx + 1))"
+                  (pendingFilesChanged)="onPendingFilesChanged('tombe_M_' + (idx + 1), $event)"
+                  (skipClicked)="continueToNext('tombe_M_' + (idx + 1))"
+              ></app-file-upload>
+            </ng-container>
+            <div *ngIf="getWindow('tombe_M_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
+              <span class="spinner"></span> Sauvegarde en cours...
+            </div>
           </div>
-        </div>
+        </ng-container>
+
+        <!-- Fenêtres dynamiques Filles Prédécédées -->
+        <ng-container *ngFor="let idx of getRange(nbFillesDecedees)">
+          <div class="window-section" *ngIf="isWindowActive('tombe_F_' + (idx + 1))">
+            <ng-container *ngIf="!getWindow('tombe_F_' + (idx + 1)).isUploading">
+              <h2 class="window-title">Tombe {{ idx + 1 }} (Fille prédécédée)</h2>
+              <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
+              <app-file-upload 
+                  [config]="getUploadConfig('10', 'Tombe ' + (idx + 1) + ' (Fille)', true, 'Continuer s\\'il n\\'y a pas de documents', 10)"
+                  [initialFiles]="getWindow('tombe_F_' + (idx + 1)).rawFiles || []"
+                  (filesConfirmed)="onFilesConfirmed('tombe_F_' + (idx + 1), $event)"
+                  (previousClicked)="moveToPreviousWindow('tombe_F_' + (idx + 1))"
+                  (uploadCancelled)="onUploadCancelled('tombe_F_' + (idx + 1))"
+                  (pendingFilesChanged)="onPendingFilesChanged('tombe_F_' + (idx + 1), $event)"
+                  (skipClicked)="continueToNext('tombe_F_' + (idx + 1))"
+              ></app-file-upload>
+            </ng-container>
+            <div *ngIf="getWindow('tombe_F_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
+              <span class="spinner"></span> Sauvegarde en cours...
+            </div>
+          </div>
+        </ng-container>
 
         <!-- Fenêtre Père -->
         <div class="window-section" *ngIf="isWindowActive('f_pere')">
@@ -490,8 +529,25 @@ export class UploadWindowsComponent implements OnInit {
     // Témoins
     f_temoins: { isVisible: false, hasFiles: false, isUploading: false, path: '00' },
     // Lecture AI
-    f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
+    f_ai: { isVisible: false, hasFiles: false, isUploading: false, path: '' },
+    // Fenêtre déclaration tombes
+    f_tombes_declare: { isVisible: false, hasFiles: false, isUploading: false, path: '' }
   };
+
+  Math = Math;
+  nbFilsDecedes = 0;
+  nbFillesDecedees = 0;
+
+  getRange(n: number): number[] {
+    return Array.from({length: n}, (_, i) => i);
+  }
+
+  getWindow(key: string): UploadWindowState {
+    if (!this.windows[key]) {
+      this.windows[key] = { isVisible: false, hasFiles: false, isUploading: false, path: key.startsWith('tombe_M') ? '09' : '10' };
+    }
+    return this.windows[key];
+  }
 
   isUploadingFiles = false;
   isReading = false;
@@ -502,7 +558,12 @@ export class UploadWindowsComponent implements OnInit {
 
   getActiveWindowKeys(): string[] {
     const fiche = this.constitutionService.currentFiche;
-    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_petits_fils', 'f_petites_filles', 'f_pere'];
+    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_tombes_declare'];
+
+    for (let i = 1; i <= this.nbFilsDecedes; i++) keys.push(`tombe_M_${i}`);
+    for (let i = 1; i <= this.nbFillesDecedees; i++) keys.push(`tombe_F_${i}`);
+
+    keys.push('f_pere');
 
     // Exclusion du Grand-père paternel (exclu si le Père est vivant)
     if (!fiche.pereVivant) {
