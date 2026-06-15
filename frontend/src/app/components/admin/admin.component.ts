@@ -8,7 +8,7 @@ import { AuthService } from '../../services/auth.service';
   standalone: true,
   imports: [RouterOutlet, RouterLink, CommonModule],
   template: `
-    <nav class="nav-bar">
+    <nav class="nav-bar" *ngIf="!isStandaloneSimulator">
       <a routerLink="/" class="nav-logo">Ustadh-a</a>
       <div class="nav-links">
         <a routerLink="/" class="nav-link">
@@ -22,7 +22,7 @@ import { AuthService } from '../../services/auth.service';
         </ng-container>
       </div>
     </nav>
-    <main style="padding-top: var(--nav-height);">
+    <main [ngStyle]="{'padding-top': isStandaloneSimulator ? '0' : 'var(--nav-height)'}">
       <router-outlet></router-outlet>
     </main>
   `,
@@ -31,6 +31,13 @@ export class AdminComponent {
   authService = inject(AuthService);
   router = inject(Router);
   isDemoMode = false;
+  isStandaloneSimulator = false;
+
+  ngOnInit() {
+    if (window.location.hostname.includes('simul-frida')) {
+      this.isStandaloneSimulator = true;
+    }
+  }
 
   toggleDemoMode() {
     this.isDemoMode = !this.isDemoMode;

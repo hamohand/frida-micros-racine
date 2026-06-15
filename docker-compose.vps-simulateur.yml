@@ -1,0 +1,57 @@
+services:
+  # ===== PostgreSQL Database (Minimal) =====
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USER:-frida}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-frida_pwd}
+      POSTGRES_DB: ${DB_NAME:-frida_db}
+    ports:
+      - "127.0.0.1:5432:5432" # Uniquement accessible localement
+    volumes:
+      - frida_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USER:-frida} -d ${DB_NAME:-frida_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  # ===== Backend (Spring Boot - Simulateur) =====
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-frida_db}
+      DB_USER: ${DB_USER:-frida}
+      DB_PASSWORD: ${DB_PASSWORD:-frida_pwd}
+      BACKEND_PORT: 8080
+      SPRING_PROFILES_ACTIVE: docker
+      CORS_ORIGINS: "http://simul-frida.enclume-numerique.com,https://simul-frida.enclume-numerique.com"
+      ROOT_PATH: /app/uploads/
+      # Pas de GOOGLE_APPLICATION_CREDENTIALS ni d'OCR requis pour le simulateur
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+
+  # ===== Frontend (Angular + Nginx local) =====
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      - BACKEND_URL=http://backend:8080
+    ports:
+      - "127.0.0.1:4200:80"
+    depends_on:
+      - backend
+    restart: always
+
+volumes:
+  frida_data:

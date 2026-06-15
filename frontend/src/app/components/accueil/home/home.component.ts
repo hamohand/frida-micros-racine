@@ -266,4 +266,11 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class HomeComponent {
   authService = inject(AuthService);
+  private router = inject(import('@angular/router').Router);
+
+  ngOnInit() {
+    if (window.location.hostname.includes('simul-frida')) {
+      this.router.navigate(['/simulateur']);
+    }
+  }
 }
