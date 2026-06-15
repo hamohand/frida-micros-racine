@@ -52,6 +52,10 @@ export class SimulateurComponent implements OnInit, OnDestroy {
       nbFreres: [0, [Validators.min(0)]],
       nbOncles: [0, [Validators.min(0)]],
       nbCousins: [0, [Validators.min(0)]],
+      nbFilsDecedes: [0, [Validators.min(0)]],
+      nbFillesDecedees: [0, [Validators.min(0)]],
+      nbFreresDecedes: [0, [Validators.min(0)]],
+      nbSoeursDecedees: [0, [Validators.min(0)]],
       tombesEnfants: this.fb.array([]),
       tombesFratrie: this.fb.array([])
     });
@@ -65,29 +69,40 @@ export class SimulateurComponent implements OnInit, OnDestroy {
     return this.simForm.get('tombesFratrie') as FormArray;
   }
 
-  addTombeEnfant(): void {
-    this.tombesEnfants.push(this.createTombeGroup('enfant'));
-  }
-
-  addTombeFratrie(): void {
-    this.tombesFratrie.push(this.createTombeGroup('frere_soeur'));
-  }
-
-  private createTombeGroup(type: 'enfant' | 'frere_soeur'): FormGroup {
-    return this.fb.group({
+  incrementDecede(type: 'enfant' | 'frere_soeur', sexe: 'M' | 'F'): void {
+    const controlName = type === 'enfant' ? (sexe === 'M' ? 'nbFilsDecedes' : 'nbFillesDecedees') : (sexe === 'M' ? 'nbFreresDecedes' : 'nbSoeursDecedees');
+    const control = this.simForm.get(controlName);
+    if (control?.disabled) return;
+    const current = control?.value || 0;
+    control?.setValue(current + 1);
+    
+    const formArray = type === 'enfant' ? this.tombesEnfants : this.tombesFratrie;
+    const group = this.fb.group({
       lienParente: [type],
-      sexeParentPredecede: ['M', Validators.required],
+      sexeParentPredecede: [sexe, Validators.required],
       nbDescendantsMales: [0, Validators.min(0)],
       nbDescendantesFemelles: [0, Validators.min(0)]
     });
+    formArray.push(group);
   }
 
-  removeTombeEnfant(index: number): void {
-    this.tombesEnfants.removeAt(index);
-  }
-
-  removeTombeFratrie(index: number): void {
-    this.tombesFratrie.removeAt(index);
+  decrementDecede(type: 'enfant' | 'frere_soeur', sexe: 'M' | 'F'): void {
+    const controlName = type === 'enfant' ? (sexe === 'M' ? 'nbFilsDecedes' : 'nbFillesDecedees') : (sexe === 'M' ? 'nbFreresDecedes' : 'nbSoeursDecedees');
+    const control = this.simForm.get(controlName);
+    if (control?.disabled) return;
+    const current = control?.value || 0;
+    if (current > 0) {
+      control?.setValue(current - 1);
+      
+      const formArray = type === 'enfant' ? this.tombesEnfants : this.tombesFratrie;
+      for (let i = formArray.length - 1; i >= 0; i--) {
+        const group = formArray.at(i) as FormGroup;
+        if (group.get('sexeParentPredecede')?.value === sexe) {
+          formArray.removeAt(i);
+          break;
+        }
+      }
+    }
   }
 
   incrementTombe(formArray: FormArray, index: number, controlName: string): void {
