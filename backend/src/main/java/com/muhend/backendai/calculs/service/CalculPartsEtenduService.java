@@ -191,7 +191,7 @@ public class CalculPartsEtenduService {
         Fraction partOneSon = new Fraction(0);
         Fraction partOneDaughter = new Fraction(0);
         for (Heritier h : simResult) {
-            if ("fils".equalsIgnoreCase(h.getHeritier())) {
+            if ("garçon".equalsIgnoreCase(h.getHeritier())) {
                 partOneSon = h.getPart(); // La part retournée est déjà celle d'un seul enfant
             }
             if ("fille".equalsIgnoreCase(h.getHeritier())) {
@@ -203,7 +203,7 @@ public class CalculPartsEtenduService {
         List<Heritier> finalResult = new ArrayList<>();
         // Conserver tous les héritiers classiques (conjoint, parents...) sauf les enfants simulés et la part restante
         for (Heritier h : simResult) {
-            if (!"fils".equalsIgnoreCase(h.getHeritier()) &&
+            if (!"garçon".equalsIgnoreCase(h.getHeritier()) &&
                 !"fille".equalsIgnoreCase(h.getHeritier()) &&
                 !"part restant".equalsIgnoreCase(h.getHeritier())) {
                 finalResult.add(h);
