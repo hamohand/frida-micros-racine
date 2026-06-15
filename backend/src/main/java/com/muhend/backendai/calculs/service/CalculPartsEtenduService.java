@@ -316,7 +316,7 @@ public class CalculPartsEtenduService {
         if (totalParts == 0) return beneficiaires;
 
         boolean isEnfant = "enfant".equalsIgnoreCase(tombe.getLienParente());
-        String cadreLegal = "الوصية الواجبة - " + tombe.getIdentifiant();
+        String cadreLegal = "الوصية الواجبة (Testament Obligatoire)";
 
         if (nbMales > 0) {
             Fraction partMale = wasiyya.multiplier(2).diviser(totalParts);
@@ -324,7 +324,7 @@ public class CalculPartsEtenduService {
             Heritier h = new Heritier(type, partMale);
             h.setCadreLegal(cadreLegal);
             h.setPartLegale(partMale);
-            h.setHeritier(type.getLabel() + " (" + tombe.getIdentifiant() + ")");
+            h.setHeritier(type.getLabel());
             beneficiaires.add(h);
         }
 
@@ -334,7 +334,7 @@ public class CalculPartsEtenduService {
             Heritier h = new Heritier(type, partFemelle);
             h.setCadreLegal(cadreLegal);
             h.setPartLegale(partFemelle);
-            h.setHeritier(type.getLabel() + " (" + tombe.getIdentifiant() + ")");
+            h.setHeritier(type.getLabel());
             beneficiaires.add(h);
         }
 
