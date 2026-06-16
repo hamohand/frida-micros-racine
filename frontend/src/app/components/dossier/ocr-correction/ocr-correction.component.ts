@@ -92,6 +92,9 @@ interface ChampSuspect {
       </div>
 
       <div class="actions" *ngIf="!isLoading && champs.length > 0">
+        <button class="btn btn-secondary" (click)="retourAvant()" [disabled]="isSubmitting">
+          ⬅️ Précédent
+        </button>
         <button class="btn btn-secondary" (click)="toutAccepter()" [disabled]="isSubmitting">
           Tout accepter tel quel
         </button>
@@ -369,6 +372,10 @@ export class OcrCorrectionComponent implements OnInit {
         this.continuer();
       }
     });
+  }
+
+  retourAvant() {
+    this.router.navigate(['/dossier/upload'], { queryParams: { numFrida: this.numFrida } });
   }
 
   validerCorrections() {

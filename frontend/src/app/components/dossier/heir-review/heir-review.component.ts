@@ -118,17 +118,7 @@ interface Personne {
           Aucun héritier enregistré. Cliquez sur "Ajouter manuellement" pour en créer un.
         </div>
 
-        <!-- Section Wasiyya Wajiba (Petits-enfants) -->
-        <div class="edit-form highlight" *ngIf="hasGrandchildren()" style="margin-top: 1.5rem;">
-          <h4 style="color: var(--accent-color);">ℹ️ Précision pour les Petits-Enfants (Wasiyya Wajiba)</h4>
-          <p style="font-size: 0.9rem; margin-bottom: 1rem;">Les petits-enfants héritent de la part de leur parent pré-décédé. Veuillez préciser le sexe de ce parent :</p>
-          <div class="form-grid">
-            <select [(ngModel)]="sexeParentPredecede" style="width: 100%; max-width: 300px;">
-              <option value="M">Leur père est pré-décédé (Fils du défunt)</option>
-              <option value="F">Leur mère est pré-décédée (Fille du défunt)</option>
-            </select>
-          </div>
-        </div>
+
 
         <div class="actions">
           <button class="btn btn-secondary" (click)="goBack()">Retourner au carrousel</button>
