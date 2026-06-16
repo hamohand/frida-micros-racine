@@ -73,5 +73,9 @@ export const routes: Routes = [
     canActivate: [authGuard],
     loadComponent: () => import('./components/backup/backup.component').then(m => m.BackupComponent) 
   },
+  {
+    path: 'license',
+    loadComponent: () => import('./components/license/license.component').then(m => m.LicenseComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

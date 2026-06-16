@@ -1,0 +1,46 @@
+<div class="license-container">
+  <div class="license-card">
+    <div class="header">
+      <h2>🛡️ Activation de Frida</h2>
+      <p>Une licence valide est requise pour utiliser cette installation de Frida.</p>
+    </div>
+
+    <div *ngIf="isLoading" class="loading">
+      Vérification en cours...
+    </div>
+
+    <div *ngIf="!isLoading">
+      <div class="status-box" [ngClass]="isValid ? 'status-valid' : 'status-invalid'">
+        <div class="status-icon">
+          <span *ngIf="isValid">✅</span>
+          <span *ngIf="!isValid">⚠️</span>
+        </div>
+        <div class="status-text">
+          <strong>{{ isValid ? 'Licence Active' : 'Licence Requise ou Expirée' }}</strong>
+          <span class="hw-id">Identifiant Machine : {{ hardwareId }}</span>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="!isValid">
+        <label>Saisissez votre clé de licence</label>
+        <input type="text" [(ngModel)]="licenseKey" placeholder="FRIDA-XXXX-YYYY" class="form-control" />
+      </div>
+
+      <div class="alert alert-error" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+      
+      <div class="alert alert-success" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <button class="btn btn-primary" (click)="activate()" *ngIf="!isValid" [disabled]="!licenseKey || isLoading">
+        Activer ma licence
+      </button>
+
+      <button class="btn btn-outline" routerLink="/" *ngIf="isValid">
+        Accéder à l'application
+      </button>
+    </div>
+  </div>
+</div>
