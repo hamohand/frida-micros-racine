@@ -124,6 +124,8 @@ public class OcrMappingService {
         entity.setDateNaissanceLettres(getText.apply("dateNaissanceLettres"));
         entity.setPere(getText.apply("pere"));
         entity.setMere(getText.apply("mere"));
+        entity.setNin(getText.apply("nin"));
+        entity.setNumeroPiece(getText.apply("numeroPiece"));
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
