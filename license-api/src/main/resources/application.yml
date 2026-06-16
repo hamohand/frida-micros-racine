@@ -1,0 +1,26 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: license-api
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:frida_licenses_db}
+    username: ${DB_USER:muhend}
+    password: ${DB_PASSWORD:motdepassetresfortVPS2026}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:https://auth.hscode.enclume-numerique.com}/realms/${KEYCLOAK_REALM:frida-realm}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.enclumenumerique: DEBUG

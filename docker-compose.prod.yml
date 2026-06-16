@@ -1,5 +1,79 @@
 
 services:
+  # Base de données Licences (Isolée)
+  license-db:
+    image: postgres:15-alpine
+    container_name: frida-license-db
+    environment:
+      POSTGRES_DB: frida_licenses_db
+      POSTGRES_USER: ${DB_USER:-muhend}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-motdepassetresfortVPS2026}
+    volumes:
+      - license_db_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  # Serveur de licences (VPS)
+  license-api:
+    build:
+      context: ./license-api
+      dockerfile: Dockerfile
+    container_name: frida-license-api
+    environment:
+      - DB_HOST=license-db
+      - DB_PORT=5432
+      - DB_NAME=frida_licenses_db
+      - DB_USER=${DB_USER:-muhend}
+      - DB_PASSWORD=${DB_PASSWORD:-motdepassetresfortVPS2026}
+      - KEYCLOAK_URL=https://auth.hscode.enclume-numerique.com
+      - KEYCLOAK_REALM=frida-realm
+    depends_on:
+      - license-db
+    networks:
+      - internal
+      - webproxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=webproxy"
+      - "traefik.http.routers.license-api.rule=Host(`licences.frida.enclume-numerique.com`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.license-api.entrypoints=websecure"
+      - "traefik.http.routers.license-api.tls=true"
+      - "traefik.http.routers.license-api.tls.certresolver=myresolver"
+      - "traefik.http.services.license-api.loadbalancer.server.port=8083"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  # Dashboard Administrateur des licences (VPS)
+  license-dashboard:
+    build:
+      context: ./license-dashboard
+      dockerfile: Dockerfile
+      args:
+        - API_URL=https://licences.frida.enclume-numerique.com/api
+    container_name: frida-license-dashboard
+    networks:
+      - webproxy
+    labels:
+      - "traefik.enable=true"
+      # Configuration HTTPS uniquement
+      - "traefik.http.routers.license-dashboard.rule=Host(`licences.frida.enclume-numerique.com`)"
+      - "traefik.http.routers.license-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.license-dashboard.tls=true"
+      - "traefik.http.routers.license-dashboard.tls.certresolver=myresolver"
+      - "traefik.http.services.license-dashboard.loadbalancer.server.port=80"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 100M
   # Base de données PostgreSQL
   db:
     image: postgres:15-alpine
@@ -107,6 +181,7 @@ services:
 volumes:
   postgres_data:
   frida_uploads:
+  license_db_data:
 
 networks:
   internal:

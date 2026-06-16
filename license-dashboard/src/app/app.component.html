@@ -1,0 +1,79 @@
+<div class="app-container">
+  <header class="dashboard-header">
+    <div class="logo">
+      <h1>🛡️ Frida Licenses</h1>
+    </div>
+    <div class="user-info" *ngIf="auth.claims">
+      <span class="user-name">Bienvenue, {{ auth.claims['name'] || auth.claims['preferred_username'] }}</span>
+      <button class="btn btn-outline" (click)="logout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <main class="dashboard-main">
+    <ng-container *ngIf="!auth.claims">
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Connexion en cours...</p>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="auth.claims">
+      <section class="generate-section glass-panel">
+        <h2>Générer une nouvelle licence</h2>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom de l'étude notariale</label>
+            <input type="text" [(ngModel)]="newNotaryName" placeholder="Ex: Me Dupont" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label>Durée de validité (Mois)</label>
+            <input type="number" [(ngModel)]="newValidMonths" min="1" max="120" class="form-control" />
+          </div>
+          <div class="form-group btn-group">
+            <button class="btn btn-primary" (click)="generateLicense()" [disabled]="!newNotaryName">Générer</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="list-section glass-panel">
+        <h2>Licences existantes</h2>
+        
+        <div class="table-responsive">
+          <table class="glass-table">
+            <thead>
+              <tr>
+                <th>Clé de Licence</th>
+                <th>Étude Notariale</th>
+                <th>Expiration</th>
+                <th>Hardware ID</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngIf="licenses.length === 0">
+                <td colspan="6" class="text-center empty-state">Aucune licence générée pour le moment.</td>
+              </tr>
+              <tr *ngFor="let lic of licenses" [class.inactive]="!lic.active">
+                <td class="font-mono"><strong>{{ lic.licenseKey }}</strong></td>
+                <td>{{ lic.notaryName }}</td>
+                <td>{{ lic.validUntil | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <span *ngIf="lic.hardwareId" class="badge badge-info" title="{{ lic.hardwareId }}">Liée</span>
+                  <span *ngIf="!lic.hardwareId" class="badge badge-warning">Libre</span>
+                </td>
+                <td>
+                  <span *ngIf="lic.active" class="badge badge-success">Active</span>
+                  <span *ngIf="!lic.active" class="badge badge-danger">Révoquée</span>
+                </td>
+                <td>
+                  <button class="btn btn-danger btn-sm" (click)="revokeLicense(lic.id)" *ngIf="lic.active">Révoquer</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </ng-container>
+  </main>
+</div>
