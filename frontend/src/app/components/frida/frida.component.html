@@ -81,9 +81,11 @@
                     <span> بتاريخ <span class="ocr-data">{{frida?.defunt.identite.dateNaissance}}</span> بـ <span
                             class="ocr-data">{{frida?.defunt.identite.lieuNaissance}}</span> (ولاية <span
                             class="ocr-data">{{frida?.defunt.identite.wilaya}}</span>)، </span>
-                    <span>من جنسية جزائرية،</span>
-                    <span> الحامل</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
-                    <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data demo-blur">{{frida?.defunt.identite.nin}}</span>، </span>
+                    <span> من جنسية جزائرية،</span>
+                    <ng-container *ngIf="frida?.defunt.identite.nin">
+                        <span> الحامل</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ة</span>
+                        <span> لرقم التعريف الوطني (NIN) : <span class="ocr-data demo-blur">{{frida?.defunt.identite.nin}}</span>، </span>
+                    </ng-container>
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                     <span> رقم <span class="ocr-data demo-blur">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
                 </div>
@@ -133,8 +135,10 @@
                             <span class="ocr-data"><span class="demo-blur">{{heritier.identite?.nom || ''}}</span> {{heritier.identite?.prenom || ''}}</span>
                             <span> {{heritier.identite?.sexe === 'ذكر' ? 'المولود في' : 'المولودة في'}} </span>
                             <span class="ocr-data">{{heritier.identite?.dateNaissance || ''}}</span>
-                            <span> {{heritier.identite?.sexe === 'ذكر' ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني'}} </span>
-                            <span class="ocr-data demo-blur">{{heritier.identite?.nin || ''}}</span>
+                            <ng-container *ngIf="heritier.identite?.nin">
+                                <span> {{heritier.identite?.sexe === 'ذكر' ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني'}} </span>
+                                <span class="ocr-data demo-blur">{{heritier.identite?.nin}}</span>
+                            </ng-container>
                         </div>
                         <span class="leader-spacer"></span>
                         <div class="fraction-box">
