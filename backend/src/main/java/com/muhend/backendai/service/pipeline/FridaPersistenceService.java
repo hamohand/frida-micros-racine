@@ -5,6 +5,7 @@ import com.muhend.backendai.dto.PersonneUpdateDto;
 import com.muhend.backendai.entities.*;
 import com.muhend.backendai.enums.HeirCategory;
 import com.muhend.backendai.repository.*;
+import com.muhend.backendai.service.LicenseValidationService;
 import com.muhend.backendai.utils.SexeUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class FridaPersistenceService {
 
     private final PersonneFactory personneFactory;
     private final HeirPartCalculatorService heirPartCalculatorService;
+    private final LicenseValidationService licenseValidationService;
 
     private final IdentitesRepo identitesRepo;
     private final FridaRepo fridaRepo;
@@ -35,6 +37,7 @@ public class FridaPersistenceService {
     public FridaPersistenceService(
             PersonneFactory personneFactory,
             HeirPartCalculatorService heirPartCalculatorService,
+            LicenseValidationService licenseValidationService,
             IdentitesRepo identitesRepo,
             FridaRepo fridaRepo,
             HeritierRepo heritierRepo,
@@ -43,6 +46,7 @@ public class FridaPersistenceService {
             TemoinRepo temoinRepo) {
         this.personneFactory = personneFactory;
         this.heirPartCalculatorService = heirPartCalculatorService;
+        this.licenseValidationService = licenseValidationService;
         this.identitesRepo = identitesRepo;
         this.fridaRepo = fridaRepo;
         this.heritierRepo = heritierRepo;
@@ -120,7 +124,8 @@ public class FridaPersistenceService {
         // Constituer et sauvegarder la fiche Frida sans le calcul
         FridaEntity ficheFrida = ctx.getFicheFrida();
         ficheFrida.setDateCreation(LocalDate.now());
-        ficheFrida.setNotaire("محمد قثوم الموثق بالجزاىر شارع الانتصار،"); // TODO: rendre configurable
+        String notaryName = licenseValidationService.getNotaryName();
+        ficheFrida.setNotaire(notaryName != null ? notaryName : "محمد قثوم الموثق بالجزاىر شارع الانتصار،");
         ficheFrida.setHeritiers(ctx.getListeHeritiers());
         ficheFrida.setTemoins(ctx.getListeTemoins());
         

@@ -22,6 +22,7 @@ public class LicenseValidationService {
 
     private boolean isLicenseValid = false;
     private String licenseKey = null;
+    private String notaryName = null;
 
     @Value("${frida.license.api.url:https://licences.frida.enclume-numerique.com/api/licenses/verify}")
     private String licenseApiUrl;
@@ -89,6 +90,9 @@ public class LicenseValidationService {
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 Boolean valid = (Boolean) response.getBody().get("valid");
                 this.isLicenseValid = Boolean.TRUE.equals(valid);
+                if (this.isLicenseValid) {
+                    this.notaryName = (String) response.getBody().get("notaryName");
+                }
             } else {
                 this.isLicenseValid = false;
             }
@@ -108,5 +112,9 @@ public class LicenseValidationService {
 
     public String getLicenseKey() {
         return licenseKey;
+    }
+
+    public String getNotaryName() {
+        return notaryName;
     }
 }
