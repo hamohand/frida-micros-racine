@@ -12,7 +12,7 @@ Voici la procédure exacte pour préparer le fichier à envoyer au notaire.
 *(Note : Ne mettez pas le dossier racine dans le zip, sélectionnez directement `backend` et `frontend` avant de zipper).*
 
 ## Étape 2 : Préparer le dossier d'installation
-1. Récupérez les deux fichiers du dossier `install-scripts` :
+1. Récupérez les deux fichiers du dossier `install-notaire/wsl-installation` :
    - `Installer-Frida.bat`
    - `Installer-Frida.ps1`
 2. Placez ces deux fichiers **dans le même dossier** que `frida-micros.zip`.

@@ -104,12 +104,12 @@ Le `docker-compose.prod.yml` reste utile pour :
 ### Ce qu'on livre au testeur
 
 ```
-frida-install/
+install-notaire/docker-installation/
 ├── docker-compose.local.yml     # Compose simplifié (sans Traefik, en localhost)
 ├── .env                          # Configuration pré-remplie
 ├── installer.bat                 # Double-clic pour installer (Windows)
 ├── desinstaller.bat              # Double-clic pour désinstaller
-└── README.txt                    # Instructions en français, simples
+└── LISEZMOI.txt                  # Instructions en français, simples
 ```
 
 ### docker-compose.local.yml (simplifié)
