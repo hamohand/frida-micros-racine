@@ -37,6 +37,18 @@ export class AdminComponent {
     if (window.location.hostname.includes('simul-frida')) {
       this.isStandaloneSimulator = true;
     }
+    
+    // Auto-login if demo mode is enabled on startup
+    if (!this.authService.isLoggedIn()) {
+      this.authService.getSecurityStatus().subscribe({
+        next: (res) => {
+          if (res.demoMode === true || res.demoMode === 'true') {
+            this.authService.loginDemo();
+          }
+        },
+        error: () => {}
+      });
+    }
   }
 
   toggleDemoMode() {
