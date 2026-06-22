@@ -193,8 +193,8 @@ class FridaEndToEndTest {
     @DisplayName("Étape 1 — Créer le dossier du défunt")
     void step1_createFolder() {
         CreateFolderRequest request = new CreateFolderRequest();
-        request.setNom("SuperTest");
-        request.setPrenom("Frida");
+        request.setNom("[TEST] Archive");
+        request.setPrenom("SuperTest");
 
         ResponseEntity<FolderResponse> response = restTemplate.postForEntity(
                 "/api/folders/create", request, FolderResponse.class);
@@ -434,6 +434,7 @@ class FridaEndToEndTest {
     // ==================== ÉTAPE 7 : Nettoyage ====================
 
     @Test
+    @Disabled("Désactivé pour garder l'archive de test visible dans l'UI")
     @Order(7)
     @DisplayName("Étape 7 — Nettoyage (suppression de la Frida de test)")
     void step7_cleanup() {
