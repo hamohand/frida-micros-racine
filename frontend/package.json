@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --port 4201",
     "build": "ng build"
   },
   "dependencies": {
