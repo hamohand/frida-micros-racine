@@ -51,13 +51,18 @@ import { Router } from '@angular/router';
                 <td><span class="demo-blur">{{ frida?.nom }}</span> {{ frida?.prenom }}</td>
                 <td><span class="badge">{{ frida?.dateCreation }}</span></td>
                 <td>
-                  <button class="btn-action" 
-                          (click)="voirFrida(frida.numFrida, frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" 
-                          [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
-                    <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-                    <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                    <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
-                  </button>
+                  <div class="actions-container">
+                    <button class="btn-action" 
+                            (click)="voirFrida(frida.numFrida, frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" 
+                            [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
+                      <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                      <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                      <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
+                    </button>
+                    <button class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
+                      <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                    </button>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="filteredList.length === 0">
@@ -250,8 +255,32 @@ import { Router } from '@angular/router';
       transition: all 0.2s;
     }
 
+    .actions-container {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
     .btn-action:hover {
       background: rgba(66, 153, 225, 0.3);
+      color: #fff;
+    }
+
+    .btn-delete {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245, 101, 101, 0.15);
+      color: #fc8181;
+      border: 1px solid rgba(245, 101, 101, 0.3);
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-delete:hover {
+      background: rgba(245, 101, 101, 0.3);
       color: #fff;
     }
 
@@ -332,6 +361,21 @@ export class SearchComponent implements OnInit {
        this.router.navigate(['/edit', num]);
     } else {
        this.router.navigate(['/frida'], { queryParams: { numFrida: num } });
+    }
+  }
+
+  deleteFrida(numFrida: string) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer la Frida n° ${numFrida} ?`)) {
+      this.fridaService.deleteFrida(numFrida).subscribe({
+        next: () => {
+          this.fridaList = this.fridaList.filter(f => f.numFrida !== numFrida);
+          this.applySortAndFilter();
+        },
+        error: (err) => {
+          console.error("Erreur lors de la suppression", err);
+          alert("Une erreur est survenue lors de la suppression.");
+        }
+      });
     }
   }
 }

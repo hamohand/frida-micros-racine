@@ -44,4 +44,8 @@ export class FridaService {
       })
     );
   }
+
+  deleteFrida(numFrida: string): Observable<any> {
+    return this.monHttp.delete(`/api/frida/${numFrida}`);
+  }
 }
