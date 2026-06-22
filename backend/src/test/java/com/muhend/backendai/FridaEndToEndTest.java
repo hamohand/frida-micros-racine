@@ -141,42 +141,54 @@ class FridaEndToEndTest {
         Collections.shuffle(cniCards, rand);
         Collections.shuffle(enCards, rand);
 
-        // 1. DÉFUNT : toujours 1, préférer un extrait de naissance
-        if (!enCards.isEmpty()) {
-            composition.put(CODE_DEFUNT + "_en", List.of(enCards.remove(0)));
+        // 1. DÉFUNT : toujours 1, l'extrait de naissance n'est pas obligatoire
+        boolean useEnForDefunt = rand.nextBoolean() && !enCards.isEmpty();
+        if (useEnForDefunt || cniCards.isEmpty()) {
+            TestCard defuntCard = enCards.isEmpty() ? allCards.get(0) : enCards.remove(0);
+            composition.put(CODE_DEFUNT + "_en", List.of(defuntCard));
         } else {
             composition.put(CODE_DEFUNT + "_cni", List.of(cniCards.remove(0)));
         }
 
-        // 2. CONJOINT : 1 (CNI de préférence)
-        if (!cniCards.isEmpty()) {
-            composition.put(CODE_CONJOINT + "_cni", List.of(cniCards.remove(0)));
-        }
+        // 2. AUTRES HÉRITIERS (aléatoires parmi : conjoint, enfants, parents, fratrie, etc.)
+        int[] possibleRoles = {
+            2, // CONJOINT
+            3, // ENFANTS
+            4, // PARENTS
+            5, // FRATRIE
+            6, // ONCLE PATERNEL
+            8  // GRAND PERE PATERNEL
+        };
 
-        // 3. ENFANTS : 1 à 3, piocher dans les CNI restantes (réutilisation possible)
-        int nbEnfants = 1 + rand.nextInt(Math.min(3, allCards.size()));
-        List<TestCard> enfantsCards = new ArrayList<>();
-        List<TestCard> availableForReuse = new ArrayList<>(allCards); // on peut réutiliser
+        // Nombre total d'héritiers cible (entre 1 et 6)
+        int targetHeirs = 1 + rand.nextInt(6);
+        int addedHeirs = 0;
+
+        List<TestCard> availableForReuse = new ArrayList<>(allCards);
         Collections.shuffle(availableForReuse, rand);
-        for (int i = 0; i < nbEnfants && !availableForReuse.isEmpty(); i++) {
-            enfantsCards.add(availableForReuse.get(i % availableForReuse.size()));
-        }
-        if (!enfantsCards.isEmpty()) {
-            // Grouper par type de document
-            Map<String, List<TestCard>> enfantsParType = enfantsCards.stream()
-                    .collect(Collectors.groupingBy(c -> c.type));
-            for (Map.Entry<String, List<TestCard>> entry : enfantsParType.entrySet()) {
-                String key = CODE_ENFANT + "_" + entry.getKey();
-                composition.merge(key, entry.getValue(), (existing, newVal) -> {
-                    List<TestCard> merged = new ArrayList<>(existing);
-                    merged.addAll(newVal);
-                    return merged;
-                });
+
+        for (int roleCode : possibleRoles) {
+            if (addedHeirs >= targetHeirs) break;
+
+            // Chaque rôle a une chance d'être présent dans la famille (sauf si on manque d'héritiers, on force un peu)
+            if (rand.nextBoolean() || addedHeirs == 0) {
+                int maxForRole = 1;
+                if (roleCode == 3 || roleCode == 5) maxForRole = 3; // Jusqu'à 3 enfants ou frères
+                if (roleCode == 4 || roleCode == 2) maxForRole = 2; // Jusqu'à 2 parents ou épouses
+
+                int nbToGenerate = 1 + rand.nextInt(maxForRole);
+                
+                for (int i = 0; i < nbToGenerate && addedHeirs < targetHeirs; i++) {
+                    TestCard card = availableForReuse.get(rand.nextInt(availableForReuse.size()));
+                    String key = roleCode + "_" + card.type;
+                    composition.computeIfAbsent(key, k -> new ArrayList<>()).add(card);
+                    addedHeirs++;
+                }
             }
         }
 
-        // Affichage de la composition
-        System.out.println("\n🏠 Composition familiale générée :");
+        // Affichage de la composition générée
+        System.out.println("\n🏠 Composition familiale générée (Total: " + addedHeirs + " héritiers) :");
         composition.forEach((folder, cards) -> {
             System.out.println("  📁 " + folder + " → " +
                     cards.stream().map(c -> c.name).collect(Collectors.joining(", ")));
