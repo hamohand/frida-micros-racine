@@ -42,6 +42,9 @@ class FridaEndToEndTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    private com.muhend.backendai.repository.IdentitesRepo identitesRepo;
+
     // ======= Chemin des données de test =======
     private static final String DONNEES_TESTS_PATH =
             "C:\\Users\\hamoh\\Documents\\projets\\frida\\frida-micros\\donnees_tests";
@@ -289,8 +292,14 @@ class FridaEndToEndTest {
 
         if (response.getBody().getDefunt() != null &&
                 response.getBody().getDefunt().getIdentite() != null) {
-            var defId = response.getBody().getDefunt().getIdentite();
-            System.out.println("   👤 Défunt : " + defId.getPrenom() + " " + defId.getNom());
+            
+            // Renommer le défunt en base pour qu'il soit bien visible dans l'UI
+            Long identiteId = response.getBody().getDefunt().getIdentite().getId();
+            identitesRepo.findById(identiteId).ifPresent(identite -> {
+                identite.setNom("[TEST] " + identite.getNom());
+                identitesRepo.save(identite);
+                System.out.println("   👤 Défunt renommé : " + identite.getPrenom() + " " + identite.getNom());
+            });
         }
 
         if (response.getBody().getRequiresCorrection() != null &&
