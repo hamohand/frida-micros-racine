@@ -625,3 +625,47 @@ def api_corrections():
     alertes = session.get('alertes', [])
     zones_a_corriger = {k: v for k, v in resultats.items() if k in alertes}
     return jsonify(zones_a_corriger)
+
+
+# =============================================================================
+# MRZ — Machine Readable Zone
+# =============================================================================
+
+@ocr_bp.route('/api/mrz/lire', methods=['POST'])
+def api_mrz_lire():
+    """
+    Lit la zone MRZ d'un document d'identité (CNI ou Passeport).
+    
+    Attend un JSON avec le champ 'filename' (nom du fichier déjà uploadé).
+    Retourne les lignes MRZ brutes pour parsing côté Java.
+    ---
+    tags:
+      - MRZ
+    parameters:
+      - in: body
+        name: body
+        schema:
+          type: object
+          properties:
+            filename:
+              type: string
+              description: Nom du fichier déjà uploadé via /api/upload
+    responses:
+      200:
+        description: Résultat de la lecture MRZ
+    """
+    data = request.get_json()
+    if not data or 'filename' not in data:
+        return jsonify({"success": False, "error": "Champ 'filename' manquant"}), 400
+
+    filename = data['filename']
+    image_path = _resolve_image_path(filename)
+    if not image_path:
+        return jsonify({"success": False, "error": f"Fichier '{filename}' introuvable"}), 404
+
+    from app.services.mrz_reader import get_mrz_reader
+    reader = get_mrz_reader()
+    result = reader.extract_mrz(image_path)
+
+    return jsonify(result)
+

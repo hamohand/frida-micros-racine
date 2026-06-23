@@ -89,6 +89,15 @@
                     <span> بناءً على شهادة ميلاده</span><span *ngIf="frida?.defunt.identite.sexe != 'ذكر'">ا</span>
                     <span> رقم <span class="ocr-data demo-blur">{{frida?.defunt.identite.numeroPiece}}</span>.</span>
                 </div>
+                <!-- Badge MRZ et noms latins -->
+                <div class="mrz-section no-print" *ngIf="frida?.defunt.identite.mrzValid !== null && frida?.defunt.identite.mrzValid !== undefined">
+                    <span class="mrz-badge" [ngClass]="{'mrz-valid': frida?.defunt.identite.mrzValid, 'mrz-invalid': !frida?.defunt.identite.mrzValid}">
+                        {{ frida?.defunt.identite.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
+                    </span>
+                    <span *ngIf="frida?.defunt.identite.latines || frida?.defunt.identite.prenomLatines" class="mrz-latin-names">
+                        ({{ frida?.defunt.identite.latines }} {{ frida?.defunt.identite.prenomLatines }})
+                    </span>
+                </div>
             </section>
 
             <!-- Les temoins -->

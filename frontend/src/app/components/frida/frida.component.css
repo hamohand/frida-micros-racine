@@ -244,6 +244,42 @@
   gap: 8px;
 }
 
+/* === Badge MRZ === */
+.mrz-section {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  direction: ltr;
+}
+
+.mrz-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.mrz-valid {
+  background: rgba(78, 204, 163, 0.15);
+  color: #4ecca3;
+  border: 1px solid rgba(78, 204, 163, 0.3);
+}
+
+.mrz-invalid {
+  background: rgba(255, 184, 77, 0.15);
+  color: #ffb84d;
+  border: 1px solid rgba(255, 184, 77, 0.3);
+}
+
+.mrz-latin-names {
+  font-family: 'Segoe UI', sans-serif;
+  color: var(--accent-color, #4ecca3);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
 /* === Indicateur de complexité (Tombes) === */
 .tombes-bar {
   display: flex;

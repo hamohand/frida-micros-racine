@@ -78,4 +78,13 @@ public class IdentitesEntity {
     private String pere = "";
     private String mere = "";
     private String marge = "";
+
+    // MRZ (Machine Readable Zone)
+    /** Lignes MRZ brutes extraites de la pièce d'identité */
+    @Column(name = "mrz_raw", columnDefinition = "TEXT")
+    private String mrzRaw;
+
+    /** Indique si la MRZ a été lue et validée (checksums OK) */
+    @Column(name = "mrz_valid")
+    private Boolean mrzValid;
 }

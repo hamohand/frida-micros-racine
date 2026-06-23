@@ -105,6 +105,13 @@
             <version>2.1.0</version>
         </dependency>
 
+        <!-- MRZ (Machine Readable Zone) Parser - ICAO 9303 TD1/TD3 -->
+        <dependency>
+            <groupId>com.github.bordertech.mrz</groupId>
+            <artifactId>mrz-java</artifactId>
+            <version>0.8</version>
+        </dependency>
+
     </dependencies>
 
     <build>

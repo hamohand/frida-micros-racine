@@ -2,6 +2,7 @@ package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.client.ocr.OcrApiClient;
 import com.muhend.backendai.client.ocr.dto.*;
+import com.muhend.backendai.dto.MrzResult;
 import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.service.calculs_outils.StringUtils;
@@ -24,12 +25,14 @@ import java.util.stream.Collectors;
 public class OcrMappingService {
 
     private final OcrApiClient ocrApiClient;
+    private final MrzService mrzService;
 
     @Value("${services.ocr.mode:rapide}")
     private String defaultOcrMode;
 
-    public OcrMappingService(OcrApiClient ocrApiClient) {
+    public OcrMappingService(OcrApiClient ocrApiClient, MrzService mrzService) {
         this.ocrApiClient = ocrApiClient;
+        this.mrzService = mrzService;
     }
 
     /**
@@ -96,10 +99,30 @@ public class OcrMappingService {
         }
 
         // 4. Mapper selon le type de document
-        return switch (docType) {
+        IdentitesEntity result = switch (docType) {
             case EXTRAIT_NAISSANCE -> mapExtraitNaissance(response);
             case CNI, PASSEPORT -> mapPieceIdentite(response, docType);
         };
+
+        // 5. Pour les pièces d'identité (CNI/Passeport), tenter la lecture MRZ
+        if (docType == DocumentType.CNI || docType == DocumentType.PASSEPORT) {
+            try {
+                log.info("🔍 Tentative de lecture MRZ pour {} ...", docType);
+                MrzResult mrz = mrzService.extractAndParse(uploadResponse.getSaved_filename());
+                if (mrz.isValid()) {
+                    result = mrzService.enrichirAvecMrz(result, mrz);
+                    log.info("✅ MRZ enrichie : {} {} (latins)", mrz.getSurname(), mrz.getGivenNames());
+                } else {
+                    log.info("⚠️ MRZ non valide ou non détectée, utilisation OCR seul");
+                    result.setMrzValid(false);
+                }
+            } catch (Exception e) {
+                log.warn("⚠️ Erreur lecture MRZ (non bloquant) : {}", e.getMessage());
+                result.setMrzValid(false);
+            }
+        }
+
+        return result;
     }
 
     // ============================== Mapping ==============================
