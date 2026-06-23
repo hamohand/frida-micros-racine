@@ -4,6 +4,25 @@
     <p>Calculez instantanément les parts d'héritage en renseignant la composition de la famille.</p>
   </header>
 
+  <!-- Indicateur de complexité (Tombes) -->
+  <div class="tombes-bar" *ngIf="resultats">
+      <button class="tombes-toggle" (click)="showTombes = !showTombes">
+          {{ showTombes ? '🔽' : '▶️' }} Indicateur de complexité
+      </button>
+      <div class="tombes-badge" *ngIf="showTombes">
+          <span class="tombes-icon">🪦</span>
+          <span class="tombes-count">{{ getNombreTombes() }}</span>
+          <span class="tombes-label">tombe{{ getNombreTombes() > 1 ? 's' : '' }}</span>
+          <span class="tombes-level" [ngClass]="{
+              'level-easy': getNombreTombes() <= 1,
+              'level-medium': getNombreTombes() === 2,
+              'level-hard': getNombreTombes() >= 3
+          }">
+              {{ getNombreTombes() <= 1 ? 'Simple' : (getNombreTombes() === 2 ? 'Moyen' : 'Complexe') }}
+          </span>
+      </div>
+  </div>
+
   <div class="sim-layout">
     <!-- Colonne Gauche : Formulaire de Saisie -->
     <div class="sim-form-column">

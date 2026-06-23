@@ -18,6 +18,7 @@ export class SimulateurComponent implements OnInit, OnDestroy {
   resultats: HeritageResponse | null = null;
   erreur: string | null = null;
   enChargement = false;
+  showTombes = false;
   private destroy$ = new Subject<void>();
 
   constructor(
@@ -322,5 +323,17 @@ export class SimulateurComponent implements OnInit, OnDestroy {
         this.simForm.get('nbConjoints')?.setValue(1);
       }
     }
+  }
+
+  getNombreTombes(): number {
+    let tombes = 1; // Le défunt principal
+    const val = this.simForm.getRawValue();
+    if (val.tombesEnfants && val.tombesEnfants.length > 0) {
+      tombes += val.tombesEnfants.length;
+    }
+    if (val.tombesFratrie && val.tombesFratrie.length > 0) {
+      tombes += val.tombesFratrie.length;
+    }
+    return tombes;
   }
 }

@@ -462,3 +462,76 @@
     grid-template-columns: 1fr;
   }
 }
+/* === Indicateur de complexité (Tombes) === */
+.tombes-bar {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px 20px;
+  justify-content: center;
+}
+
+.tombes-toggle {
+  background: transparent;
+  border: 1px solid rgba(78, 204, 163, 0.3);
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+.tombes-toggle:hover {
+  background: rgba(78, 204, 163, 0.1);
+  color: var(--text-primary, #fff);
+}
+
+.tombes-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(78, 204, 163, 0.2);
+  border-radius: 25px;
+  padding: 6px 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+.tombes-icon {
+  font-size: 1.2rem;
+}
+
+.tombes-count {
+  font-size: 1.4rem;
+  font-weight: bold;
+  color: var(--accent-color, #4ecca3);
+}
+
+.tombes-label {
+  color: var(--text-secondary, rgba(255, 255, 255, 0.6));
+  font-size: 0.9rem;
+}
+
+.tombes-level {
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+.level-easy {
+  background: rgba(78, 204, 163, 0.2);
+  color: #4ecca3;
+}
+.level-medium {
+  background: rgba(255, 184, 77, 0.2);
+  color: #ffb84d;
+}
+.level-hard {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff6b6b;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

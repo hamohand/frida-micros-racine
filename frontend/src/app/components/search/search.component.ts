@@ -296,7 +296,7 @@ export class SearchComponent implements OnInit {
   fridaList: any[] = [];
   filteredList: any[] = [];
 
-  sortColumn: string = 'numFrida';
+  sortColumn: string = 'dateCreation';
   sortDirection: 'asc' | 'desc' = 'desc';
 
   constructor(private fridaService: FridaService, private router: Router) { }

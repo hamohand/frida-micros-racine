@@ -18,13 +18,13 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
     Optional<FridaEntity> findByNumFrida(@Param("numFrida") String numFrida);
 
     // Affiche certains champs de toutes les fridas, dans l'ordre décroissant des
-    // dates de création
+    // dates de création (et id décroissant pour les plus récentes en haut)
     @Query("""
                     SELECT new com.muhend.backendai.dto.FridaDetailsDTO(f.numFrida, f.dateCreation, e.dateNaissance, e.nom, e.prenom, f.requiresCorrection, f.statut)
                         FROM FridaEntity f
                         JOIN f.defunt d
                         JOIN d.identite e
-                        ORDER BY f.dateCreation DESC
+                        ORDER BY f.dateCreation DESC, f.id DESC
             """)
     List<FridaDetailsDTO> findAllFridas();
 
@@ -35,7 +35,7 @@ public interface FridaRepo extends JpaRepository<FridaEntity, Long> {
                         JOIN f.defunt d
                         JOIN d.identite e
                         WHERE f.statut IN :statuts
-                        ORDER BY f.dateCreation DESC
+                        ORDER BY f.dateCreation DESC, f.id DESC
             """)
     List<FridaDetailsDTO> findByStatutIn(@Param("statuts") List<String> statuts);
 }
