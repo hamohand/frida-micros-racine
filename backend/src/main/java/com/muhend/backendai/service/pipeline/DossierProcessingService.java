@@ -98,15 +98,16 @@ public class DossierProcessingService {
 
             // Séparer les fichiers recto (traitement OCR) des fichiers verso (MRZ uniquement)
             List<Path> rectoFiles = new ArrayList<>();
-            Map<String, Path> versoFilesByFolder = new HashMap<>();
+            Map<String, Path> versoFilesByHeirCode = new HashMap<>();
 
             for (Path file : files) {
                 String fileName = file.getFileName().toString().toLowerCase();
-                if (fileName.contains("verso")) {
-                    // Fichier verso : on le stocke indexé par son dossier parent
-                    String parentFolder = file.getParent().getFileName().toString();
-                    versoFilesByFolder.put(parentFolder, file);
-                    log.info("📋 Fichier verso détecté : {} (dossier {})", file.getFileName(), parentFolder);
+                String parentFolder = file.getParent().getFileName().toString();
+                if (fileName.contains("verso") || parentFolder.contains("verso")) {
+                    // Fichier verso : extraire le code héritier (ex: "01" de "01_cni_cni_01_verso")
+                    String heirCode = parentFolder.split("_")[0];
+                    versoFilesByHeirCode.put(heirCode, file);
+                    log.info("📋 Fichier verso détecté : {} (dossier {}, code héritier {})", file.getFileName(), parentFolder, heirCode);
                 } else {
                     rectoFiles.add(file);
                 }
@@ -115,9 +116,14 @@ public class DossierProcessingService {
             int indiceParente = 0;
             for (Path file : rectoFiles) {
                 try {
-                    // Chercher un verso compagnon dans le même sous-dossier
+                    // Chercher un verso compagnon avec le même code héritier
                     String parentFolder = file.getParent().getFileName().toString();
-                    Path versoFile = versoFilesByFolder.get(parentFolder);
+                    String heirCode = parentFolder.split("_")[0];
+                    Path versoFile = versoFilesByHeirCode.get(heirCode);
+
+                    if (versoFile != null) {
+                        log.info("🔗 Appariement recto/verso : {} ↔ {}", file.getFileName(), versoFile.getFileName());
+                    }
 
                     indiceParente = traiterFichier(ctx, file, versoFile, fileDocInfoMap,
                             entityDefCache, indiceParente, mode);
