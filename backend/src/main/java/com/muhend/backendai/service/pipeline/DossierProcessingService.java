@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,10 +96,30 @@ public class DossierProcessingService {
                 return null;
             }
 
-            int indiceParente = 0;
+            // Séparer les fichiers recto (traitement OCR) des fichiers verso (MRZ uniquement)
+            List<Path> rectoFiles = new ArrayList<>();
+            Map<String, Path> versoFilesByFolder = new HashMap<>();
+
             for (Path file : files) {
+                String fileName = file.getFileName().toString().toLowerCase();
+                if (fileName.contains("verso")) {
+                    // Fichier verso : on le stocke indexé par son dossier parent
+                    String parentFolder = file.getParent().getFileName().toString();
+                    versoFilesByFolder.put(parentFolder, file);
+                    log.info("📋 Fichier verso détecté : {} (dossier {})", file.getFileName(), parentFolder);
+                } else {
+                    rectoFiles.add(file);
+                }
+            }
+
+            int indiceParente = 0;
+            for (Path file : rectoFiles) {
                 try {
-                    indiceParente = traiterFichier(ctx, file, fileDocInfoMap,
+                    // Chercher un verso compagnon dans le même sous-dossier
+                    String parentFolder = file.getParent().getFileName().toString();
+                    Path versoFile = versoFilesByFolder.get(parentFolder);
+
+                    indiceParente = traiterFichier(ctx, file, versoFile, fileDocInfoMap,
                             entityDefCache, indiceParente, mode);
                 } catch (Exception e) {
                     log.error("Erreur traitement fichier OCR : {} - {}", file, e.getMessage(), e);
@@ -135,9 +156,10 @@ public class DossierProcessingService {
     /**
      * Traite un fichier individuel : OCR → mapping → sauvegarde.
      *
+     * @param versoFile Fichier verso optionnel (pour lecture MRZ sur CNI).
      * @return L'indice de parenté mis à jour (incrémenté si traitement réussi).
      */
-    private int traiterFichier(TraitementContext ctx, Path file,
+    private int traiterFichier(TraitementContext ctx, Path file, Path versoFile,
                                Map<Path, DocumentInfo> fileDocInfoMap,
                                Map<String, OcrEntityDefinitionDto> entityDefCache,
                                int indiceParente,
@@ -154,12 +176,13 @@ public class DossierProcessingService {
             return indiceParente;
         }
 
-        log.info("Traitement: {} -> type={}, catégorie={}", file.getFileName(), docType, heirCategory);
+        log.info("Traitement: {} -> type={}, catégorie={}{}", file.getFileName(), docType, heirCategory,
+                versoFile != null ? " [verso: " + versoFile.getFileName() + "]" : "");
 
-        // OCR + mapping
+        // OCR + mapping (avec verso optionnel pour MRZ)
         IdentitesEntity identite = null;
         try {
-            identite = ocrMappingService.processFile(file, entityDef, docType, mode);
+            identite = ocrMappingService.processFile(file, versoFile, entityDef, docType, mode);
         } catch (Exception e) {
             log.error("Erreur traitement fichier OCR (fallback sur entité vide à corriger) : {} - {}", file, e.getMessage(), e);
             identite = new IdentitesEntity();

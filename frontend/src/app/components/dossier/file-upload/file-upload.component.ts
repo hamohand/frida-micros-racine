@@ -59,6 +59,18 @@ import { FileUploadService } from '../../../services/file-upload.service';
           >
             <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#D16D6A"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm336-552H312v480h336v-480ZM384-288h72v-336h-72v336Zm120 0h72v-336h-72v336ZM312-696v480-480Z"/></svg>
           </button>
+          <!-- Verso optionnel pour CNI -->
+          <div class="verso-section" *ngIf="file.docType === 'cni'">
+            <div class="verso-info" *ngIf="file.versoFile">
+              <span class="verso-badge">📋 Verso :</span>
+              <span class="file-name">{{ file.versoFile.name }}</span>
+              <button class="btn-icon btn-sm" (click)="removeVerso(file.id)" aria-label="Supprimer verso">✕</button>
+            </div>
+            <button class="btn btn-verso" *ngIf="!file.versoFile" (click)="triggerVersoInput(file.id)">
+              + Ajouter verso (optionnel)
+            </button>
+            <input [id]="'verso_' + file.id" type="file" style="display:none" [accept]="config.allowedTypes.join(',')" (change)="onVersoSelected($event, file.id)" />
+          </div>
         </div>
       </div>
 
@@ -174,6 +186,47 @@ import { FileUploadService } from '../../../services/file-upload.service';
     .file-select {
       margin-left: var(--spacing-sm);
       padding: 4px 8px;
+    }
+
+    .verso-section {
+      padding: 4px 12px 8px 32px;
+    }
+
+    .btn-verso {
+      background: transparent;
+      border: 1px dashed rgba(78, 204, 163, 0.4);
+      color: var(--accent-color);
+      padding: 4px 12px;
+      border-radius: var(--border-radius);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-verso:hover {
+      background: rgba(78, 204, 163, 0.1);
+      border-color: var(--accent-color);
+    }
+
+    .verso-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .verso-badge {
+      color: var(--accent-color);
+      font-weight: bold;
+    }
+
+    .btn-sm {
+      font-size: 0.75rem;
+      padding: 2px 6px;
+      color: #D16D6A;
+      background: none;
+      border: none;
+      cursor: pointer;
     }
   `]
 })
@@ -317,6 +370,30 @@ export class FileUploadComponent implements OnInit {
     this.skipClicked.emit();
   }
 
+  triggerVersoInput(fileId: string) {
+    const input = document.getElementById('verso_' + fileId) as HTMLInputElement;
+    if (input) input.click();
+  }
+
+  onVersoSelected(event: Event, fileId: string) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const versoFile = input.files[0];
+      const target = this.uploadedFiles.find(f => f.id === fileId);
+      if (target) {
+        target.versoFile = versoFile;
+      }
+      input.value = '';
+    }
+  }
+
+  removeVerso(fileId: string) {
+    const target = this.uploadedFiles.find(f => f.id === fileId);
+    if (target) {
+      target.versoFile = undefined;
+    }
+  }
+
   onUpload() {
     if (this.uploadedFiles.length > 0) {
       // Group files by docType and entityName
@@ -328,6 +405,17 @@ export class FileUploadComponent implements OnInit {
           groups.set(key, {files: [], docType: f.docType, entityName: f.entityName || ''});
         }
         groups.get(key)!.files.push(f.file);
+
+        // Si un verso est attaché, le mettre dans un groupe séparé avec le suffixe '_verso'
+        if (f.versoFile) {
+          const versoKey = key + '_verso';
+          // Renommer le fichier avec le suffixe _verso pour la détection côté backend
+          const renamedVerso = new File([f.versoFile], f.versoFile.name.replace(/(\.\w+)$/, '_verso$1'), { type: f.versoFile.type });
+          if (!groups.has(versoKey)) {
+            groups.set(versoKey, {files: [], docType: f.docType, entityName: (f.entityName || '') + '_verso'});
+          }
+          groups.get(versoKey)!.files.push(renamedVerso);
+        }
       });
 
       // Emit array of groups

@@ -94,15 +94,15 @@ class DossierProcessingServiceTest {
         IdentitesEntity idDefunt = new IdentitesEntity();
         idDefunt.setSexe("ذكر"); // Homme
         idDefunt.setDateNaissance(LocalDate.of(1950, 1, 1));
-        when(ocrMappingService.processFile(eq(fileDefunt), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idDefunt);
+        when(ocrMappingService.processFile(eq(fileDefunt), any(), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idDefunt);
 
         IdentitesEntity idConjoint = new IdentitesEntity();
         idConjoint.setSexe("أنثى"); // Femme
-        when(ocrMappingService.processFile(eq(fileConjoint), any(), eq(DocumentType.CNI), eq("rapide"))).thenReturn(idConjoint);
+        when(ocrMappingService.processFile(eq(fileConjoint), any(), any(), eq(DocumentType.CNI), eq("rapide"))).thenReturn(idConjoint);
 
         IdentitesEntity idGarcon = new IdentitesEntity();
         idGarcon.setSexe("ذكر"); // Garçon
-        when(ocrMappingService.processFile(eq(fileGarcon), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idGarcon);
+        when(ocrMappingService.processFile(eq(fileGarcon), any(), any(), eq(DocumentType.EXTRAIT_NAISSANCE), eq("rapide"))).thenReturn(idGarcon);
 
         // Mock Identifiant
         when(fridaIdentifierService.genererIdentifiant(anyString())).thenReturn("FRIDA-12345");

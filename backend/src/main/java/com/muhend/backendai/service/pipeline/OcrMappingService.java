@@ -62,13 +62,14 @@ public class OcrMappingService {
     /**
      * Traite un fichier avec le service OCR et retourne l'entité correspondante.
      *
-     * @param file      Fichier à analyser.
+     * @param file      Fichier recto à analyser (OCR zones).
+     * @param versoFile Fichier verso optionnel (pour lecture MRZ sur CNI). Peut être null.
      * @param entityDef Définition de l'entité OCR.
      * @param docType   Type de document.
      * @return L'entité IdentitesEntity peuplée, ou {@code null} en cas d'erreur.
      */
-    public IdentitesEntity processFile(Path file, OcrEntityDefinitionDto entityDef, DocumentType docType, String mode) {
-        // 1. Upload du fichier
+    public IdentitesEntity processFile(Path file, Path versoFile, OcrEntityDefinitionDto entityDef, DocumentType docType, String mode) {
+        // 1. Upload du fichier recto
         OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(file);
         if (!uploadResponse.isSuccess()) {
             throw new RuntimeException("Echec upload OCR: " + uploadResponse.getError());
@@ -90,7 +91,7 @@ public class OcrMappingService {
                 .cadre_reference(entityDef.getCadre_reference())
                 .build();
 
-        // 3. Analyser
+        // 3. Analyser le recto
         OcrAnalysisResponseDto response = ocrApiClient.analyze(request);
         logOcrResponse(request.getFilename(), response);
 
@@ -104,17 +105,40 @@ public class OcrMappingService {
             case CNI, PASSEPORT -> mapPieceIdentite(response, docType);
         };
 
-        // 5. Pour les pièces d'identité (CNI/Passeport), tenter la lecture MRZ
+        // 5. Lecture MRZ pour les pièces d'identité
         if (docType == DocumentType.CNI || docType == DocumentType.PASSEPORT) {
             try {
-                log.info("🔍 Tentative de lecture MRZ pour {} ...", docType);
-                MrzResult mrz = mrzService.extractAndParse(uploadResponse.getSaved_filename());
-                if (mrz.isValid()) {
-                    result = mrzService.enrichirAvecMrz(result, mrz);
-                    log.info("✅ MRZ enrichie : {} {} (latins)", mrz.getSurname(), mrz.getGivenNames());
-                } else {
-                    log.info("⚠️ MRZ non valide ou non détectée, utilisation OCR seul");
-                    result.setMrzValid(false);
+                // CNI : MRZ sur le verso (fichier séparé)
+                // Passeport : MRZ sur le recto (même fichier)
+                String mrzFilename = null;
+
+                if (docType == DocumentType.CNI && versoFile != null) {
+                    // Upload du verso pour la MRZ
+                    log.info("🔍 Upload du verso CNI pour lecture MRZ : {}", versoFile.getFileName());
+                    OcrUploadResponseDto versoUpload = ocrApiClient.uploadFile(versoFile);
+                    if (versoUpload.isSuccess()) {
+                        mrzFilename = versoUpload.getSaved_filename();
+                    } else {
+                        log.warn("⚠️ Échec upload verso : {}", versoUpload.getError());
+                    }
+                } else if (docType == DocumentType.PASSEPORT) {
+                    // Le passeport a la MRZ sur le recto (déjà uploadé)
+                    mrzFilename = uploadResponse.getSaved_filename();
+                    log.info("🔍 Lecture MRZ sur le recto du passeport");
+                } else if (docType == DocumentType.CNI) {
+                    log.info("📋 Pas de verso fourni pour la CNI, MRZ ignorée");
+                }
+
+                if (mrzFilename != null) {
+                    log.info("🔍 Tentative de lecture MRZ pour {} ...", docType);
+                    MrzResult mrz = mrzService.extractAndParse(mrzFilename);
+                    if (mrz.isValid()) {
+                        result = mrzService.enrichirAvecMrz(result, mrz);
+                        log.info("✅ MRZ enrichie : {} {} (latins)", mrz.getSurname(), mrz.getGivenNames());
+                    } else {
+                        log.info("⚠️ MRZ non valide ou non détectée, utilisation OCR seul");
+                        result.setMrzValid(false);
+                    }
                 }
             } catch (Exception e) {
                 log.warn("⚠️ Erreur lecture MRZ (non bloquant) : {}", e.getMessage());

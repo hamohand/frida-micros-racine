@@ -5,6 +5,7 @@ export interface UploadedFile {
   docType: string;
   entityName?: string;
   error?: string;
+  versoFile?: File;  // Fichier verso optionnel (CNI)
 }
 
 export interface DocTypeOption {
