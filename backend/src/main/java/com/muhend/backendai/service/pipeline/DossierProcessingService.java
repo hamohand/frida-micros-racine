@@ -113,7 +113,7 @@ public class DossierProcessingService {
                 }
             }
 
-            int indiceParente = 0;
+            int processedCount = 0;
             for (Path file : rectoFiles) {
                 try {
                     // Chercher un verso compagnon avec le même code héritier
@@ -125,14 +125,17 @@ public class DossierProcessingService {
                         log.info("🔗 Appariement recto/verso : {} ↔ {}", file.getFileName(), versoFile.getFileName());
                     }
 
-                    indiceParente = traiterFichier(ctx, file, versoFile, fileDocInfoMap,
-                            entityDefCache, indiceParente, mode);
+                    boolean success = traiterFichier(ctx, file, versoFile, fileDocInfoMap,
+                            entityDefCache, mode);
+                    if (success) {
+                        processedCount++;
+                    }
                 } catch (Exception e) {
                     log.error("Erreur traitement fichier OCR : {} - {}", file, e.getMessage(), e);
                 }
             }
 
-            if (indiceParente > 0) {
+            if (processedCount > 0) {
                 if ("0".equals(ctx.getNumFrida())) {
                     ctx.setNumFrida(fridaIdentifierService.genererIdentifiant(""));
                 }
@@ -163,23 +166,34 @@ public class DossierProcessingService {
      * Traite un fichier individuel : OCR → mapping → sauvegarde.
      *
      * @param versoFile Fichier verso optionnel (pour lecture MRZ sur CNI).
-     * @return L'indice de parenté mis à jour (incrémenté si traitement réussi).
+     * @return true si le fichier a été traité avec succès, false sinon.
      */
-    private int traiterFichier(TraitementContext ctx, Path file, Path versoFile,
-                               Map<Path, DocumentInfo> fileDocInfoMap,
-                               Map<String, OcrEntityDefinitionDto> entityDefCache,
-                               int indiceParente,
-                               String mode) {
+    private boolean traiterFichier(TraitementContext ctx, Path file, Path versoFile,
+                                   Map<Path, DocumentInfo> fileDocInfoMap,
+                                   Map<String, OcrEntityDefinitionDto> entityDefCache,
+                                   String mode) {
 
         DocumentInfo docInfo = fileDocInfoMap.get(file);
         DocumentType docType = (docInfo != null) ? docInfo.getDocumentType() : DocumentType.EXTRAIT_NAISSANCE;
         HeirCategory heirCategory = (docInfo != null) ? docInfo.getHeirCategory() : HeirCategory.DEFUNT;
+        
+        String numParente;
+        if (docInfo != null) {
+            numParente = docInfo.getHeirCategory().getFormattedCode();
+        } else {
+            try {
+                String folderName = file.getParent().getFileName().toString();
+                numParente = String.format("%02d", Integer.parseInt(folderName.split("_")[0]));
+            } catch (Exception e) {
+                numParente = "01";
+            }
+        }
 
         // Récupérer la définition OCR (avec cache)
         String entityName = (docInfo != null) ? docInfo.getEntityName() : null;
         OcrEntityDefinitionDto entityDef = ocrMappingService.getOrCacheEntityDef(entityDefCache, docType, entityName);
         if (entityDef == null) {
-            return indiceParente;
+            return false;
         }
 
         log.info("Traitement: {} -> type={}, catégorie={}{}", file.getFileName(), docType, heirCategory,
@@ -205,11 +219,11 @@ public class DossierProcessingService {
                 ctx.setNumFrida(fridaIdentifierService.genererIdentifiant(dateNaissance));
             }
 
-            fridaPersistenceService.sauvegarderDocument(ctx, identite, heirCategory, indiceParente);
-            return indiceParente + 1;
+            fridaPersistenceService.sauvegarderDocument(ctx, identite, heirCategory, numParente);
+            return true;
         }
 
-        return indiceParente;
+        return false;
     }
 
     // ======================= Initialisation =======================

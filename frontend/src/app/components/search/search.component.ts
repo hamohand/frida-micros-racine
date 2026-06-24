@@ -18,8 +18,12 @@ import { Router } from '@angular/router';
           </div>
         </div>
 
-        <div class="stats-bar" *ngIf="fridaList.length > 0">
+        <div class="stats-bar" *ngIf="fridaList.length > 0" style="display: flex; gap: 1rem; align-items: center;">
           <span class="stat-chip">{{ filteredList.length }} dossier{{ filteredList.length > 1 ? 's' : '' }}</span>
+          <button *ngIf="testCount > 0" class="btn-delete-tests" (click)="deleteAllTests()">
+            <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+            Supprimer les {{ testCount }} Tests
+          </button>
         </div>
 
         <div class="table-container">
@@ -42,9 +46,10 @@ import { Router } from '@angular/router';
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let frida of filteredList">
+              <tr *ngFor="let frida of filteredList" [class.row-test]="isTest(frida)">
                 <td class="font-mono">
                   <strong>{{ frida?.numFrida }}</strong>
+                  <span *ngIf="isTest(frida)" class="badge-test" style="margin-left: 8px;">🛠️ Test Auto</span>
                   <span *ngIf="frida?.requiresCorrection && frida?.statut === 'EN_ATTENTE_REVISION'" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
                   <span *ngIf="frida?.requiresCorrection && frida?.statut === 'BROUILLON'" class="badge-warning" style="margin-left: 8px; background: rgba(236, 201, 75, 0.15); color: #ecc94b; border-color: rgba(236, 201, 75, 0.3);">⏳ En attente</span>
                 </td>
@@ -241,6 +246,23 @@ import { Router } from '@angular/router';
       font-weight: bold;
     }
 
+    .badge-test {
+      background: rgba(159, 122, 234, 0.15);
+      color: #b794f4;
+      border: 1px solid rgba(159, 122, 234, 0.3);
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+
+    .table tbody tr.row-test {
+      background: rgba(159, 122, 234, 0.05);
+    }
+    .table tbody tr.row-test:hover {
+      background: rgba(159, 122, 234, 0.1);
+    }
+
     .btn-action {
       display: flex;
       align-items: center;
@@ -280,6 +302,26 @@ import { Router } from '@angular/router';
     }
 
     .btn-delete:hover {
+      background: rgba(245, 101, 101, 0.3);
+      color: #fff;
+    }
+
+    .btn-delete-tests {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(245, 101, 101, 0.15);
+      color: #fc8181;
+      border: 1px solid rgba(245, 101, 101, 0.3);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-delete-tests:hover {
       background: rgba(245, 101, 101, 0.3);
       color: #fff;
     }
@@ -376,6 +418,44 @@ export class SearchComponent implements OnInit {
           alert("Une erreur est survenue lors de la suppression.");
         }
       });
+    }
+  }
+
+  isTest(frida: any): boolean {
+    return (frida?.nom && frida.nom.includes('[TEST]')) || 
+           (frida?.prenom && frida.prenom.includes('SuperTest'));
+  }
+
+  get testCount(): number {
+    return this.fridaList.filter(f => this.isTest(f)).length;
+  }
+
+  deleteAllTests() {
+    const tests = this.fridaList.filter(f => this.isTest(f));
+    if (tests.length === 0) return;
+    
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement les ${tests.length} dossiers de test ?`)) {
+      // Pour éviter de saturer l'API, on les supprime séquentiellement
+      const deleteNext = (index: number) => {
+        if (index >= tests.length) {
+          this.applySortAndFilter();
+          return;
+        }
+        const numFrida = tests[index].numFrida;
+        this.fridaService.deleteFrida(numFrida).subscribe({
+          next: () => {
+            this.fridaList = this.fridaList.filter(f => f.numFrida !== numFrida);
+            deleteNext(index + 1);
+          },
+          error: (err) => {
+            console.error("Erreur lors de la suppression du test " + numFrida, err);
+            // On continue quand même avec les autres
+            deleteNext(index + 1);
+          }
+        });
+      };
+      
+      deleteNext(0);
     }
   }
 }

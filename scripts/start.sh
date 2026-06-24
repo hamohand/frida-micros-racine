@@ -45,6 +45,47 @@ docker --version
 docker compose --version
 echo ""
 
+# Récupérer les ports depuis .env ou utiliser les valeurs par défaut
+FRONT_PORT=$(grep -E '^FRONTEND_PORT=' .env | cut -d '=' -f2 | tr -d '\r' || echo "4202")
+BACK_PORT=$(grep -E '^BACKEND_PORT=' .env | cut -d '=' -f2 | tr -d '\r' || echo "8080")
+if [ -z "$FRONT_PORT" ]; then FRONT_PORT=4202; fi
+if [ -z "$BACK_PORT" ]; then BACK_PORT=8080; fi
+
+echo "🛑 [1/3] Arrêt des conteneurs existants..."
+docker compose down
+
+echo ""
+echo "🧹 [2/3] Nettoyage des processus fantômes (Ghosting) sur les ports $FRONT_PORT, $BACK_PORT, 8082..."
+
+if grep -qi microsoft /proc/version; then
+    # On est sous WSL, on utilise PowerShell pour tuer les processus Windows (wslrelay, node...)
+    powershell.exe -Command "& {
+        foreach (\$p in @($FRONT_PORT, $BACK_PORT, 8082)) {
+            \$conns = Get-NetTCPConnection -LocalPort \$p -State Listen -ErrorAction SilentlyContinue
+            if (\$conns) {
+                foreach (\$c in \$conns) {
+                    Write-Host \"⚠️ Processus fantôme Windows détecté sur le port \$p (PID: \$(\$c.OwningProcess)). Fermeture...\"
+                    Stop-Process -Id \$c.OwningProcess -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+    }"
+else
+    # Linux natif ou macOS
+    for p in $FRONT_PORT $BACK_PORT 8082; do
+        if command -v lsof &> /dev/null; then
+            PID=$(lsof -t -i:$p 2>/dev/null || true)
+            if [ ! -z "$PID" ]; then
+                echo "⚠️ Processus fantôme détecté sur le port $p (PID: $PID). Fermeture..."
+                kill -9 $PID 2>/dev/null || true
+            fi
+        fi
+    done
+fi
+
+echo ""
+echo "⚡ [3/3] Démarrage des services Docker..."
+
 # ----- HYBRID ENVIRONMENT (WSL to Windows) -----
 if grep -qi microsoft /proc/version; then
     echo "🐧 Environnement WSL détecté. Configuration de la connexion avec l'hôte Windows..."
@@ -79,7 +120,7 @@ fi
 
 # Démarrer les services
 echo ""
-echo "⚡ Démarrage des services..."
+echo "Démarrage en arrière-plan..."
 docker compose up -d
 
 # Attendre que le backend soit prêt
@@ -87,7 +128,7 @@ echo ""
 echo "⏳ Attente de la disponibilité du backend..."
 sleep 10
 
-BACKEND_HEALTH=$(curl -s http://localhost:8080/actuator/health | grep -q '"status":"UP"' && echo "OK" || echo "FAILED")
+BACKEND_HEALTH=$(curl -s http://localhost:$BACK_PORT/actuator/health | grep -q '"status":"UP"' && echo "OK" || echo "FAILED")
 
 if [ "$BACKEND_HEALTH" = "OK" ]; then
     echo "✅ Backend est prêt"
@@ -102,9 +143,9 @@ echo "✅ FridaAI est démarré!"
 echo "======================================"
 echo ""
 echo "🌐 URLs d'accès:"
-echo "   Frontend:    http://localhost:4200"
-echo "   Backend:     http://localhost:8080"
-echo "   Swagger UI:  http://localhost:8080/swagger-ui.html"
+echo "   Frontend:    http://localhost:$FRONT_PORT"
+echo "   Backend:     http://localhost:$BACK_PORT"
+echo "   Swagger UI:  http://localhost:$BACK_PORT/swagger-ui.html"
 echo "   PostgreSQL:  localhost:5432"
 echo ""
 echo "📝 Commandes utiles:"

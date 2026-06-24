@@ -31,14 +31,13 @@ public class PersonneFactory {
      * selon la catégorie de parenté et le sexe.
      */
     public HeritierEntity creerHeritier(TraitementContext ctx, IdentitesEntity identite,
-                                        int indiceParente) {
+                                        String numParente) {
         HeritierEntity heritier = new HeritierEntity();
         heritier.setNumFrida(ctx.getNumFrida());
-        heritier.setNumParente(ctx.getTableauNumParente().get(indiceParente));
+        heritier.setNumParente(numParente);
         heritier.setIdentite(identite);
 
         // Comptage par catégorie
-        String numParente = heritier.getNumParente();
         String sexe = identite.getSexe();
 
         switch (numParente) {
@@ -72,11 +71,11 @@ public class PersonneFactory {
      * Crée un témoin à partir du contexte et de l'identité OCR.
      */
     public TemoinEntity creerTemoin(TraitementContext ctx, IdentitesEntity identite,
-                                    int indiceParente) {
+                                    String numParente) {
         TemoinEntity temoin = new TemoinEntity();
         temoin.setNumFrida(ctx.getNumFrida());
         temoin.setIdentite(identite);
-        temoin.setNumParente(ctx.getTableauNumParente().get(indiceParente));
+        temoin.setNumParente(numParente);
         return temoin;
     }
 }

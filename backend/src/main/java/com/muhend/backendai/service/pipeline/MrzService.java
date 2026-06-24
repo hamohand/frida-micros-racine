@@ -101,12 +101,12 @@ public class MrzService {
             result.setRawMrz(rawMrz);
             result.setFormat(format);
 
-            log.info("✅ MRZ {} parsée : {} {} (NIN={}, confiance={:.0%})",
+            log.info("✅ MRZ {} parsée : {} {} (NIN={}, confiance={}%)",
                     format,
                     result.getSurname(),
                     result.getGivenNames(),
                     result.getNin(),
-                    confidence);
+                    Math.round(confidence * 100.0));
 
             return result;
 
@@ -136,57 +136,106 @@ public class MrzService {
             return ocrResult;
         }
 
-        // 1. Toujours remplir les champs latins
+        boolean nomMismatch = false;
+        boolean prenomMismatch = false;
+
+        // 1. Toujours remplir les champs latins et faire la validation croisée
         if (mrz.getSurname() != null && !mrz.getSurname().isEmpty()) {
             ocrResult.setLatines(mrz.getSurname());
+            // Validation croisée du nom arabe
+            if (ocrResult.getNom() != null && !ocrResult.getNom().isEmpty()) {
+                boolean match = verifierTranslitteration(ocrResult.getNom(), mrz.getSurname());
+                if (!match) {
+                    ocrResult.setRequiresCorrection(true);
+                    nomMismatch = true;
+                }
+            }
         }
         if (mrz.getGivenNames() != null && !mrz.getGivenNames().isEmpty()) {
             ocrResult.setPrenomLatines(mrz.getGivenNames());
-        }
-
-        // 2. Enrichir le NIN si vide ou plus long depuis la MRZ
-        if (mrz.getNin() != null && !mrz.getNin().isEmpty()) {
-            String ocrNin = ocrResult.getNin();
-            if (ocrNin == null || ocrNin.isEmpty() || ocrNin.length() < mrz.getNin().length()) {
-                log.info("MRZ : NIN enrichi '{}' → '{}'", ocrNin, mrz.getNin());
-                ocrResult.setNin(mrz.getNin());
+            // Validation croisée du prénom arabe
+            if (ocrResult.getPrenom() != null && !ocrResult.getPrenom().isEmpty()) {
+                boolean match = verifierTranslitteration(ocrResult.getPrenom(), mrz.getGivenNames());
+                if (!match) {
+                    ocrResult.setRequiresCorrection(true);
+                    prenomMismatch = true;
+                }
             }
         }
 
-        // 3. Compléter la date de naissance si manquante
-        if (ocrResult.getDateNaissance() == null && mrz.getDateOfBirth() != null) {
-            log.info("MRZ : Date de naissance complétée → {}", mrz.getDateOfBirth());
+        // 2. Remplacer le NIN uniquement s'il est complet (18 chiffres pour l'Algérie).
+        // Souvent la MRZ tronque le NIN par manque de place (TD1/TD3).
+        if (mrz.getNin() != null && mrz.getNin().length() == 18) {
+            log.info("MRZ : NIN écrasé par la MRZ '{}' → '{}'", ocrResult.getNin(), mrz.getNin());
+            ocrResult.setNin(mrz.getNin());
+        } else if (mrz.getNin() != null && !mrz.getNin().isEmpty()) {
+            log.debug("MRZ : NIN ignoré car incomplet ({} chiffres)", mrz.getNin().length());
+        }
+
+        // 3. Remplacer la date de naissance (ultra fiable car validée par Checksum MRZ)
+        if (mrz.getDateOfBirth() != null) {
+            log.info("MRZ : Date de naissance écrasée par la MRZ → {}", mrz.getDateOfBirth());
             ocrResult.setDateNaissance(mrz.getDateOfBirth());
         }
 
-        // 4. Compléter le sexe si vide
-        if ((ocrResult.getSexe() == null || ocrResult.getSexe().isEmpty()) && mrz.getSex() != null) {
+        // 4. Remplacer le sexe
+        if (mrz.getSex() != null) {
             ocrResult.setSexe("M".equals(mrz.getSex()) ? "ذكر" : "أنثى");
         }
 
-        // 5. Compléter les champs de la pièce d'identité
+        // 5. Remplacer les champs de la pièce d'identité (validés par Checksums MRZ)
         if (mrz.getDocumentNumber() != null && !mrz.getDocumentNumber().isEmpty()) {
-            String ocrNumero = ocrResult.getNumeroPiece();
-            if (ocrNumero == null || ocrNumero.isEmpty()) {
-                ocrResult.setNumeroPiece(mrz.getDocumentNumber());
-            }
+            ocrResult.setNumeroPiece(mrz.getDocumentNumber());
         }
 
         if (mrz.getExpiryDate() != null) {
-            String ocrExpire = ocrResult.getExpireLe();
-            if (ocrExpire == null || ocrExpire.isEmpty()) {
-                ocrResult.setExpireLe(mrz.getExpiryDate().toString());
-            }
+            ocrResult.setExpireLe(mrz.getExpiryDate().toString());
         }
 
         // 6. Stocker les données MRZ brutes
         ocrResult.setMrzRaw(mrz.getRawMrz());
         ocrResult.setMrzValid(true);
 
-        // 7. Enrichir le JSON de confiances avec les scores MRZ
-        enrichirConfidencesJson(ocrResult, mrz);
+        // 7. Enrichir le JSON de confiances avec les scores MRZ et pénalités
+        enrichirConfidencesJson(ocrResult, mrz, nomMismatch, prenomMismatch);
 
         return ocrResult;
+    }
+
+    /**
+     * Appelle le service Python pour vérifier la correspondance phonétique.
+     */
+    private boolean verifierTranslitteration(String arabe, String latin) {
+        if (arabe == null || latin == null || arabe.isEmpty() || latin.isEmpty()) return false;
+        try {
+            String url = ocrApiUrl + "/api/translitteration/verifier";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, String> body = new HashMap<>();
+            body.put("arabe", arabe);
+            body.put("latin", latin);
+            HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
+            String responseJson = restTemplate.postForObject(url, request, String.class);
+            JsonNode response = objectMapper.readTree(responseJson);
+            if (response.has("success") && response.get("success").asBoolean()) {
+                boolean match = response.get("match").asBoolean();
+                double score = response.has("score") ? response.get("score").asDouble() : 0.0;
+                String translit = response.has("arabe_translit") ? response.get("arabe_translit").asText() : "";
+                String norm = response.has("latin_norm") ? response.get("latin_norm").asText() : "";
+                
+                if (match) {
+                    log.info("✅ Translittération MATCH: Arabe='{}' [{}] <-> Latin='{}' [{}] (Score: {}%)", 
+                            arabe, translit, latin, norm, Math.round(score));
+                } else {
+                    log.warn("❌ Translittération MISMATCH: Arabe='{}' [{}] <-> Latin='{}' [{}] (Score: {}%)", 
+                            arabe, translit, latin, norm, Math.round(score));
+                }
+                return match;
+            }
+        } catch (Exception e) {
+            log.warn("Erreur vérification translittération : {}", e.getMessage());
+        }
+        return false;
     }
 
     // =========================================================================
@@ -241,11 +290,7 @@ public class MrzService {
         // Le NIN algérien est souvent dans les données optionnelles de la ligne 1
         String nin = extractNin(optionalData1);
 
-        // Validation des checksums
-        boolean checksumOk = validateTD1Checksums(line1, line2);
-
-        return MrzResult.builder()
-                .valid(checksumOk)
+        MrzResult result = MrzResult.builder()
                 .documentCode(documentCode)
                 .issuingState(issuingState)
                 .documentNumber(documentNumber)
@@ -257,6 +302,12 @@ public class MrzService {
                 .surname(names[0])
                 .givenNames(names[1])
                 .build();
+
+        // Validation des checksums (annule les champs individuellement si invalides)
+        boolean checksumOk = validateTD1Checksums(line1, line2, result);
+        result.setValid(checksumOk);
+
+        return result;
     }
 
     // =========================================================================
@@ -308,11 +359,7 @@ public class MrzService {
 
         String nin = extractNin(optionalData);
 
-        // Validation des checksums
-        boolean checksumOk = validateTD3Checksums(line2);
-
-        return MrzResult.builder()
-                .valid(checksumOk)
+        MrzResult result = MrzResult.builder()
                 .documentCode(documentCode)
                 .issuingState(issuingState)
                 .documentNumber(passportNumber)
@@ -324,6 +371,12 @@ public class MrzService {
                 .surname(names[0])
                 .givenNames(names[1])
                 .build();
+
+        // Validation des checksums
+        boolean checksumOk = validateTD3Checksums(line2, result);
+        result.setValid(checksumOk);
+
+        return result;
     }
 
     // =========================================================================
@@ -341,8 +394,24 @@ public class MrzService {
         String cleaned = nameField.trim();
         // Séparer nom et prénom par "<<"
         String[] parts = cleaned.split("<<", 2);
+        
         String surname = parts[0].replace('<', ' ').trim();
-        String givenNames = parts.length > 1 ? parts[1].replace('<', ' ').trim() : "";
+        if (surname.contains("  ")) {
+            surname = surname.substring(0, surname.indexOf("  ")).trim();
+        }
+        
+        String givenNames = "";
+        if (parts.length > 1) {
+            givenNames = parts[1].replace('<', ' ').trim();
+            // La norme MRZ utilise un seul '<' entre les prénoms. S'il y en a deux (double espace), c'est du padding.
+            if (givenNames.contains("  ")) {
+                givenNames = givenNames.substring(0, givenNames.indexOf("  "));
+            }
+            // Nettoyage du bruit OCR causé par l'hologramme sur les '<' (souvent lu comme K, X ou S)
+            givenNames = givenNames.replaceAll("\\b[KXS]+\\b", " ");
+            givenNames = givenNames.replaceAll(" +", " ").trim();
+        }
+        
         return new String[]{surname, givenNames};
     }
 
@@ -401,7 +470,7 @@ public class MrzService {
         return sum % 10;
     }
 
-    private boolean validateTD1Checksums(String line1, String line2) {
+    private boolean validateTD1Checksums(String line1, String line2, MrzResult result) {
         try {
             // Check digit du numéro de document (line1[14])
             int expected1 = Character.getNumericValue(line1.charAt(14));
@@ -415,19 +484,34 @@ public class MrzService {
             int expected3 = Character.getNumericValue(line2.charAt(14));
             int computed3 = computeCheckDigit(line2.substring(8, 14));
 
-            boolean ok = (expected1 == computed1 && expected2 == computed2 && expected3 == computed3);
-            if (!ok) {
-                log.warn("MRZ TD1 : Checksums invalides (doc={}/{}, dob={}/{}, exp={}/{})",
-                        computed1, expected1, computed2, expected2, computed3, expected3);
+            boolean docOk = (expected1 == computed1);
+            boolean dobOk = (expected2 == computed2);
+            boolean expOk = (expected3 == computed3);
+
+            if (!docOk && result != null) {
+                // Si le checksum du numéro de document échoue, on l'efface pour ne pas corrompre l'OCR
+                log.warn("MRZ TD1 : Numéro de document invalide (checksum doc={}/{})", computed1, expected1);
+                result.setDocumentNumber(null);
             }
-            return ok;
+            if (!dobOk && result != null) {
+                log.warn("MRZ TD1 : Date de naissance invalide (checksum dob={}/{})", computed2, expected2);
+                result.setDateOfBirth(null);
+            }
+            if (!expOk && result != null) {
+                log.warn("MRZ TD1 : Date d'expiration invalide (checksum exp={}/{})", computed3, expected3);
+                result.setExpiryDate(null);
+            }
+
+            // La MRZ est considérée comme valide si au moins UNE des dates ou le document est bon.
+            // Cela prouve qu'on a bien lu une MRZ, on ne jette pas tout à la poubelle pour 1 chiffre raté !
+            return docOk || dobOk || expOk;
         } catch (Exception e) {
             log.warn("MRZ TD1 : Erreur validation checksums — {}", e.getMessage());
             return false;
         }
     }
 
-    private boolean validateTD3Checksums(String line2) {
+    private boolean validateTD3Checksums(String line2, MrzResult result) {
         try {
             // Check digit du numéro de passeport (line2[9])
             int expected1 = Character.getNumericValue(line2.charAt(9));
@@ -441,12 +525,24 @@ public class MrzService {
             int expected3 = Character.getNumericValue(line2.charAt(27));
             int computed3 = computeCheckDigit(line2.substring(21, 27));
 
-            boolean ok = (expected1 == computed1 && expected2 == computed2 && expected3 == computed3);
-            if (!ok) {
-                log.warn("MRZ TD3 : Checksums invalides (pp={}/{}, dob={}/{}, exp={}/{})",
-                        computed1, expected1, computed2, expected2, computed3, expected3);
+            boolean docOk = (expected1 == computed1);
+            boolean dobOk = (expected2 == computed2);
+            boolean expOk = (expected3 == computed3);
+
+            if (!docOk && result != null) {
+                log.warn("MRZ TD3 : Numéro de document invalide (checksum doc={}/{})", computed1, expected1);
+                result.setDocumentNumber(null);
             }
-            return ok;
+            if (!dobOk && result != null) {
+                log.warn("MRZ TD3 : Date de naissance invalide (checksum dob={}/{})", computed2, expected2);
+                result.setDateOfBirth(null);
+            }
+            if (!expOk && result != null) {
+                log.warn("MRZ TD3 : Date d'expiration invalide (checksum exp={}/{})", computed3, expected3);
+                result.setExpiryDate(null);
+            }
+
+            return docOk || dobOk || expOk;
         } catch (Exception e) {
             log.warn("MRZ TD3 : Erreur validation checksums — {}", e.getMessage());
             return false;
@@ -457,7 +553,7 @@ public class MrzService {
     // ENRICHISSEMENT DU JSON DE CONFIANCES
     // =========================================================================
 
-    private void enrichirConfidencesJson(IdentitesEntity entity, MrzResult mrz) {
+    private void enrichirConfidencesJson(IdentitesEntity entity, MrzResult mrz, boolean nomMismatch, boolean prenomMismatch) {
         try {
             String json = entity.getConfidencesJson();
             Map<String, Object> confiances;
@@ -465,6 +561,14 @@ public class MrzService {
                 confiances = objectMapper.readValue(json, Map.class);
             } else {
                 confiances = new HashMap<>();
+            }
+
+            // Pénaliser les champs OCR si la translittération a échoué (force la bordure rouge côté UI)
+            if (nomMismatch) {
+                confiances.put("nom", 0.0);
+            }
+            if (prenomMismatch) {
+                confiances.put("prenom", 0.0);
             }
 
             // Ajouter les scores MRZ (confiance élevée car validé par checksum)

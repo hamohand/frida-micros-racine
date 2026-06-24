@@ -149,6 +149,17 @@
                                 <span class="ocr-data demo-blur">{{heritier.identite?.nin}}</span>
                             </ng-container>
                         </div>
+                        
+                        <!-- Badge MRZ et noms latins pour l'héritier -->
+                        <div class="mrz-section no-print" *ngIf="heritier.identite?.mrzValid !== null && heritier.identite?.mrzValid !== undefined" style="margin-top: 5px; margin-bottom: 10px;">
+                            <span class="mrz-badge" [ngClass]="{'mrz-valid': heritier.identite?.mrzValid, 'mrz-invalid': !heritier.identite?.mrzValid}">
+                                {{ heritier.identite?.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
+                            </span>
+                            <span *ngIf="heritier.identite?.latines || heritier.identite?.prenomLatines" class="mrz-latin-names">
+                                ({{ heritier.identite?.latines }} {{ heritier.identite?.prenomLatines }})
+                            </span>
+                        </div>
+
                         <span class="leader-spacer"></span>
                         <div class="fraction-box">
                             @if (getHeritierPart(heritier); as part) {

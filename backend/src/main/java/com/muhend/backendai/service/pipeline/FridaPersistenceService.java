@@ -61,7 +61,7 @@ public class FridaPersistenceService {
      * Sauvegarde l'identité et crée l'entité appropriée (défunt, héritier, témoin).
      */
     public void sauvegarderDocument(TraitementContext ctx, IdentitesEntity identite,
-                                    HeirCategory heirCategory, int indiceParente) {
+                                    HeirCategory heirCategory, String numParente) {
         identite.setNumFrida(ctx.getNumFrida());
         identitesRepo.save(identite);
 
@@ -78,12 +78,12 @@ public class FridaPersistenceService {
                 ctx.getFicheFrida().setDefunt(defunt);
             }
             case TEMOIN -> {
-                TemoinEntity temoin = personneFactory.creerTemoin(ctx, identite, indiceParente);
+                TemoinEntity temoin = personneFactory.creerTemoin(ctx, identite, numParente);
                 temoinRepo.save(temoin);
                 ctx.getListeTemoins().add(temoin);
             }
             default -> {
-                HeritierEntity heritier = personneFactory.creerHeritier(ctx, identite, indiceParente);
+                HeritierEntity heritier = personneFactory.creerHeritier(ctx, identite, numParente);
                 heritierRepo.save(heritier);
                 ctx.getListeHeritiers().add(heritier);
             }

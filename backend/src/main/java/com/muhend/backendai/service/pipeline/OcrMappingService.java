@@ -132,11 +132,18 @@ public class OcrMappingService {
                 if (mrzFilename != null) {
                     log.info("🔍 Tentative de lecture MRZ pour {} ...", docType);
                     MrzResult mrz = mrzService.extractAndParse(mrzFilename);
+                    
+                    // Fallback en cas d'inversion Recto/Verso par l'utilisateur
+                    if (!mrz.isValid() && docType == DocumentType.CNI && versoFile != null) {
+                        log.warn("⚠️ MRZ non trouvée sur le verso désigné. Tentative de secours sur le recto...");
+                        mrz = mrzService.extractAndParse(uploadResponse.getSaved_filename());
+                    }
+
                     if (mrz.isValid()) {
                         result = mrzService.enrichirAvecMrz(result, mrz);
                         log.info("✅ MRZ enrichie : {} {} (latins)", mrz.getSurname(), mrz.getGivenNames());
                     } else {
-                        log.info("⚠️ MRZ non valide ou non détectée, utilisation OCR seul");
+                        log.info("⚠️ MRZ non valide ou non détectée sur les deux faces, utilisation OCR seul");
                         result.setMrzValid(false);
                     }
                 }

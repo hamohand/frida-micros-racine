@@ -117,7 +117,7 @@ class DossierProcessingServiceTest {
         // Vérification : sauvegarderDocument appelé pour chaque fichier (3 fois)
         verify(fridaPersistenceService, times(3)).sauvegarderDocument(
                 any(TraitementContext.class), any(IdentitesEntity.class),
-                any(HeirCategory.class), anyInt());
+                any(HeirCategory.class), anyString());
 
         // Vérification : brouillon sauvegardé une fois
         verify(fridaPersistenceService, times(1)).sauvegarderBrouillonFrida(any(TraitementContext.class));
@@ -130,7 +130,7 @@ class DossierProcessingServiceTest {
         FridaEntity result = dossierProcessingService.traiterExtraitsNaissance(folderPath, "rapide");
 
         assertNull(result);
-        verify(fridaPersistenceService, never()).sauvegarderDocument(any(), any(), any(), anyInt());
+        verify(fridaPersistenceService, never()).sauvegarderDocument(any(), any(), any(), anyString());
         verify(fridaPersistenceService, never()).sauvegarderBrouillonFrida(any());
     }
 }
