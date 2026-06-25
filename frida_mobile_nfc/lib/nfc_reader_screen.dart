@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:emrtd/emrtd.dart';
 
 class NfcReaderScreen extends StatefulWidget {
   final String mrzText;
@@ -10,6 +11,7 @@ class NfcReaderScreen extends StatefulWidget {
 }
 
 class _NfcReaderScreenState extends State<NfcReaderScreen> {
+  final _emrtd = Emrtd();
   String _documentNumber = "";
   String _dateOfBirth = "";
   String _dateOfExpiry = "";
@@ -45,16 +47,29 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
   Future<void> _startNfcRead() async {
     setState(() {
       _isReading = true;
-      _status = "Lecture de la puce NFC en cours...\nNe bougez pas la carte.";
+      _status = "Lecture de la puce NFC en cours...\nPlaquez la carte contre le dos de votre téléphone.";
     });
 
-    // TODO: Intégrer la librairie emrtd ou flutter_nfc_kit avec les clés BAC
-    await Future.delayed(const Duration(seconds: 3));
+    try {
+      final result = await _emrtd.readAndVerify(
+        clientId: 'frida_poc_client',
+        validationUri: 'wss://docval.kurzdigital.com/ws2/validate',
+        validationId: 'session-${DateTime.now().millisecondsSinceEpoch}',
+        documentNumber: _documentNumber,
+        dateOfBirth: _dateOfBirth,
+        dateOfExpiry: _dateOfExpiry,
+      );
 
-    setState(() {
-      _isReading = false;
-      _status = "✅ Lecture réussie !\n\nNom: HAMROUN\nPrénom: MOHAMMED\nNIN: 195601032026062407\n\n(Les données JSON ont été extraites avec succès de la puce biométrique via la clé BAC).";
-    });
+      setState(() {
+        _isReading = false;
+        _status = "✅ Lecture terminée !\n\nRésultat brut du serveur de validation:\n$result";
+      });
+    } catch (e) {
+      setState(() {
+        _isReading = false;
+        _status = "❌ Erreur de lecture NFC :\n$e\n\n(Vérifiez que la carte est bien plaquée et que les clés BAC sont exactes).";
+      });
+    }
   }
 
   @override
