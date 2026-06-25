@@ -64,20 +64,28 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       final inputImage = InputImage.fromBytes(bytes: bytes, metadata: inputImageData);
       final RecognizedText recognizedText = await _textRecognizer.processImage(inputImage);
 
-      // Simple MRZ heuristic: look for lines with multiple '<<'
-      String foundMrz = "";
+      // Heuristique MRZ stricte : les lignes MRZ ont exactement 30, 36 ou 44 caractères
+      List<String> mrzLines = [];
       for (TextBlock block in recognizedText.blocks) {
         for (TextLine line in block.lines) {
-          if (line.text.contains("<<")) {
-            foundMrz += line.text.replaceAll(' ', '') + "\n";
+          String text = line.text.replaceAll(' ', '');
+          if (text.contains('<') && (text.length == 30 || text.length == 36 || text.length == 44)) {
+            mrzLines.add(text);
           }
         }
       }
 
-      if (foundMrz.isNotEmpty && foundMrz != _mrzResult) {
-        setState(() {
-          _mrzResult = foundMrz;
-        });
+      // On n'accepte le résultat que s'il y a 2 ou 3 lignes de MRZ
+      if (mrzLines.length >= 2) {
+        // Optionnel : vérifier que toutes les lignes ont la même taille
+        if (mrzLines[0].length == mrzLines[1].length) {
+          String foundMrz = mrzLines.join('\n');
+          if (foundMrz != _mrzResult) {
+            setState(() {
+              _mrzResult = foundMrz;
+            });
+          }
+        }
       }
     } catch (e) {
       print("Erreur de traitement de l'image: $e");
@@ -167,7 +175,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                if (!_isLocked && _mrzResult.contains("<<"))
+                if (!_isLocked && _mrzResult.contains('\n'))
                   ElevatedButton.icon(
                     icon: const Icon(Icons.check_circle),
                     label: const Text("Valider cette MRZ", style: TextStyle(fontSize: 18)),
