@@ -68,7 +68,13 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       List<String> mrzLines = [];
       for (TextBlock block in recognizedText.blocks) {
         for (TextLine line in block.lines) {
-          String text = line.text.replaceAll(' ', '');
+          String text = line.text.replaceAll(' ', '').toUpperCase();
+          // Correction classique OCR : ML Kit confond souvent '<<' avec 'K' ou '«'
+          text = text.replaceAll('«', '<');
+          text = text.replaceAll(RegExp(r'(?<=<)K+(?=<)'), (m) => '<' * m.group(0)!.length);
+          text = text.replaceAll(RegExp(r'(?<=<)K+$'), (m) => '<' * m.group(0)!.length);
+          text = text.replaceAll(RegExp(r'^K+(?=<)'), (m) => '<' * m.group(0)!.length);
+          
           if (text.contains('<') && (text.length == 30 || text.length == 36 || text.length == 44)) {
             mrzLines.add(text);
           }
