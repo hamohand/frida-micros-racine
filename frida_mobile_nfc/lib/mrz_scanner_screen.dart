@@ -152,7 +152,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
           if (_isLocked)
             Container(color: Colors.black.withOpacity(0.5)), // Effet assombri quand bloqué
           Positioned(
-            bottom: 30,
+            bottom: 80,
             left: 20,
             right: 20,
             child: Column(
