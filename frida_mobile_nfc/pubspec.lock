@@ -97,6 +97,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.9"
+  emrtd:
+    dependency: "direct main"
+    description:
+      name: emrtd
+      sha256: "274032c971785fb1d3a42d7aeefd24fce91c22aff072cde084a0d568b47944b4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.6"
   fake_async:
     dependency: transitive
     description:

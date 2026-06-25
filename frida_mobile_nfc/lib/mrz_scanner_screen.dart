@@ -3,6 +3,7 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'nfc_reader_screen.dart';
 
 class MrzScannerScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -123,9 +124,11 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
               child: const Text("Passer au lecteur NFC"),
               onPressed: () {
                 Navigator.of(context).pop();
-                // Ici on appellera l'écran NFC
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Module NFC en cours de développement..."))
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult),
+                  ),
                 );
               },
             )
