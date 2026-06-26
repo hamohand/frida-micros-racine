@@ -76,24 +76,25 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lecture Puce NFC')),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text("Clés BAC extraites de la MRZ :", style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 10),
-            Text("Numéro de Document : $_documentNumber"),
-            Text("Date de Naissance : $_dateOfBirth"),
-            Text("Date d'Expiration : $_dateOfExpiry"),
-            const Divider(height: 40),
-            Expanded(
-              child: Container(
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Text("Clés BAC extraites de la MRZ :", style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Text("Numéro de Document : $_documentNumber"),
+              Text("Date de Naissance : $_dateOfBirth"),
+              Text("Date d'Expiration : $_dateOfExpiry"),
+              const Divider(height: 40),
+              Container(
                 decoration: BoxDecoration(
                   color: Colors.grey[200],
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: const EdgeInsets.all(20),
+                constraints: const BoxConstraints(minHeight: 150),
                 child: Center(
                   child: Text(
                     _status,
@@ -102,19 +103,19 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                   ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              icon: _isReading ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.nfc),
-              label: Text(_isReading ? "Lecture..." : "Lancer le scan NFC"),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(15),
-                backgroundColor: Colors.teal,
-                foregroundColor: Colors.white,
-              ),
-              onPressed: _isReading ? null : _startNfcRead,
-            )
-          ],
+              const SizedBox(height: 30),
+              ElevatedButton.icon(
+                icon: _isReading ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.nfc),
+                label: Text(_isReading ? "Lecture..." : "Lancer le scan NFC"),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(15),
+                  backgroundColor: Colors.teal,
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: _isReading ? null : _startNfcRead,
+              )
+            ],
+          ),
         ),
       ),
     );
