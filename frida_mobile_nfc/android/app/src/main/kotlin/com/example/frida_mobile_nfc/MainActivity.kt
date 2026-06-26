@@ -77,11 +77,14 @@ class MainActivity : FlutterActivity() {
                     PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 )
                 
-                val filters = arrayOf(IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED))
-                val techLists = arrayOf(arrayOf(IsoDep::class.java.name))
+                val filters = arrayOf(
+                    IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED),
+                    IntentFilter(NfcAdapter.ACTION_TAG_DISCOVERED),
+                    IntentFilter(NfcAdapter.ACTION_NDEF_DISCOVERED)
+                )
 
-                nfcAdapter?.enableForegroundDispatch(this, pendingIntent, filters, techLists)
-                println("JMRTD: Mode Foreground Dispatch activé avec succès.")
+                nfcAdapter?.enableForegroundDispatch(this, pendingIntent, filters, null)
+                println("JMRTD: Mode Foreground Dispatch activé avec filtres ouverts.")
             } catch (e: Throwable) {
                 println("JMRTD: Impossible d'activer le NFC: \${e.message}")
                 pendingResult?.error("NFC_INIT_ERROR", "Erreur NFC : \${e.message}", null)
