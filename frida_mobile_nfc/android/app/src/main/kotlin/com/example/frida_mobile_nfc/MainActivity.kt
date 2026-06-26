@@ -13,8 +13,6 @@ import org.jmrtd.BACKeySpec
 import org.jmrtd.PassportService
 import org.jmrtd.lds.icao.DG1File
 import java.io.InputStream
-import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.security.Security
 
 class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
@@ -25,13 +23,6 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-        
-        // Enregistrement de BouncyCastle de façon sécurisée
-        try {
-            Security.addProvider(BouncyCastleProvider())
-        } catch (e: Exception) {
-            android.util.Log.e("JMRTD", "Erreur initialisation BouncyCastle", e)
-        }
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
