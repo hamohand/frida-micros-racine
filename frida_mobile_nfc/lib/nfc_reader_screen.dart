@@ -117,6 +117,19 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                   foregroundColor: Colors.white,
                 ),
                 onPressed: _isReading ? null : _startNfcRead,
+              ),
+              const SizedBox(height: 15),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.camera_alt),
+                label: const Text("Relire la MRZ (Retour Caméra)"),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.all(15),
+                  foregroundColor: Colors.teal,
+                  side: const BorderSide(color: Colors.teal),
+                ),
+                onPressed: _isReading ? null : () {
+                  Navigator.of(context).pop();
+                },
               )
             ],
           ),
