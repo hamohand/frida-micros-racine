@@ -141,7 +141,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult),
+                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult, cameras: widget.cameras),
                   ),
                 );
               },

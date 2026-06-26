@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:camera/camera.dart';
 import 'dart:convert';
+import 'mrz_scanner_screen.dart';
 
 class NfcReaderScreen extends StatefulWidget {
   final String mrzText;
+  final List<CameraDescription> cameras;
 
-  const NfcReaderScreen({Key? key, required this.mrzText}) : super(key: key);
+  const NfcReaderScreen({Key? key, required this.mrzText, required this.cameras}) : super(key: key);
 
   @override
   _NfcReaderScreenState createState() => _NfcReaderScreenState();
@@ -130,7 +133,12 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                   side: const BorderSide(color: Colors.teal),
                 ),
                 onPressed: _isReading ? null : () {
-                  Navigator.of(context).pop();
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MrzScannerScreen(cameras: widget.cameras),
+                    ),
+                  );
                 },
               )
             ],
