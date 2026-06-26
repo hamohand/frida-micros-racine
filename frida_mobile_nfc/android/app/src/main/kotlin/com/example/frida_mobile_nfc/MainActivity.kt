@@ -128,10 +128,11 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
             return
         }
 
+        var cardService: CardService? = null
         try {
             android.util.Log.d("JMRTD", "Démarrage JMRTD...")
             isoDep.timeout = 15000 // 15 secondes max
-            val cardService = CardService.getInstance(isoDep)
+            cardService = CardService.getInstance(isoDep)
             cardService.open()
 
             val passportService = PassportService(
@@ -184,6 +185,13 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 pendingResult?.error("NFC_ERROR", e.toString(), null)
                 pendingResult = null
             }
+        } finally {
+            try {
+                cardService?.close()
+            } catch (e: Throwable) { }
+            try {
+                isoDep.close()
+            } catch (e: Throwable) { }
         }
     }
 }
