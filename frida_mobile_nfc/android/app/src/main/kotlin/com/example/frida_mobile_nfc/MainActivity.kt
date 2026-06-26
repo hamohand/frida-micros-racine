@@ -1,3 +1,5 @@
+package com.example.frida_mobile_nfc
+
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentFilter
