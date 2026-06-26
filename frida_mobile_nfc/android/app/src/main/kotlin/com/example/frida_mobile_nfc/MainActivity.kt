@@ -1,5 +1,6 @@
-package com.example.frida_mobile_nfc
-
+import android.app.PendingIntent
+import android.content.Intent
+import android.content.IntentFilter
 import android.nfc.NfcAdapter
 import android.nfc.Tag
 import android.nfc.tech.IsoDep
@@ -15,8 +16,9 @@ import org.jmrtd.lds.icao.DG1File
 import java.io.InputStream
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
+import kotlin.concurrent.thread
 
-class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
+class MainActivity : FlutterActivity() {
 
     private val CHANNEL = "frida.nfc/jmrtd"
     private var pendingResult: MethodChannel.Result? = null
@@ -47,12 +49,12 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     
                     val adapter = NfcAdapter.getDefaultAdapter(this@MainActivity)
                     if (adapter == null) {
-                        result.error("NFC_DISABLED", "NFC non disponible ou désactivé sur l'appareil", null)
+                        result.error("NFC_DISABLED", "NFC non disponible", null)
                         return@setMethodCallHandler
                     }
                     nfcAdapter = adapter
                     isNfcScanActive = true
-                    enableNfcReaderMode()
+                    enableNfcForegroundDispatch()
                 } else {
                     result.error("INVALID_ARGS", "Missing BAC keys", null)
                 }
@@ -62,46 +64,44 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
         }
     }
 
-    private fun enableNfcReaderMode() {
+    private fun enableNfcForegroundDispatch() {
         runOnUiThread {
             try {
-                val flags = NfcAdapter.FLAG_READER_NFC_A or 
-                            NfcAdapter.FLAG_READER_NFC_B or 
-                            NfcAdapter.FLAG_READER_NFC_F or 
-                            NfcAdapter.FLAG_READER_NFC_V or 
-                            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK
-                
-                nfcAdapter?.enableReaderMode(
-                    this@MainActivity,
-                    this@MainActivity,
-                    flags,
-                    null
+                val intent = Intent(this, javaClass).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                }
+                val pendingIntent = PendingIntent.getActivity(
+                    this, 0, intent,
+                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
                 )
-                println("JMRTD: Mode lecteur NFC activé avec succès.")
-                android.util.Log.d("JMRTD", "Mode lecteur NFC activé avec succès.")
+                
+                val filters = arrayOf(IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED))
+                val techLists = arrayOf(arrayOf(IsoDep::class.java.name))
+
+                nfcAdapter?.enableForegroundDispatch(this, pendingIntent, filters, techLists)
+                println("JMRTD: Mode Foreground Dispatch activé avec succès.")
             } catch (e: Throwable) {
                 println("JMRTD: Impossible d'activer le NFC: \${e.message}")
-                android.util.Log.e("JMRTD", "Impossible d'activer le NFC : \${e.message}")
-                pendingResult?.error("NFC_INIT_ERROR", "Impossible d'activer le NFC : \${e.message}", null)
+                pendingResult?.error("NFC_INIT_ERROR", "Erreur NFC : \${e.message}", null)
                 pendingResult = null
             }
         }
     }
 
-    private fun disableNfcReaderMode() {
+    private fun disableNfcForegroundDispatch() {
         isNfcScanActive = false
-        try {
-            nfcAdapter?.disableReaderMode(this@MainActivity)
-            android.util.Log.d("JMRTD", "Mode lecteur NFC désactivé.")
-        } catch (e: Throwable) {
-            // Ignorer
+        runOnUiThread {
+            try {
+                nfcAdapter?.disableForegroundDispatch(this)
+                println("JMRTD: Mode Foreground Dispatch désactivé.")
+            } catch (e: Throwable) { }
         }
     }
 
     override fun onResume() {
         super.onResume()
         if (isNfcScanActive) {
-            enableNfcReaderMode()
+            enableNfcForegroundDispatch()
         }
     }
 
@@ -109,16 +109,24 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
         super.onPause()
         if (isNfcScanActive) {
             try {
-                nfcAdapter?.disableReaderMode(this@MainActivity)
+                nfcAdapter?.disableForegroundDispatch(this)
             } catch (e: Throwable) { }
         }
     }
 
-    override fun onTagDiscovered(tag: Tag?) {
-        println("JMRTD: TAG NFC DETECTE !!")
-        android.util.Log.d("JMRTD", "TAG NFC DETECTE !!")
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (isNfcScanActive && (NfcAdapter.ACTION_TECH_DISCOVERED == intent.action || NfcAdapter.ACTION_TAG_DISCOVERED == intent.action)) {
+            val tag: Tag? = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG)
+            if (tag != null) {
+                processNfcTag(tag)
+            }
+        }
+    }
+
+    private fun processNfcTag(tag: Tag) {
+        println("JMRTD: TAG NFC DETECTE via Intent !!")
         
-        // Faire vibrer le téléphone pour confirmer la détection physique
         val vibrator = getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             vibrator.vibrate(android.os.VibrationEffect.createOneShot(150, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
@@ -128,85 +136,76 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
         val isoDep = IsoDep.get(tag)
         if (isoDep == null) {
-            println("JMRTD: Le tag détecté n'est pas IsoDep.")
-            android.util.Log.e("JMRTD", "Le tag détecté n'est pas de type IsoDep (Carte incompatible)")
+            println("JMRTD: Le tag n'est pas IsoDep.")
             runOnUiThread {
-                pendingResult?.error("NFC_ERROR", "La carte détectée n'est pas compatible (IsoDep manquant)", null)
+                pendingResult?.error("NFC_ERROR", "La carte détectée n'est pas compatible", null)
                 pendingResult = null
-                disableNfcReaderMode()
+                disableNfcForegroundDispatch()
             }
             return
         }
 
-        var cardService: CardService? = null
-        try {
-            println("JMRTD: Démarrage JMRTD...")
-            android.util.Log.d("JMRTD", "Démarrage JMRTD...")
-            isoDep.timeout = 15000 // 15 secondes max
-            cardService = CardService.getInstance(isoDep)
-            cardService.open()
+        // Run network/crypto ops on a background thread
+        thread {
+            var cardService: CardService? = null
+            try {
+                println("JMRTD: Démarrage JMRTD...")
+                isoDep.timeout = 15000 
+                cardService = CardService.getInstance(isoDep)
+                cardService.open()
 
-            val passportService = PassportService(
-                cardService,
-                PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
-                PassportService.DEFAULT_MAX_BLOCKSIZE,
-                false,
-                false
-            )
-
-            passportService.open()
-            
-            val key = bacKey
-            if (key != null) {
-                println("JMRTD: Authentification BAC en cours...")
-                android.util.Log.d("JMRTD", "Authentification BAC en cours...")
-                passportService.doBAC(key)
-                println("JMRTD: BAC réussi ! Lecture DG1...")
-                android.util.Log.d("JMRTD", "BAC réussi ! Lecture DG1...")
+                val passportService = PassportService(
+                    cardService,
+                    PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
+                    PassportService.DEFAULT_MAX_BLOCKSIZE,
+                    false,
+                    false
+                )
+                passportService.open()
                 
-                val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
-                val dg1File = DG1File(dg1In)
-                val mrzInfo = dg1File.mrzInfo
+                val key = bacKey
+                if (key != null) {
+                    println("JMRTD: Authentification BAC en cours...")
+                    passportService.doBAC(key)
+                    println("JMRTD: BAC réussi ! Lecture DG1...")
+                    
+                    val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
+                    val dg1File = DG1File(dg1In)
+                    val mrzInfo = dg1File.mrzInfo
 
-                val jsonResult = """
-                {
-                    "documentCode": "${mrzInfo.documentCode}",
-                    "issuingState": "${mrzInfo.issuingState}",
-                    "primaryIdentifier": "${mrzInfo.primaryIdentifier?.replace("<", "")}",
-                    "secondaryIdentifier": "${mrzInfo.secondaryIdentifier?.replace("<", "")}",
-                    "nationality": "${mrzInfo.nationality}",
-                    "documentNumber": "${mrzInfo.documentNumber}",
-                    "dateOfBirth": "${mrzInfo.dateOfBirth}",
-                    "gender": "${mrzInfo.gender}",
-                    "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
-                    "personalNumber": "${mrzInfo.optionalData1}"
+                    val jsonResult = """
+                    {
+                        "documentCode": "${mrzInfo.documentCode}",
+                        "issuingState": "${mrzInfo.issuingState}",
+                        "primaryIdentifier": "${mrzInfo.primaryIdentifier?.replace("<", "")}",
+                        "secondaryIdentifier": "${mrzInfo.secondaryIdentifier?.replace("<", "")}",
+                        "nationality": "${mrzInfo.nationality}",
+                        "documentNumber": "${mrzInfo.documentNumber}",
+                        "dateOfBirth": "${mrzInfo.dateOfBirth}",
+                        "gender": "${mrzInfo.gender}",
+                        "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
+                        "personalNumber": "${mrzInfo.optionalData1}"
+                    }
+                    """.trimIndent()
+
+                    println("JMRTD: Lecture réussie.")
+                    runOnUiThread {
+                        disableNfcForegroundDispatch()
+                        pendingResult?.success(jsonResult)
+                        pendingResult = null
+                    }
                 }
-                """.trimIndent()
-
-                println("JMRTD: Lecture réussie. Retour à Flutter.")
-                android.util.Log.d("JMRTD", "Lecture réussie. Retour à Flutter.")
+            } catch (e: Throwable) {
+                println("JMRTD: Erreur: ${e.message}")
                 runOnUiThread {
-                    disableNfcReaderMode()
-                    pendingResult?.success(jsonResult)
+                    disableNfcForegroundDispatch()
+                    pendingResult?.error("NFC_ERROR", e.toString(), null)
                     pendingResult = null
                 }
+            } finally {
+                try { cardService?.close() } catch (e: Throwable) { }
+                try { isoDep.close() } catch (e: Throwable) { }
             }
-        } catch (e: Throwable) {
-            println("JMRTD: Erreur JMRTD: ${e.message}")
-            android.util.Log.e("JMRTD", "Erreur JMRTD: ${e.message}", e)
-            e.printStackTrace()
-            runOnUiThread {
-                disableNfcReaderMode()
-                pendingResult?.error("NFC_ERROR", e.toString(), null)
-                pendingResult = null
-            }
-        } finally {
-            try {
-                cardService?.close()
-            } catch (e: Throwable) { }
-            try {
-                isoDep.close()
-            } catch (e: Throwable) { }
         }
     }
 }
