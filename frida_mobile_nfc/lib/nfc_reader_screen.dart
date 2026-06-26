@@ -53,6 +53,8 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
         'documentNumber': _documentNumber,
         'dateOfBirth': _dateOfBirth,
         'dateOfExpiry': _dateOfExpiry,
+      }).timeout(const Duration(seconds: 15), onTimeout: () {
+        throw Exception("Le scan a expiré (15 secondes sans détection).");
       });
 
       // Format the JSON result to make it pretty
@@ -71,7 +73,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
     } catch (e) {
       setState(() {
         _isReading = false;
-        _status = "❌ Erreur inattendue :\n$e";
+        _status = "❌ Échec :\n$e";
       });
     }
   }
