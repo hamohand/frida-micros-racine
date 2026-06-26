@@ -26,8 +26,12 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         
-        // Enregistrement de BouncyCastle (requis par JMRTD pour la cryptographie BAC)
-        Security.insertProviderAt(BouncyCastleProvider(), 1)
+        // Enregistrement de BouncyCastle de façon sécurisée
+        try {
+            Security.addProvider(BouncyCastleProvider())
+        } catch (e: Exception) {
+            android.util.Log.e("JMRTD", "Erreur initialisation BouncyCastle", e)
+        }
 
         nfcAdapter = NfcAdapter.getDefaultAdapter(this)
 
