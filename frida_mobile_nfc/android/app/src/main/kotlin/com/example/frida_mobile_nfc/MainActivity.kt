@@ -45,13 +45,25 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     bacKey = BACKey(docNum, dob, expiry)
                     pendingResult = result
                     
+                    // Récupérer l'adaptateur ici, quand le contexte est garanti d'être prêt
+                    val adapter = NfcAdapter.getDefaultAdapter(this@MainActivity)
+                    if (adapter == null) {
+                        result.error("NFC_DISABLED", "NFC non disponible ou désactivé sur l'appareil", null)
+                        return@setMethodCallHandler
+                    }
+                    nfcAdapter = adapter
+
                     // Activer le mode lecteur NFC du téléphone
-                    nfcAdapter?.enableReaderMode(
-                        this,
-                        this,
-                        NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-                        null
-                    )
+                    try {
+                        nfcAdapter?.enableReaderMode(
+                            this@MainActivity,
+                            this@MainActivity,
+                            NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
+                            null
+                        )
+                    } catch (e: Throwable) {
+                        result.error("NFC_INIT_ERROR", "Impossible d'activer le NFC : ${e.toString()}", null)
+                    }
                 } else {
                     result.error("INVALID_ARGS", "Missing BAC keys", null)
                 }
@@ -110,11 +122,11 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     pendingResult = null
                 }
             }
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             e.printStackTrace()
             runOnUiThread {
                 nfcAdapter?.disableReaderMode(this)
-                pendingResult?.error("NFC_ERROR", e.message ?: "Unknown JMRTD Error", null)
+                pendingResult?.error("NFC_ERROR", e.toString(), null)
                 pendingResult = null
             }
         }
