@@ -65,8 +65,28 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
-        val isoDep = IsoDep.get(tag) ?: return
+        android.util.Log.d("JMRTD", "TAG NFC DETECTE !!")
+        
+        // Faire vibrer le téléphone pour confirmer la détection physique
+        val vibrator = getSystemService(android.content.Context.VIBRATOR_SERVICE) as android.os.Vibrator
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            vibrator.vibrate(android.os.VibrationEffect.createOneShot(150, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            vibrator.vibrate(150)
+        }
+
+        val isoDep = IsoDep.get(tag)
+        if (isoDep == null) {
+            android.util.Log.e("JMRTD", "Le tag détecté n'est pas de type IsoDep (Carte incompatible)")
+            runOnUiThread {
+                pendingResult?.error("NFC_ERROR", "La carte détectée n'est pas compatible (IsoDep manquant)", null)
+                pendingResult = null
+            }
+            return
+        }
+
         try {
+            android.util.Log.d("JMRTD", "Démarrage JMRTD...")
             isoDep.timeout = 15000 // 15 secondes max
             val cardService = CardService.getInstance(isoDep)
             cardService.open()
@@ -83,15 +103,14 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
             
             val key = bacKey
             if (key != null) {
-                // 1. Authentification BAC
+                android.util.Log.d("JMRTD", "Authentification BAC en cours...")
                 passportService.doBAC(key)
+                android.util.Log.d("JMRTD", "BAC réussi ! Lecture DG1...")
                 
-                // 2. Lecture du fichier DG1 (MRZ Data)
                 val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
                 val dg1File = DG1File(dg1In)
                 val mrzInfo = dg1File.mrzInfo
 
-                // 3. Extraction du JSON
                 val jsonResult = """
                 {
                     "documentCode": "${mrzInfo.documentCode}",
@@ -107,6 +126,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 }
                 """.trimIndent()
 
+                android.util.Log.d("JMRTD", "Lecture réussie. Retour à Flutter.")
                 runOnUiThread {
                     nfcAdapter?.disableReaderMode(this)
                     pendingResult?.success(jsonResult)
@@ -114,6 +134,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 }
             }
         } catch (e: Throwable) {
+            android.util.Log.e("JMRTD", "Erreur JMRTD: ${e.message}", e)
             e.printStackTrace()
             runOnUiThread {
                 nfcAdapter?.disableReaderMode(this)
