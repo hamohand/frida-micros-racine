@@ -63,20 +63,28 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
     }
 
     private fun enableNfcReaderMode() {
-        try {
-            val options = Bundle()
-            options.putInt(NfcAdapter.EXTRA_READER_PRESENCE_CHECK_DELAY, 250)
-            nfcAdapter?.enableReaderMode(
-                this@MainActivity,
-                this@MainActivity,
-                NfcAdapter.FLAG_READER_NFC_A or NfcAdapter.FLAG_READER_NFC_B or NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
-                options
-            )
-            android.util.Log.d("JMRTD", "Mode lecteur NFC activé avec succès.")
-        } catch (e: Throwable) {
-            android.util.Log.e("JMRTD", "Impossible d'activer le NFC : \${e.message}")
-            pendingResult?.error("NFC_INIT_ERROR", "Impossible d'activer le NFC : \${e.message}", null)
-            pendingResult = null
+        runOnUiThread {
+            try {
+                val flags = NfcAdapter.FLAG_READER_NFC_A or 
+                            NfcAdapter.FLAG_READER_NFC_B or 
+                            NfcAdapter.FLAG_READER_NFC_F or 
+                            NfcAdapter.FLAG_READER_NFC_V or 
+                            NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK
+                
+                nfcAdapter?.enableReaderMode(
+                    this@MainActivity,
+                    this@MainActivity,
+                    flags,
+                    null
+                )
+                println("JMRTD: Mode lecteur NFC activé avec succès.")
+                android.util.Log.d("JMRTD", "Mode lecteur NFC activé avec succès.")
+            } catch (e: Throwable) {
+                println("JMRTD: Impossible d'activer le NFC: \${e.message}")
+                android.util.Log.e("JMRTD", "Impossible d'activer le NFC : \${e.message}")
+                pendingResult?.error("NFC_INIT_ERROR", "Impossible d'activer le NFC : \${e.message}", null)
+                pendingResult = null
+            }
         }
     }
 
@@ -107,6 +115,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
     }
 
     override fun onTagDiscovered(tag: Tag?) {
+        println("JMRTD: TAG NFC DETECTE !!")
         android.util.Log.d("JMRTD", "TAG NFC DETECTE !!")
         
         // Faire vibrer le téléphone pour confirmer la détection physique
@@ -119,6 +128,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
         val isoDep = IsoDep.get(tag)
         if (isoDep == null) {
+            println("JMRTD: Le tag détecté n'est pas IsoDep.")
             android.util.Log.e("JMRTD", "Le tag détecté n'est pas de type IsoDep (Carte incompatible)")
             runOnUiThread {
                 pendingResult?.error("NFC_ERROR", "La carte détectée n'est pas compatible (IsoDep manquant)", null)
@@ -130,6 +140,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
         var cardService: CardService? = null
         try {
+            println("JMRTD: Démarrage JMRTD...")
             android.util.Log.d("JMRTD", "Démarrage JMRTD...")
             isoDep.timeout = 15000 // 15 secondes max
             cardService = CardService.getInstance(isoDep)
@@ -147,8 +158,10 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
             
             val key = bacKey
             if (key != null) {
+                println("JMRTD: Authentification BAC en cours...")
                 android.util.Log.d("JMRTD", "Authentification BAC en cours...")
                 passportService.doBAC(key)
+                println("JMRTD: BAC réussi ! Lecture DG1...")
                 android.util.Log.d("JMRTD", "BAC réussi ! Lecture DG1...")
                 
                 val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
@@ -170,6 +183,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 }
                 """.trimIndent()
 
+                println("JMRTD: Lecture réussie. Retour à Flutter.")
                 android.util.Log.d("JMRTD", "Lecture réussie. Retour à Flutter.")
                 runOnUiThread {
                     disableNfcReaderMode()
@@ -178,6 +192,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 }
             }
         } catch (e: Throwable) {
+            println("JMRTD: Erreur JMRTD: ${e.message}")
             android.util.Log.e("JMRTD", "Erreur JMRTD: ${e.message}", e)
             e.printStackTrace()
             runOnUiThread {
