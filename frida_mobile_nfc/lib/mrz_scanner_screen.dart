@@ -138,7 +138,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
               child: const Text("Passer au lecteur NFC"),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.push(
+                Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
                     builder: (context) => NfcReaderScreen(mrzText: _mrzResult),
