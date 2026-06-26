@@ -31,11 +31,11 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
     
     if (lines.isNotEmpty) {
       if (lines.length == 3 && lines[0].length >= 30) {
-        _documentNumber = lines[0].substring(5, 14).replaceAll('<', '');
+        _documentNumber = lines[0].substring(5, 14); // Garder les '<'
         _dateOfBirth = lines[1].substring(0, 6);
         _dateOfExpiry = lines[1].substring(8, 14);
       } else if (lines.length == 2 && lines[1].length >= 44) {
-        _documentNumber = lines[1].substring(0, 9).replaceAll('<', '');
+        _documentNumber = lines[1].substring(0, 9); // Garder les '<'
         _dateOfBirth = lines[1].substring(13, 19);
         _dateOfExpiry = lines[1].substring(21, 27);
       }
