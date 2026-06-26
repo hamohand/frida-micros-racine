@@ -15,6 +15,7 @@ import org.jmrtd.lds.icao.DG1File
 import java.io.InputStream
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
+import kotlin.concurrent.thread
 
 class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
 
@@ -136,66 +137,68 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
             return
         }
 
-        var cardService: CardService? = null
-        try {
-            println("JMRTD: Démarrage JMRTD...")
-            isoDep.timeout = 15000 // 15 secondes max
-            cardService = CardService.getInstance(isoDep)
-            cardService.open()
+        thread {
+            var cardService: CardService? = null
+            try {
+                println("JMRTD: Démarrage JMRTD...")
+                isoDep.timeout = 15000 // 15 secondes max
+                cardService = CardService.getInstance(isoDep)
+                cardService.open()
 
-            val passportService = PassportService(
-                cardService,
-                PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
-                PassportService.DEFAULT_MAX_BLOCKSIZE,
-                false,
-                false
-            )
+                val passportService = PassportService(
+                    cardService,
+                    PassportService.NORMAL_MAX_TRANCEIVE_LENGTH,
+                    PassportService.DEFAULT_MAX_BLOCKSIZE,
+                    false,
+                    false
+                )
 
-            passportService.open()
-            
-            val key = bacKey
-            if (key != null) {
-                println("JMRTD: Authentification BAC en cours...")
-                passportService.doBAC(key)
-                println("JMRTD: BAC réussi ! Lecture DG1...")
+                passportService.open()
                 
-                val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
-                val dg1File = DG1File(dg1In)
-                val mrzInfo = dg1File.mrzInfo
+                val key = bacKey
+                if (key != null) {
+                    println("JMRTD: Authentification BAC en cours...")
+                    passportService.doBAC(key)
+                    println("JMRTD: BAC réussi ! Lecture DG1...")
+                    
+                    val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
+                    val dg1File = DG1File(dg1In)
+                    val mrzInfo = dg1File.mrzInfo
 
-                val jsonResult = """
-                {
-                    "documentCode": "${mrzInfo.documentCode}",
-                    "issuingState": "${mrzInfo.issuingState}",
-                    "primaryIdentifier": "${mrzInfo.primaryIdentifier?.replace("<", "")}",
-                    "secondaryIdentifier": "${mrzInfo.secondaryIdentifier?.replace("<", "")}",
-                    "nationality": "${mrzInfo.nationality}",
-                    "documentNumber": "${mrzInfo.documentNumber}",
-                    "dateOfBirth": "${mrzInfo.dateOfBirth}",
-                    "gender": "${mrzInfo.gender}",
-                    "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
-                    "personalNumber": "${mrzInfo.optionalData1}"
+                    val jsonResult = """
+                    {
+                        "documentCode": "${mrzInfo.documentCode}",
+                        "issuingState": "${mrzInfo.issuingState}",
+                        "primaryIdentifier": "${mrzInfo.primaryIdentifier?.replace("<", "")}",
+                        "secondaryIdentifier": "${mrzInfo.secondaryIdentifier?.replace("<", "")}",
+                        "nationality": "${mrzInfo.nationality}",
+                        "documentNumber": "${mrzInfo.documentNumber}",
+                        "dateOfBirth": "${mrzInfo.dateOfBirth}",
+                        "gender": "${mrzInfo.gender}",
+                        "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
+                        "personalNumber": "${mrzInfo.optionalData1}"
+                    }
+                    """.trimIndent()
+
+                    println("JMRTD: Lecture réussie. Retour à Flutter.")
+                    runOnUiThread {
+                        disableNfcReaderMode()
+                        pendingResult?.success(jsonResult)
+                        pendingResult = null
+                    }
                 }
-                """.trimIndent()
-
-                println("JMRTD: Lecture réussie. Retour à Flutter.")
+            } catch (e: Throwable) {
+                println("JMRTD: Erreur JMRTD: ${e.message}")
+                e.printStackTrace()
                 runOnUiThread {
                     disableNfcReaderMode()
-                    pendingResult?.success(jsonResult)
+                    pendingResult?.error("NFC_ERROR", e.toString(), null)
                     pendingResult = null
                 }
+            } finally {
+                try { cardService?.close() } catch (e: Throwable) { }
+                try { isoDep.close() } catch (e: Throwable) { }
             }
-        } catch (e: Throwable) {
-            println("JMRTD: Erreur JMRTD: ${e.message}")
-            e.printStackTrace()
-            runOnUiThread {
-                disableNfcReaderMode()
-                pendingResult?.error("NFC_ERROR", e.toString(), null)
-                pendingResult = null
-            }
-        } finally {
-            try { cardService?.close() } catch (e: Throwable) { }
-            try { isoDep.close() } catch (e: Throwable) { }
         }
     }
 }
