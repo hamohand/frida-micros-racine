@@ -48,3 +48,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    implementation("org.jmrtd:jmrtd:0.8.1")
+    implementation("net.sf.scuba:scuba-sc-android:0.0.23")
+}
