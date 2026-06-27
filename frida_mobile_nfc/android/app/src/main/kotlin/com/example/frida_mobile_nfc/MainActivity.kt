@@ -211,6 +211,10 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     var ninDg11 = ""
                     var addressDg11 = ""
                     var fullNameDg11 = ""
+                    var nameIso = ""
+                    var nameWin = ""
+                    var nameUtf8 = ""
+
                     try {
                         println("JMRTD: Tentative de lecture du fichier DG11...")
                         val dg11In: InputStream = passportService.getInputStream(PassportService.EF_DG11)
@@ -218,6 +222,32 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         ninDg11 = dg11File.personalNumber ?: ""
                         addressDg11 = dg11File.permanentAddress?.joinToString(", ") ?: ""
                         fullNameDg11 = dg11File.nameOfHolder ?: ""
+                        
+                        // Extraction brute des octets pour l'arabe
+                        try {
+                            val dg11Bytes = dg11File.encoded
+                            val tlvIn = net.sf.scuba.tlv.TLVInputStream(java.io.ByteArrayInputStream(dg11Bytes))
+                            val topTag = tlvIn.readTag()
+                            if (topTag == 0x6B) { // DG11 tag
+                                tlvIn.readLength()
+                                while (tlvIn.available() > 0) {
+                                    val tag = tlvIn.readTag()
+                                    val length = tlvIn.readLength()
+                                    if (tag == 0x5E) { // Name of holder tag
+                                        val nameBytes = tlvIn.readValue()
+                                        nameIso = String(nameBytes, java.nio.charset.Charset.forName("ISO-8859-6"))
+                                        nameWin = String(nameBytes, java.nio.charset.Charset.forName("windows-1256"))
+                                        nameUtf8 = String(nameBytes, java.nio.charset.Charset.forName("UTF-8"))
+                                        break
+                                    } else {
+                                        tlvIn.skip(length.toLong())
+                                    }
+                                }
+                            }
+                        } catch (e: Throwable) {
+                            println("JMRTD: Erreur TLV: ${e.message}")
+                        }
+
                         println("JMRTD: Lecture DG11 réussie !")
                     } catch (e: Throwable) {
                         println("JMRTD: Fichier DG11 absent ou illisible (ignoré).")
@@ -240,7 +270,10 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         "rawMrz": "${mrzInfo.toString().replace("\n", "\\n")}",
                         "nin_dg11": "$ninDg11",
                         "address_dg11": "$addressDg11",
-                        "fullName_dg11": "$fullNameDg11"
+                        "fullName_dg11": "$fullNameDg11",
+                        "name_iso": "${nameIso.replace("\"", "\\\"").replace("\n", "")}",
+                        "name_win": "${nameWin.replace("\"", "\\\"").replace("\n", "")}",
+                        "name_utf8": "${nameUtf8.replace("\"", "\\\"").replace("\n", "")}"
                     }
                     """.trimIndent()
 
