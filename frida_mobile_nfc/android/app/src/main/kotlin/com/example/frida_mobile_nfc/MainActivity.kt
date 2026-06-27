@@ -211,9 +211,8 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     var ninDg11 = ""
                     var addressDg11 = ""
                     var fullNameDg11 = ""
-                    var nameIso = ""
-                    var nameWin = ""
-                    var nameUtf8 = ""
+                    var nameBase64 = ""
+                    var addressBase64 = ""
 
                     try {
                         println("JMRTD: Tentative de lecture du fichier DG11...")
@@ -223,7 +222,7 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         addressDg11 = dg11File.permanentAddress?.joinToString(", ") ?: ""
                         fullNameDg11 = dg11File.nameOfHolder ?: ""
                         
-                        // Extraction brute des octets pour l'arabe
+                        // Extraction brute des octets pour analyse de l'encodage
                         try {
                             val dg11Bytes = dg11File.encoded
                             val tlvIn = net.sf.scuba.tlv.TLVInputStream(java.io.ByteArrayInputStream(dg11Bytes))
@@ -235,10 +234,10 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                                     val length = tlvIn.readLength()
                                     if (tag == 0x5E) { // Name of holder tag
                                         val nameBytes = tlvIn.readValue()
-                                        nameIso = String(nameBytes, java.nio.charset.Charset.forName("ISO-8859-6"))
-                                        nameWin = String(nameBytes, java.nio.charset.Charset.forName("windows-1256"))
-                                        nameUtf8 = String(nameBytes, java.nio.charset.Charset.forName("UTF-8"))
-                                        break
+                                        nameBase64 = android.util.Base64.encodeToString(nameBytes, android.util.Base64.NO_WRAP)
+                                    } else if (tag == 0x42) { // Address tag
+                                        val addrBytes = tlvIn.readValue()
+                                        addressBase64 = android.util.Base64.encodeToString(addrBytes, android.util.Base64.NO_WRAP)
                                     } else {
                                         tlvIn.skip(length.toLong())
                                     }
@@ -271,9 +270,8 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         "nin_dg11": "$ninDg11",
                         "address_dg11": "$addressDg11",
                         "fullName_dg11": "$fullNameDg11",
-                        "name_iso": "${nameIso.replace("\"", "\\\"").replace("\n", "")}",
-                        "name_win": "${nameWin.replace("\"", "\\\"").replace("\n", "")}",
-                        "name_utf8": "${nameUtf8.replace("\"", "\\\"").replace("\n", "")}"
+                        "name_base64": "$nameBase64",
+                        "address_base64": "$addressBase64"
                     }
                     """.trimIndent()
 
