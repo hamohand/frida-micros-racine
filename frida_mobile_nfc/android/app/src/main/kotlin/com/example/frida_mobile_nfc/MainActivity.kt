@@ -218,7 +218,9 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         "dateOfBirth": "${mrzInfo.dateOfBirth}",
                         "gender": "${mrzInfo.gender}",
                         "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
-                        "personalNumber": "${mrzInfo.optionalData1}"
+                        "personalNumber": "${mrzInfo.personalNumber}",
+                        "optionalData1": "${mrzInfo.optionalData1}",
+                        "optionalData2": "${mrzInfo.optionalData2}"
                     }
                     """.trimIndent()
 
