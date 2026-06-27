@@ -207,6 +207,22 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     val dg1File = DG1File(dg1In)
                     val mrzInfo = dg1File.mrzInfo
 
+                    // LECTURE DG11 (Données additionnelles)
+                    var ninDg11 = ""
+                    var addressDg11 = ""
+                    var fullNameDg11 = ""
+                    try {
+                        println("JMRTD: Tentative de lecture du fichier DG11...")
+                        val dg11In: InputStream = passportService.getInputStream(PassportService.EF_DG11)
+                        val dg11File = org.jmrtd.lds.icao.DG11File(dg11In)
+                        ninDg11 = dg11File.personalNumber ?: ""
+                        addressDg11 = dg11File.permanentAddress?.joinToString(", ") ?: ""
+                        fullNameDg11 = dg11File.nameOfHolder ?: ""
+                        println("JMRTD: Lecture DG11 réussie !")
+                    } catch (e: Throwable) {
+                        println("JMRTD: Fichier DG11 absent ou illisible (ignoré).")
+                    }
+
                     val jsonResult = """
                     {
                         "documentCode": "${mrzInfo.documentCode}",
@@ -220,7 +236,11 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         "dateOfExpiry": "${mrzInfo.dateOfExpiry}",
                         "personalNumber": "${mrzInfo.personalNumber}",
                         "optionalData1": "${mrzInfo.optionalData1}",
-                        "optionalData2": "${mrzInfo.optionalData2}"
+                        "optionalData2": "${mrzInfo.optionalData2}",
+                        "rawMrz": "${mrzInfo.toString().replace("\n", "\\n")}",
+                        "nin_dg11": "$ninDg11",
+                        "address_dg11": "$addressDg11",
+                        "fullName_dg11": "$fullNameDg11"
                     }
                     """.trimIndent()
 
