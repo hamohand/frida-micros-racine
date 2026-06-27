@@ -26,13 +26,15 @@ public class OcrMappingService {
 
     private final OcrApiClient ocrApiClient;
     private final MrzService mrzService;
+    private final NinValidationService ninValidationService;
 
     @Value("${services.ocr.mode:rapide}")
     private String defaultOcrMode;
 
-    public OcrMappingService(OcrApiClient ocrApiClient, MrzService mrzService) {
+    public OcrMappingService(OcrApiClient ocrApiClient, MrzService mrzService, NinValidationService ninValidationService) {
         this.ocrApiClient = ocrApiClient;
         this.mrzService = mrzService;
+        this.ninValidationService = ninValidationService;
     }
 
     /**
@@ -178,7 +180,6 @@ public class OcrMappingService {
         entity.setDateNaissanceLettres(getText.apply("dateNaissanceLettres"));
         entity.setPere(getText.apply("pere"));
         entity.setMere(getText.apply("mere"));
-        entity.setNin(getText.apply("nin"));
         entity.setNumeroPiece(getText.apply("numeroPiece"));
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
@@ -193,6 +194,23 @@ public class OcrMappingService {
             OcrResultDto res = entry.getValue();
             if (res == null) continue;
             double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
+            
+            // --- VALIDATION DU NIN ---
+            if ("nin".equals(entry.getKey())) {
+                String brutNin = res.getTexte_final() != null ? res.getTexte_final() : "";
+                String validatedNin = ninValidationService.cleanAndValidate(brutNin);
+                
+                if (validatedNin != null) {
+                    res.setTexte_final(validatedNin);
+                    entity.setNin(validatedNin);
+                } else if (!brutNin.trim().isEmpty()) {
+                    // NIN présent mais format invalide (erreur OCR)
+                    score = 0.0; // Force la correction visuelle
+                    entity.setNin(brutNin);
+                    log.warn("🚨 Extrait: NIN OCR '{}' invalide. Score forcé à 0.0.", brutNin);
+                }
+            }
+
             confiances.put(entry.getKey(), score);
             rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
             
@@ -231,7 +249,6 @@ public class OcrMappingService {
         entity.setNom(getText.apply("nom"));
         entity.setPrenom(getText.apply("prenom"));
         entity.setLieuNaissance(getText.apply("lieuNaissance"));
-        entity.setNin(getText.apply("nin"));
         entity.setSexe(getText.apply("sexe"));
         entity.setNumeroPiece(getText.apply("numeroPiece"));
         entity.setDelivrePar(getText.apply("delivrePar"));
@@ -252,6 +269,23 @@ public class OcrMappingService {
             OcrResultDto res = entry.getValue();
             if (res == null) continue;
             double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
+            
+            // --- VALIDATION DU NIN ---
+            if ("nin".equals(entry.getKey())) {
+                String brutNin = res.getTexte_final() != null ? res.getTexte_final() : "";
+                String validatedNin = ninValidationService.cleanAndValidate(brutNin);
+                
+                if (validatedNin != null) {
+                    res.setTexte_final(validatedNin);
+                    entity.setNin(validatedNin);
+                } else if (!brutNin.trim().isEmpty()) {
+                    // NIN présent mais format invalide (erreur OCR)
+                    score = 0.0; // Force la correction visuelle
+                    entity.setNin(brutNin);
+                    log.warn("🚨 CNI/Passeport: NIN OCR '{}' invalide. Score forcé à 0.0.", brutNin);
+                }
+            }
+
             confiances.put(entry.getKey(), score);
             rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
             
