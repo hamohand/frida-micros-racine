@@ -105,13 +105,27 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                 padding: const EdgeInsets.all(20),
                 constraints: const BoxConstraints(minHeight: 150),
                 child: Center(
-                  child: Text(
+                  child: SelectableText(
                     _status,
-                    textAlign: TextAlign.center,
+                    textAlign: TextAlign.left,
                     style: const TextStyle(fontSize: 16),
                   ),
                 ),
               ),
+              if (_status.contains('{')) ...[
+                const SizedBox(height: 10),
+                TextButton.icon(
+                  icon: const Icon(Icons.copy),
+                  label: const Text("Copier le résultat JSON"),
+                  onPressed: () {
+                    final jsonPart = _status.substring(_status.indexOf('{'));
+                    Clipboard.setData(ClipboardData(text: jsonPart));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("JSON copié dans le presse-papiers !")),
+                    );
+                  },
+                ),
+              ],
               const SizedBox(height: 30),
               ElevatedButton.icon(
                 icon: _isReading ? const CircularProgressIndicator(color: Colors.white) : const Icon(Icons.nfc),
