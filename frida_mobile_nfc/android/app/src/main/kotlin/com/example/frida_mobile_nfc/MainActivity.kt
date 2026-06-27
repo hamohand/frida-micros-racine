@@ -157,45 +157,53 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                 
                 val key = bacKey
                 if (key != null) {
+                    var paceSucceeded = false
+                    
                     try {
-                        println("JMRTD: Authentification BAC en cours...")
-                        passportService.doBAC(key)
-                        println("JMRTD: BAC réussi ! Lecture DG1...")
-                    } catch (bacEx: Throwable) {
-                        println("JMRTD: BAC a échoué (\${bacEx.message}). Tentative de repli vers PACE (SAC)...")
-                        try {
-                            val cardAccessIn = passportService.getInputStream(PassportService.EF_CARD_ACCESS)
-                            val cardAccessFile = org.jmrtd.lds.CardAccessFile(cardAccessIn)
-                            val securityInfos = cardAccessFile.securityInfos
-                            var paceSucceeded = false
-
-                            if (securityInfos != null) {
-                                for (securityInfo in securityInfos) {
-                                    if (securityInfo is org.jmrtd.lds.PACEInfo) {
-                                        println("JMRTD: Informations PACE trouvées, lancement de PACE...")
-                                        val paceKey = org.jmrtd.PACEKeySpec.createMRZKey(key)
-                                        passportService.doPACE(
-                                            paceKey,
-                                            securityInfo.objectIdentifier,
-                                            org.jmrtd.lds.PACEInfo.toParameterSpec(securityInfo.parameterId),
-                                            securityInfo.parameterId
-                                        )
-                                        println("JMRTD: PACE réussi ! Lecture DG1...")
-                                        paceSucceeded = true
-                                        break
-                                    }
-                                }
+                        val cardAccessIn = passportService.getInputStream(PassportService.EF_CARD_ACCESS)
+                    val cardAccessFile = org.jmrtd.lds.CardAccessFile(cardAccessIn)
+                    val securityInfos = cardAccessFile.securityInfos
+                    
+                    if (securityInfos != null) {
+                        for (securityInfo in securityInfos) {
+                            if (securityInfo is org.jmrtd.lds.PACEInfo) {
+                                println("JMRTD: PACEInfo trouvé ! Tentative de PACE (SAC)...")
+                                val paceKey = org.jmrtd.PACEKeySpec.createMRZKey(key)
+                                passportService.doPACE(
+                                    paceKey,
+                                    securityInfo.objectIdentifier,
+                                    org.jmrtd.lds.PACEInfo.toParameterSpec(securityInfo.parameterId),
+                                    securityInfo.parameterId
+                                )
+                                paceSucceeded = true
+                                println("JMRTD: PACE réussi avec succès !")
+                                break
                             }
-                            if (!paceSucceeded) {
-                                throw Exception("Fichier CardAccess introuvable ou aucun protocole PACE supporté.")
-                            }
-                        } catch (paceEx: Throwable) {
-                            println("JMRTD: PACE a également échoué (\${paceEx.message}).")
-                            throw bacEx // On renvoie l'erreur originale BAC pour ne pas masquer le problème de MRZ
                         }
                     }
-                    
-                    val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
+                } catch (e: Throwable) {
+                    println("JMRTD: Pas de fichier CardAccess ou échec PACE: ${e.message}")
+                }
+
+                // ETAPE CRUCIALE : Sélectionner l'application ICAO sur la carte !
+                // Si on ne fait pas ça, le doBAC() est envoyé au dossier racine de la carte
+                // ce qui provoque immédiatement une erreur 0x6985 (CONDITIONS NOT SATISFIED).
+                println("JMRTD: Sélection de l'Applet ICAO...")
+                passportService.sendSelectApplet(paceSucceeded)
+
+                if (!paceSucceeded) {
+                    try {
+                        println("JMRTD: PACE non supporté/non effectué. Lancement de BAC...")
+                        passportService.doBAC(key)
+                        println("JMRTD: BAC réussi avec succès !")
+                    } catch (bacEx: Throwable) {
+                        println("JMRTD: Échec fatal du BAC: ${bacEx.message}")
+                        throw bacEx
+                    }
+                }
+                
+                println("JMRTD: Lecture du fichier DG1...")
+                val dg1In: InputStream = passportService.getInputStream(PassportService.EF_DG1)
                     val dg1File = DG1File(dg1In)
                     val mrzInfo = dg1File.mrzInfo
 
