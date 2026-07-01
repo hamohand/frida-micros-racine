@@ -12,5 +12,5 @@ if %errorLevel% == 0 (
 
 :: Lancement du script PowerShell principal
 echo Lancement de l'installation de Frida-Micros...
-PowerShell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Installer-Frida.ps1"
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Installer-WSL.ps1"
 pause

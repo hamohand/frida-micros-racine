@@ -31,7 +31,7 @@ PRÉREQUIS
 1. Décompressez le fichier .zip reçu dans un dossier
    de votre choix (ex: C:\Frida).
 
-2. Double-cliquez sur « installer.bat »
+2. Double-cliquez sur « Installer-Docker.bat »
 
 3. Patientez 5 à 15 minutes (première installation).
    Le script télécharge et construit les composants.
@@ -44,7 +44,7 @@ UTILISATION QUOTIDIENNE
 ───────────────────────
 • Pour DÉMARRER Frida :
   Ouvrez Docker Desktop, puis double-cliquez sur
-  « installer.bat » (le démarrage sera instantané
+  « Installer-Docker.bat » (le démarrage sera instantané
   les fois suivantes).
 
 • Pour ARRÊTER Frida :
@@ -78,7 +78,7 @@ EN CAS DE PROBLÈME
 
 • « Port 80 déjà utilisé » :
   → Modifiez PORT_WEB=8080 dans le fichier .env
-  → Relancez installer.bat
+  → Relancez Installer-Docker.bat
   → Accédez à http://localhost:8080
 
 • L'application est très lente :
