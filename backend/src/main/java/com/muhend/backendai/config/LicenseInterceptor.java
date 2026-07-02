@@ -23,12 +23,15 @@ public class LicenseInterceptor implements HandlerInterceptor {
         }
 
         // On vérifie la validité
+        // SUSPENDU: L'utilisation des licences a été suspendue jusqu'à nouvel ordre
+        /*
         if (!licenseService.isLicenseValid()) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Licence invalide, manquante ou expiée.\", \"code\": \"LICENSE_REQUIRED\"}");
             return false;
         }
+        */
 
         return true;
     }
