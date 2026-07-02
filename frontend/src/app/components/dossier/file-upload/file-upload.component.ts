@@ -4,11 +4,12 @@ import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService } from '../../../services/file-upload.service';
+import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal.component';
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, NfcScannerModalComponent],
   template: `
     <div class="upload-container">
       <h2>{{ config.title }}</h2>
@@ -21,9 +22,14 @@ import { FileUploadService } from '../../../services/file-upload.service';
         <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
           <span class="material-icons">cloud_upload</span>
           <p>Glissez-déposez vos fichiers ici ou</p>
-          <button class="btn btn-secondary" (click)="fileInput.click()">
-            Sélectionnez des fichiers
-          </button>
+          <div style="display: flex; gap: 8px; justify-content: center;">
+            <button class="btn btn-secondary" (click)="fileInput.click()">
+              Sélectionnez des fichiers
+            </button>
+            <button class="btn btn-primary" style="background: #4ecca3; color: #0a1f0f; border: none; display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
+              📱 Scanner via Mobile
+            </button>
+          </div>
         </div>
         <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
           <span class="material-icons" style="color: #ffb84d;">lock</span>
@@ -88,6 +94,13 @@ import { FileUploadService } from '../../../services/file-upload.service';
           Suivant
         </button>
       </div>
+      
+      <!-- Modale de Scanner NFC -->
+      <app-nfc-scanner-modal 
+        *ngIf="showNfcModal" 
+        (closeModal)="showNfcModal = false" 
+        (nfcDataReceived)="onNfcDataReceived($event)">
+      </app-nfc-scanner-modal>
     </div>
   `,
   styles: [`
@@ -240,6 +253,7 @@ export class FileUploadComponent implements OnInit {
   @Output() skipClicked = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
+  showNfcModal: boolean = false;
 
   availableEntities: Record<string, string[]> = {
     'cni': [],
@@ -429,5 +443,27 @@ export class FileUploadComponent implements OnInit {
         groupedFiles: emitData
       });
     }
+  }
+
+  onNfcDataReceived(data: any) {
+    console.log("Données NFC reçues dans le formulaire !", data);
+    // On convertit le JSON NFC reçu en un "fichier" virtuel JSON pour l'upload
+    // Le nom de fichier permettra au backend de l'identifier comme un dump NFC
+    const jsonString = JSON.stringify(data);
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const virtualFile = new File([blob], `nfc_dump_${data.documentNumber || uuidv4()}.json`, { type: 'application/json' });
+    
+    // On simule l'ajout de ce fichier comme une CNI
+    this.uploadedFiles.push({
+      file: virtualFile,
+      id: uuidv4(),
+      progress: 0,
+      docType: 'cni',
+      entityName: 'cni_01'
+    });
+    this.pendingFilesChanged.emit(this.uploadedFiles.length);
+    
+    // Facultatif : on pourrait même déclencher le "Suivant" automatiquement
+    // this.onUpload();
   }
 }

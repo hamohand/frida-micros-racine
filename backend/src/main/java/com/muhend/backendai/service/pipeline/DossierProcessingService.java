@@ -96,42 +96,53 @@ public class DossierProcessingService {
                 return null;
             }
 
-            // Séparer les fichiers recto (traitement OCR) des fichiers verso (MRZ uniquement)
-            List<Path> rectoFiles = new ArrayList<>();
-            Map<String, Path> versoFilesByHeirCode = new HashMap<>();
+            // Regrouper les fichiers par héritier
+            class HeirFiles {
+                Path rectoFile;
+                Path versoFile;
+                Path nfcJsonFile;
+            }
+
+            Map<String, HeirFiles> filesByHeirCode = new HashMap<>();
 
             for (Path file : files) {
                 String fileName = file.getFileName().toString().toLowerCase();
                 String parentFolder = file.getParent().getFileName().toString();
-                if (fileName.contains("verso") || parentFolder.contains("verso")) {
-                    // Fichier verso : extraire le code héritier (ex: "01" de "01_cni_cni_01_verso")
-                    String heirCode = parentFolder.split("_")[0];
-                    versoFilesByHeirCode.put(heirCode, file);
-                    log.info("📋 Fichier verso détecté : {} (dossier {}, code héritier {})", file.getFileName(), parentFolder, heirCode);
+                // Ex: "01" de "01_cni"
+                String heirCode = parentFolder.split("_")[0];
+
+                HeirFiles heirFiles = filesByHeirCode.computeIfAbsent(heirCode, k -> new HeirFiles());
+
+                if (fileName.endsWith(".json")) {
+                    heirFiles.nfcJsonFile = file;
+                    log.info("📱 Fichier NFC détecté pour héritier {} : {}", heirCode, file.getFileName());
+                } else if (fileName.contains("verso") || parentFolder.contains("verso")) {
+                    heirFiles.versoFile = file;
+                    log.info("📋 Fichier verso détecté pour héritier {} : {}", heirCode, file.getFileName());
                 } else {
-                    rectoFiles.add(file);
+                    heirFiles.rectoFile = file;
                 }
             }
 
             int processedCount = 0;
-            for (Path file : rectoFiles) {
+            for (Map.Entry<String, HeirFiles> entry : filesByHeirCode.entrySet()) {
+                String heirCode = entry.getKey();
+                HeirFiles hf = entry.getValue();
+
                 try {
-                    // Chercher un verso compagnon avec le même code héritier
-                    String parentFolder = file.getParent().getFileName().toString();
-                    String heirCode = parentFolder.split("_")[0];
-                    Path versoFile = versoFilesByHeirCode.get(heirCode);
-
-                    if (versoFile != null) {
-                        log.info("🔗 Appariement recto/verso : {} ↔ {}", file.getFileName(), versoFile.getFileName());
-                    }
-
-                    boolean success = traiterFichier(ctx, file, versoFile, fileDocInfoMap,
-                            entityDefCache, mode);
-                    if (success) {
-                        processedCount++;
+                    // S'il y a au moins un fichier à traiter
+                    if (hf.rectoFile != null || hf.nfcJsonFile != null) {
+                        log.info("🔗 Traitement héritier {} : Recto={}, Verso={}, NFC={}", 
+                            heirCode, hf.rectoFile, hf.versoFile, hf.nfcJsonFile);
+                        
+                        boolean success = traiterFichier(ctx, hf.rectoFile, hf.versoFile, hf.nfcJsonFile, fileDocInfoMap,
+                                entityDefCache, mode, heirCode);
+                        if (success) {
+                            processedCount++;
+                        }
                     }
                 } catch (Exception e) {
-                    log.error("Erreur traitement fichier OCR : {} - {}", file, e.getMessage(), e);
+                    log.error("Erreur traitement héritier {} : {}", heirCode, e.getMessage(), e);
                 }
             }
 
@@ -168,12 +179,12 @@ public class DossierProcessingService {
      * @param versoFile Fichier verso optionnel (pour lecture MRZ sur CNI).
      * @return true si le fichier a été traité avec succès, false sinon.
      */
-    private boolean traiterFichier(TraitementContext ctx, Path file, Path versoFile,
+    private boolean traiterFichier(TraitementContext ctx, Path file, Path versoFile, Path nfcJsonFile,
                                    Map<Path, DocumentInfo> fileDocInfoMap,
                                    Map<String, OcrEntityDefinitionDto> entityDefCache,
-                                   String mode) {
+                                   String mode, String heirCode) {
 
-        DocumentInfo docInfo = fileDocInfoMap.get(file);
+        DocumentInfo docInfo = (file != null) ? fileDocInfoMap.get(file) : ((nfcJsonFile != null) ? fileDocInfoMap.get(nfcJsonFile) : null);
         DocumentType docType = (docInfo != null) ? docInfo.getDocumentType() : DocumentType.EXTRAIT_NAISSANCE;
         HeirCategory heirCategory = (docInfo != null) ? docInfo.getHeirCategory() : HeirCategory.DEFUNT;
         
@@ -181,12 +192,7 @@ public class DossierProcessingService {
         if (docInfo != null) {
             numParente = docInfo.getHeirCategory().getFormattedCode();
         } else {
-            try {
-                String folderName = file.getParent().getFileName().toString();
-                numParente = String.format("%02d", Integer.parseInt(folderName.split("_")[0]));
-            } catch (Exception e) {
-                numParente = "01";
-            }
+            numParente = heirCode;
         }
 
         // Récupérer la définition OCR (avec cache)
@@ -196,20 +202,40 @@ public class DossierProcessingService {
             return false;
         }
 
-        log.info("Traitement: {} -> type={}, catégorie={}{}", file.getFileName(), docType, heirCategory,
-                versoFile != null ? " [verso: " + versoFile.getFileName() + "]" : "");
+        log.info("Traitement: {} -> type={}, catégorie={}{}{}", 
+                file != null ? file.getFileName() : nfcJsonFile.getFileName(), 
+                docType, heirCategory,
+                versoFile != null ? " [verso: " + versoFile.getFileName() + "]" : "",
+                nfcJsonFile != null ? " [nfc: " + nfcJsonFile.getFileName() + "]" : "");
 
-        // OCR + mapping (avec verso optionnel pour MRZ)
-        IdentitesEntity identite = null;
-        try {
-            identite = ocrMappingService.processFile(file, versoFile, entityDef, docType, mode);
-        } catch (Exception e) {
-            log.error("Erreur traitement fichier OCR (fallback sur entité vide à corriger) : {} - {}", file, e.getMessage(), e);
-            identite = new IdentitesEntity();
-            identite.setRequiresCorrection(true);
-            identite.setConfidencesJson("{\"erreur\":0.0, \"nom\":0.0, \"prenom\":0.0, \"dateNaissance\":0.0, \"lieuNaissance\":0.0, \"sexe\":0.0, \"nin\":0.0}");
-            identite.setRawOcrTextJson("{\"erreur\":\"OCR a échoué: " + e.getMessage().replace("\"", "'") + "\"}");
+        IdentitesEntity ocrEntity = null;
+        IdentitesEntity nfcEntity = null;
+
+        // 1. OCR (Recto + Verso optionnel)
+        if (file != null) {
+            try {
+                ocrEntity = ocrMappingService.processFile(file, versoFile, entityDef, docType, mode);
+            } catch (Exception e) {
+                log.error("Erreur traitement fichier OCR : {} - {}", file, e.getMessage(), e);
+                ocrEntity = new IdentitesEntity();
+                ocrEntity.setRequiresCorrection(true);
+                ocrEntity.setConfidencesJson("{\"erreur\":0.0}");
+                ocrEntity.setRawOcrTextJson("{\"erreur\":\"OCR a échoué: " + e.getMessage().replace("\"", "'") + "\"}");
+            }
         }
+
+        // 2. NFC
+        if (nfcJsonFile != null) {
+            try {
+                // On utilise la méthode existante processFile mais on lui passe le JSON (qui est géré par OcrMappingService)
+                nfcEntity = ocrMappingService.processFile(nfcJsonFile, null, null, docType, mode);
+            } catch (Exception e) {
+                log.error("Erreur traitement fichier NFC : {} - {}", nfcJsonFile, e.getMessage(), e);
+            }
+        }
+
+        // 3. Fusion
+        IdentitesEntity identite = ocrMappingService.mergeOcrAndNfc(ocrEntity, nfcEntity);
 
         if (identite != null) {
             // Générer l'identifiant au document du défunt (peu importe l'ordre de traitement)

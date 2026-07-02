@@ -7,8 +7,9 @@ import 'nfc_reader_screen.dart';
 
 class MrzScannerScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
+  final String uploadUrl;
 
-  const MrzScannerScreen({Key? key, required this.cameras}) : super(key: key);
+  const MrzScannerScreen({Key? key, required this.cameras, required this.uploadUrl}) : super(key: key);
 
   @override
   _MrzScannerScreenState createState() => _MrzScannerScreenState();
@@ -141,7 +142,7 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult, cameras: widget.cameras),
+                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult, cameras: widget.cameras, uploadUrl: widget.uploadUrl),
                   ),
                 );
               },

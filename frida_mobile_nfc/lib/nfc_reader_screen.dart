@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:camera/camera.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'mrz_scanner_screen.dart';
 
 class NfcReaderScreen extends StatefulWidget {
   final String mrzText;
   final List<CameraDescription> cameras;
+  final String uploadUrl;
 
-  const NfcReaderScreen({Key? key, required this.mrzText, required this.cameras}) : super(key: key);
+  const NfcReaderScreen({Key? key, required this.mrzText, required this.cameras, required this.uploadUrl}) : super(key: key);
 
   @override
   _NfcReaderScreenState createState() => _NfcReaderScreenState();
@@ -65,13 +67,39 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
       final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
 
       setState(() {
-        _isReading = false;
-        _status = "✅ Lecture JMRTD terminée avec succès !\n\n$prettyJson";
+        _status = "✅ Lecture JMRTD terminée avec succès !\nEnvoi en cours vers le poste de travail...";
       });
+
+      // ENVOI HTTP VERS LE BUREAU
+      try {
+        final response = await http.post(
+          Uri.parse(widget.uploadUrl),
+          headers: {'Content-Type': 'application/json'},
+          body: resultJson,
+        );
+
+        if (response.statusCode == 200) {
+          setState(() {
+            _isReading = false;
+            _status = "✅ Données transmises avec succès au poste de travail !\nVous pouvez fermer l'application sur le téléphone.";
+          });
+        } else {
+          setState(() {
+            _isReading = false;
+            _status = "⚠️ Lecture réussie mais échec de l'envoi (HTTP \${response.statusCode})\n\n$prettyJson";
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _isReading = false;
+          _status = "⚠️ Lecture réussie mais serveur inaccessible :\n$e\n\n$prettyJson";
+        });
+      }
+
     } on PlatformException catch (e) {
       setState(() {
         _isReading = false;
-        _status = "❌ Erreur de lecture NFC native :\n${e.message}\n\n(Vérifiez que la carte est bien plaquée).";
+        _status = "❌ Erreur de lecture NFC native :\n\${e.message}\n\n(Vérifiez que la carte est bien plaquée).";
       });
     } catch (e) {
       setState(() {
@@ -150,7 +178,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                   Navigator.pushReplacement(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => MrzScannerScreen(cameras: widget.cameras),
+                      builder: (context) => MrzScannerScreen(cameras: widget.cameras, uploadUrl: widget.uploadUrl),
                     ),
                   );
                 },

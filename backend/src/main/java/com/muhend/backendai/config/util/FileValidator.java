@@ -12,7 +12,7 @@ import java.util.Set;
 public class FileValidator {
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final Set<String> ALLOWED_EXTENSIONS = new HashSet<>(
-        Arrays.asList("pdf", "jpg", "jpeg", "png")
+        Arrays.asList("pdf", "jpg", "jpeg", "png", "json")
     );
 
     public void validateFile(MultipartFile file) {

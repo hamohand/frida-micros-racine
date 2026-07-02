@@ -13,8 +13,11 @@ interface ChampSuspect {
   champ: string;
   champLabel: string;
   valeurOcr: string;
+  valeurReference?: string;
   confiance: number;
   numParente: string | null;
+  isSuspect?: boolean;
+  validationReason?: string;
   // Valeur corrigée par l'utilisateur (initialisée avec valeurOcr)
   valeurCorrigee: string;
 }
@@ -29,23 +32,23 @@ interface ChampSuspect {
         <div class="header-icon">⚠️</div>
         <h2>Vérification requise</h2>
         <p class="subtitle">
-          L'IA a lu <strong>{{ champs.length }} champ(s)</strong> avec un niveau de confiance inférieur à 75%.
+          L'IA a lu <strong>{{ champsSuspects.length }} champ(s)</strong> avec un niveau de confiance inférieur à 75% ou nécessitant une correction.
           <br>Veuillez vérifier et corriger si nécessaire avant de continuer.
         </p>
       </div>
 
       <div *ngIf="isLoading" class="loading-state">
-        <span class="spinner"></span> Chargement des champs suspects...
+        <span class="spinner"></span> Chargement des champs...
       </div>
 
-      <div *ngIf="!isLoading && champs.length === 0" class="empty-state">
+      <div *ngIf="!isLoading && champsSuspects.length === 0" class="empty-state">
         <span class="check-icon">✅</span>
         <p>Tous les champs ont été reconnus avec une confiance suffisante.</p>
         <button class="btn btn-primary" (click)="continuer()">Continuer vers la validation →</button>
       </div>
 
-      <div class="champs-list" *ngIf="!isLoading && champs.length > 0">
-        <div class="champ-card" *ngFor="let c of champs; let i = index" [class.corrected]="c.valeurCorrigee !== c.valeurOcr">
+      <div class="champs-list" *ngIf="!isLoading && champsSuspects.length > 0">
+        <div class="champ-card" *ngFor="let c of champsSuspects; let i = index" [class.corrected]="c.valeurCorrigee !== c.valeurOcr">
           <!-- En-tête de la carte -->
           <div class="champ-card-header">
             <div class="personne-info">
@@ -61,7 +64,8 @@ interface ChampSuspect {
           <!-- Barre de confiance -->
           <div class="confidence-bar-wrapper">
             <span class="confidence-label" [class.low]="c.confiance < 0.5" [class.medium]="c.confiance >= 0.5 && c.confiance < 0.75">
-              Confiance : {{ (c.confiance * 100).toFixed(0) }}%
+              Confiance : {{ (c.confiance * 100).toFixed(0) }}% 
+              <span *ngIf="c.validationReason" class="validation-reason">({{ c.validationReason }})</span>
             </span>
             <div class="confidence-bar">
               <div class="confidence-fill"
@@ -77,6 +81,10 @@ interface ChampSuspect {
             <div class="ocr-value">
               <label>Lu par l'IA :</label>
               <span class="ocr-text" [class.suspicious]="true">{{ c.valeurOcr || '(vide)' }}</span>
+              <div *ngIf="c.valeurReference" class="reference-value mt-2">
+                <label>Valeur de référence (MRZ/NFC) :</label>
+                <span class="ref-text">{{ c.valeurReference }}</span>
+              </div>
             </div>
             <div class="correction-input">
               <label>Correction :</label>
@@ -91,7 +99,33 @@ interface ChampSuspect {
         </div>
       </div>
 
-      <div class="actions" *ngIf="!isLoading && champs.length > 0">
+      <!-- Section des champs validés -->
+      <div class="valides-section" *ngIf="!isLoading && champsValides.length > 0">
+        <button class="toggle-valides-btn" (click)="showValides = !showValides">
+          {{ showValides ? '⬇️ Masquer les champs validés automatiquement' : '➡️ Voir les champs validés automatiquement (' + champsValides.length + ')' }}
+        </button>
+        
+        <div class="champs-list valides-list" *ngIf="showValides">
+          <div class="champ-card valid-card" *ngFor="let c of champsValides">
+            <div class="champ-card-header">
+              <div class="personne-info">
+                <span class="personne-badge">{{ c.personneLabel }}</span>
+              </div>
+              <span class="champ-name">{{ c.champLabel }}</span>
+            </div>
+            <div class="valid-info">
+              <div class="valid-value">
+                <span class="ocr-text valid-text">{{ c.valeurOcr || '(vide)' }}</span>
+              </div>
+              <div class="valid-reason">
+                <span class="check-icon-small">✅</span> {{ c.validationReason || 'Validé' }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" *ngIf="!isLoading && champsSuspects.length > 0">
         <button class="btn btn-secondary" (click)="retourAvant()" [disabled]="isSubmitting">
           ⬅️ Précédent
         </button>
@@ -265,6 +299,23 @@ interface ChampSuspect {
       font-style: italic;
     }
 
+    .reference-value {
+      margin-top: 0.8rem;
+    }
+
+    .ref-text {
+      display: block;
+      padding: 8px 12px;
+      background: rgba(78, 204, 163, 0.1);
+      border: 1px solid rgba(78, 204, 163, 0.3);
+      border-radius: 6px;
+      font-size: 0.95rem;
+      color: var(--accent-color);
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
     .correction-input input {
       width: 100%;
       padding: 8px 12px;
@@ -319,6 +370,75 @@ interface ChampSuspect {
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    .valides-section {
+      margin-top: 2rem;
+      border-top: 1px dashed rgba(255,255,255,0.1);
+      padding-top: 1.5rem;
+    }
+
+    .toggle-valides-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      transition: color 0.2s;
+    }
+
+    .toggle-valides-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .valides-list {
+      margin-top: 1rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    .valid-card {
+      background: rgba(78, 204, 163, 0.05);
+      border: 1px solid rgba(78, 204, 163, 0.2);
+    }
+
+    .valid-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .valid-text {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      padding: 0;
+      font-size: 1.1rem;
+      font-style: normal;
+    }
+
+    .valid-reason {
+      font-size: 0.85rem;
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .check-icon-small {
+      font-size: 0.9rem;
+    }
+
+    .validation-reason {
+      font-weight: normal;
+      font-size: 0.8rem;
+      opacity: 0.8;
+      margin-left: 5px;
+    }
+
     .btn {
       padding: 10px 24px;
       border-radius: var(--border-radius, 8px);
@@ -339,6 +459,9 @@ interface ChampSuspect {
 export class OcrCorrectionComponent implements OnInit {
   numFrida = '';
   champs: ChampSuspect[] = [];
+  champsSuspects: ChampSuspect[] = [];
+  champsValides: ChampSuspect[] = [];
+  showValides = false;
   isLoading = true;
   isSubmitting = false;
 
@@ -363,6 +486,10 @@ export class OcrCorrectionComponent implements OnInit {
     this.ocrPipelineService.getChampsSuspects(this.numFrida).subscribe({
       next: (data) => {
         this.champs = data.map(c => ({ ...c, valeurCorrigee: c.valeurOcr || '' }));
+        this.champsSuspects = this.champs.filter(c => c.isSuspect !== false);
+        // Pour les champs validés automatiquement (l'audit IA), on ne garde QUE les noms et prénoms 
+        // afin de se concentrer sur l'audit phonétique
+        this.champsValides = this.champs.filter(c => c.isSuspect === false && (c.champ === 'nom' || c.champ === 'prenom'));
         this.isLoading = false;
       },
       error: (err) => {

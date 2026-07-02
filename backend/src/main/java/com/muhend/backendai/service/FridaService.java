@@ -10,7 +10,9 @@ import com.muhend.backendai.repository.DefuntRepo;
 import com.muhend.backendai.repository.FridaRepo;
 import com.muhend.backendai.repository.CalculRepo;
 import com.muhend.backendai.repository.HeritierRepo;
+import com.muhend.backendai.repository.IdentitesRepo;
 import com.muhend.backendai.service.pipeline.HeirPartCalculatorService;
+import com.muhend.backendai.service.pipeline.MrzService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,8 @@ public class FridaService {
     private final CalculRepo calculRepo;
     private final HeirPartCalculatorService heirPartCalculatorService;
     private final HeritierRepo heritierRepo;
+    private final IdentitesRepo identitesRepo;
+    private final MrzService mrzService;
 
     // Seuil de confiance OCR (75%)
     private static final double SEUIL_CONFIANCE = 0.75;
@@ -46,12 +50,15 @@ public class FridaService {
     @Autowired
     public FridaService(FridaRepo fridaRepository, DefuntRepo defuntRepo,
                         CalculRepo calculRepo, HeirPartCalculatorService calculatorService,
-                        HeritierRepo heritierRepo) {
+                        HeritierRepo heritierRepo, IdentitesRepo identitesRepo,
+                        MrzService mrzService) {
         this.fridaRepo = fridaRepository;
         this.defuntRepo = defuntRepo;
         this.calculRepo = calculRepo;
         this.heirPartCalculatorService = calculatorService;
         this.heritierRepo = heritierRepo;
+        this.identitesRepo = identitesRepo;
+        this.mrzService = mrzService;
     }
 
     // Méthode pour récupérer toutes les fridas
@@ -165,31 +172,106 @@ public class FridaService {
             }
         }
 
-        // Parse JSON minimal : {"nom":0.45,"prenom":0.82,...}
-        json = json.replaceAll("[{}\\s]", "");
-        for (String pair : json.split(",")) {
-            String[] kv = pair.split(":");
-            if (kv.length != 2) continue;
-            String champ = kv[0].replaceAll("\"", "");
-            double score;
-            try { score = Double.parseDouble(kv[1]); }
-            catch (NumberFormatException e) { continue; }
+        java.util.Map<String, Object> confidences = new java.util.HashMap<>();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            confidences = mapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<java.util.Map<String, Object>>(){});
+        } catch (Exception e) {
+            log.warn("Erreur lecture confidencesJson", e);
+        }
 
-            if (score < SEUIL_CONFIANCE) {
-                String valeur = rawTexts.containsKey(champ) ? rawTexts.get(champ) : getChampValeur(identite, champ);
-                OcrCorrectionFieldDto dto = new OcrCorrectionFieldDto();
-                dto.setPersonneId(personneId);
-                dto.setPersonneLabel(label);
-                dto.setPersonneNom(identite.getNom());
-                dto.setPersonnePrenom(identite.getPrenom());
-                dto.setPersonneNin(identite.getNin());
-                dto.setChamp(champ);
-                dto.setChampLabel(CHAMP_LABELS.getOrDefault(champ, champ));
-                dto.setValeurOcr(valeur);
-                dto.setConfiance(score);
-                dto.setNumParente(numParente);
-                suspects.add(dto);
+        for (java.util.Map.Entry<String, Object> entry : confidences.entrySet()) {
+            String champ = entry.getKey();
+            
+            // On ignore les clés de métadonnées spéciales
+            if (champ.startsWith("mrz_") || champ.startsWith("phonetic_")) continue;
+            
+            double score = 0.0;
+            if (entry.getValue() instanceof Number) {
+                score = ((Number) entry.getValue()).doubleValue();
+            } else {
+                continue;
             }
+
+            // Valeurs par défaut
+            boolean isSuspect = score < SEUIL_CONFIANCE;
+            String reason = isSuspect ? "Faible confiance OCR (" + Math.round(score * 100) + "%)" : "Confiance OCR élevée (" + Math.round(score * 100) + "%)";
+            
+            if ("nom".equals(champ) || "prenom".equals(champ)) {
+                String arabe = "nom".equals(champ) ? identite.getNom() : identite.getPrenom();
+                String latin = "nom".equals(champ) ? identite.getLatines() : identite.getPrenomLatines();
+                
+                boolean hasPhonetic = false;
+                double phoneticScore = 0.0;
+                String translit = "";
+                boolean phoneticMatch = true;
+                
+                if (confidences.containsKey("phonetic_" + champ + "_score")) {
+                    hasPhonetic = true;
+                    phoneticScore = ((Number) confidences.get("phonetic_" + champ + "_score")).doubleValue();
+                    translit = (String) confidences.get("phonetic_" + champ + "_translit");
+                    
+                    // Si score OCR == 0.0, le pipeline a forcé le mismatch.
+                    if (score == 0.0) {
+                        phoneticMatch = false;
+                    } 
+                    // Si le score phonétique est de 0.0 et que le translit est vide, c'est probablement
+                    // une anomalie de l'API (ex: match=True renvoyé à tort sans données). On lève le doute.
+                    else if (phoneticScore == 0.0 && (translit == null || translit.isEmpty())) {
+                        phoneticMatch = false;
+                    } 
+                    // Sinon on tente de faire la validation stricte de la première lettre ici 
+                    // au cas où le pipeline l'aurait manqué (vieux dossiers).
+                    else if (latin != null && !latin.isEmpty() && translit != null && !translit.isEmpty()) {
+                        phoneticMatch = Character.toLowerCase(translit.charAt(0)) == Character.toLowerCase(latin.charAt(0));
+                    }
+                    else {
+                        phoneticMatch = true;
+                    }
+                } else if (arabe != null && !arabe.isEmpty() && latin != null && !latin.isEmpty()) {
+                    // Calcul à la volée pour les anciens dossiers
+                    MrzService.PhoneticResult res = mrzService.verifierTranslitteration(arabe, latin);
+                    hasPhonetic = true;
+                    phoneticScore = res.score;
+                    translit = res.translit;
+                    phoneticMatch = res.match;
+                }
+                
+                if (hasPhonetic) {
+                    if (!phoneticMatch || score == 0.0) {
+                        isSuspect = true;
+                        reason = "Incohérence phonétique / MRZ détectée";
+                        reason += String.format(" (Score phonétique %d%%, translit: %s)", Math.round(phoneticScore), translit);
+                    } else if (!isSuspect) {
+                        reason = "Phonétique validée";
+                        reason += String.format(" (Score %d%%, translit: %s)", Math.round(phoneticScore), translit);
+                    }
+                }
+            }
+
+            String valeur = rawTexts.containsKey(champ) ? rawTexts.get(champ) : getChampValeur(identite, champ);
+            OcrCorrectionFieldDto dto = new OcrCorrectionFieldDto();
+            dto.setPersonneId(personneId);
+            dto.setPersonneLabel(label);
+            dto.setPersonneNom(identite.getNom());
+            dto.setPersonnePrenom(identite.getPrenom());
+            dto.setPersonneNin(identite.getNin());
+            dto.setChamp(champ);
+            dto.setChampLabel(CHAMP_LABELS.getOrDefault(champ, champ));
+            dto.setValeurOcr(valeur);
+            
+            // Assigner la valeur de référence (Latin MRZ) pour les noms/prénoms
+            if ("nom".equals(champ) && identite.getLatines() != null && !identite.getLatines().isEmpty()) {
+                dto.setValeurReference(identite.getLatines());
+            } else if ("prenom".equals(champ) && identite.getPrenomLatines() != null && !identite.getPrenomLatines().isEmpty()) {
+                dto.setValeurReference(identite.getPrenomLatines());
+            }
+            
+            dto.setConfiance(score);
+            dto.setNumParente(numParente);
+            dto.setSuspect(isSuspect);
+            dto.setValidationReason(reason);
+            suspects.add(dto);
         }
     }
 
@@ -284,6 +366,7 @@ public class FridaService {
             Field f = IdentitesEntity.class.getDeclaredField(champ);
             f.setAccessible(true);
             f.set(identite, valeur);
+            identitesRepo.save(identite);
         } catch (Exception e) {
             log.warn("Impossible d'appliquer la correction sur le champ '{}'", champ);
         }

@@ -1,6 +1,7 @@
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'mrz_scanner_screen.dart';
+import 'package:flutter/material.dart';
+import 'qr_scanner_screen.dart';
 
 List<CameraDescription> cameras = [];
 
@@ -27,7 +28,7 @@ class FridaMobileApp extends StatelessWidget {
       ),
       home: cameras.isEmpty 
           ? const Scaffold(body: Center(child: Text("Aucune caméra trouvée")))
-          : MrzScannerScreen(cameras: cameras),
+          : QRScannerScreen(cameras: cameras),
     );
   }
 }

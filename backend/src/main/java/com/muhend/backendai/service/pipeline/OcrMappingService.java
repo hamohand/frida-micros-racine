@@ -3,6 +3,7 @@ package com.muhend.backendai.service.pipeline;
 import com.muhend.backendai.client.ocr.OcrApiClient;
 import com.muhend.backendai.client.ocr.dto.*;
 import com.muhend.backendai.dto.MrzResult;
+import com.muhend.backendai.service.pipeline.MrzService.PhoneticResult;
 import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.service.calculs_outils.StringUtils;
@@ -71,6 +72,13 @@ public class OcrMappingService {
      * @return L'entité IdentitesEntity peuplée, ou {@code null} en cas d'erreur.
      */
     public IdentitesEntity processFile(Path file, Path versoFile, OcrEntityDefinitionDto entityDef, DocumentType docType, String mode) {
+        // --- CAS DU DUMP NFC (JSON) ---
+        if (file.getFileName().toString().toLowerCase().endsWith(".json")) {
+            log.info("📱 Fichier JSON NFC détecté : {}, parsing direct sans OCR.", file.getFileName());
+            return parseNfcJson(file, docType);
+        }
+
+        // --- CAS CLASSIQUE (IMAGE/PDF -> OCR) ---
         // 1. Upload du fichier recto
         OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(file);
         if (!uploadResponse.isSuccess()) {
@@ -128,7 +136,8 @@ public class OcrMappingService {
                     mrzFilename = uploadResponse.getSaved_filename();
                     log.info("🔍 Lecture MRZ sur le recto du passeport");
                 } else if (docType == DocumentType.CNI) {
-                    log.info("📋 Pas de verso fourni pour la CNI, MRZ ignorée");
+                    log.info("📋 Pas de verso fourni séparément pour la CNI. Tentative de lecture de la MRZ sur le fichier principal (cas des Héritiers ou PDF fusionné).");
+                    mrzFilename = uploadResponse.getSaved_filename();
                 }
 
                 if (mrzFilename != null) {
@@ -147,6 +156,58 @@ public class OcrMappingService {
                     } else {
                         log.info("⚠️ MRZ non valide ou non détectée sur les deux faces, utilisation OCR seul");
                         result.setMrzValid(false);
+                        
+                        // Sécurité : si on a quand même pu extraire le nom/prénom MRZ, on fait le contrôle phonétique !
+                        boolean nomMismatch = false;
+                        boolean prenomMismatch = false;
+                        
+                        PhoneticResult resNom = null;
+                        PhoneticResult resPrenom = null;
+                        
+                        if (mrz.getSurname() != null && !mrz.getSurname().isEmpty() && result.getNom() != null && !result.getNom().isEmpty()) {
+                            resNom = mrzService.verifierTranslitteration(result.getNom(), mrz.getSurname());
+                            if (!resNom.match) {
+                                nomMismatch = true;
+                                result.setRequiresCorrection(true);
+                            }
+                        }
+                        if (mrz.getGivenNames() != null && !mrz.getGivenNames().isEmpty() && result.getPrenom() != null && !result.getPrenom().isEmpty()) {
+                            resPrenom = mrzService.verifierTranslitteration(result.getPrenom(), mrz.getGivenNames());
+                            if (!resPrenom.match) {
+                                prenomMismatch = true;
+                                result.setRequiresCorrection(true);
+                            }
+                        }
+                        
+                        if (nomMismatch || prenomMismatch || resNom != null || resPrenom != null) {
+                            try {
+                                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                                String json = result.getConfidencesJson();
+                                Map<String, Object> confiances = new java.util.HashMap<>();
+                                if (json != null && !json.isBlank()) {
+                                    confiances = mapper.readValue(json, Map.class);
+                                }
+                                if (nomMismatch) {
+                                    confiances.put("nom", 0.0);
+                                    log.warn("⚠️ MRZ invalide mais mismatch phonétique sur le NOM détecté !");
+                                }
+                                if (prenomMismatch) {
+                                    confiances.put("prenom", 0.0);
+                                    log.warn("⚠️ MRZ invalide mais mismatch phonétique sur le PRÉNOM détecté !");
+                                }
+                                if (resNom != null) {
+                                    confiances.put("phonetic_nom_score", resNom.score);
+                                    confiances.put("phonetic_nom_translit", resNom.translit);
+                                }
+                                if (resPrenom != null) {
+                                    confiances.put("phonetic_prenom_score", resPrenom.score);
+                                    confiances.put("phonetic_prenom_translit", resPrenom.translit);
+                                }
+                                result.setConfidencesJson(mapper.writeValueAsString(confiances));
+                            } catch (Exception e) {
+                                log.error("Erreur forçage confiances phonétique MRZ de secours", e);
+                            }
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -156,6 +217,151 @@ public class OcrMappingService {
         }
 
         return result;
+    }
+
+    // ============================== Traitement JSON NFC ==============================
+
+    private IdentitesEntity parseNfcJson(Path jsonFile, DocumentType docType) {
+        IdentitesEntity entity = new IdentitesEntity();
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jsonFile.toFile());
+
+            String nom = rootNode.path("primaryIdentifier").asText("");
+            String prenom = rootNode.path("secondaryIdentifier").asText("");
+            // Utiliser le NIN extrait par DG11 en priorité, sinon le documentNumber
+            String nin = rootNode.path("nin_dg11").asText("");
+            if (nin.isEmpty()) {
+                nin = rootNode.path("personalNumber").asText("");
+            }
+
+            entity.setLatines(nom);
+            entity.setPrenomLatines(prenom);
+            entity.setNin(nin);
+            entity.setSexe(rootNode.path("gender").asText("").startsWith("M") ? "M" : "F");
+            entity.setNumeroPiece(rootNode.path("documentNumber").asText(""));
+            
+            // Les dates dans le MRZ sont au format yyMMdd, il faudrait idéalement les convertir, mais gardons la logique existante :
+            parseDateNaissance(entity, rootNode.path("dateOfBirth").asText(""));
+
+            entity.setNomPiece(docType == DocumentType.CNI ? "Carte Nationale d'Identité (NFC)" : "Passeport (NFC)");
+            entity.setMrzValid(true);
+            
+            // On valide le NIN au cas où
+            String validatedNin = ninValidationService.cleanAndValidate(nin);
+            if (validatedNin != null) {
+                entity.setNin(validatedNin);
+            } else {
+                entity.setRequiresCorrection(true);
+            }
+
+            // Mettre 100% de confiance pour tous les champs car ils viennent de la puce sécurisée !
+            Map<String, Double> confiances = new HashMap<>();
+            confiances.put("nom", 1.0);
+            confiances.put("prenom", 1.0);
+            confiances.put("nin", validatedNin != null ? 1.0 : 0.0);
+            confiances.put("sexe", 1.0);
+            confiances.put("dateNaissance", 1.0);
+            confiances.put("numeroPiece", 1.0);
+            entity.setConfidencesJson(mapper.writeValueAsString(confiances));
+
+        } catch (Exception e) {
+            log.error("Erreur lors du parsing du fichier JSON NFC : {}", jsonFile, e);
+            entity.setRequiresCorrection(true);
+        }
+        return entity;
+    }
+
+    /**
+     * Fusionne les résultats de l'OCR (qui contient l'Arabe) avec les données parfaites du NFC.
+     * Effectue également la vérification phonétique entre l'Arabe de l'OCR et le Latin du NFC.
+     */
+    public IdentitesEntity mergeOcrAndNfc(IdentitesEntity ocrEntity, IdentitesEntity nfcEntity) {
+        if (ocrEntity == null) return nfcEntity;
+        if (nfcEntity == null) return ocrEntity;
+
+        // 1. Toujours remplir les champs latins depuis le NFC
+        ocrEntity.setLatines(nfcEntity.getLatines());
+        ocrEntity.setPrenomLatines(nfcEntity.getPrenomLatines());
+
+        // 2. Validation croisée du nom/prénom arabe (Translittération)
+        boolean nomMismatch = false;
+        boolean prenomMismatch = false;
+        PhoneticResult resNom = null;
+        PhoneticResult resPrenom = null;
+
+        if (ocrEntity.getNom() != null && !ocrEntity.getNom().isEmpty() && nfcEntity.getLatines() != null && !nfcEntity.getLatines().isEmpty()) {
+            resNom = mrzService.verifierTranslitteration(ocrEntity.getNom(), nfcEntity.getLatines());
+            if (!resNom.match) {
+                ocrEntity.setRequiresCorrection(true);
+                nomMismatch = true;
+            }
+        }
+        if (ocrEntity.getPrenom() != null && !ocrEntity.getPrenom().isEmpty() && nfcEntity.getPrenomLatines() != null && !nfcEntity.getPrenomLatines().isEmpty()) {
+            resPrenom = mrzService.verifierTranslitteration(ocrEntity.getPrenom(), nfcEntity.getPrenomLatines());
+            if (!resPrenom.match) {
+                ocrEntity.setRequiresCorrection(true);
+                prenomMismatch = true;
+            }
+        }
+        
+        // Ajouter les scores phonétiques si on a fait la vérification
+        if (nomMismatch || prenomMismatch || resNom != null || resPrenom != null) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                String json = ocrEntity.getConfidencesJson();
+                Map<String, Object> confiances = new java.util.HashMap<>();
+                if (json != null && !json.isBlank()) {
+                    confiances = mapper.readValue(json, Map.class);
+                }
+                if (resNom != null) {
+                    confiances.put("phonetic_nom_score", resNom.score);
+                    confiances.put("phonetic_nom_translit", resNom.translit);
+                }
+                if (resPrenom != null) {
+                    confiances.put("phonetic_prenom_score", resPrenom.score);
+                    confiances.put("phonetic_prenom_translit", resPrenom.translit);
+                }
+                ocrEntity.setConfidencesJson(mapper.writeValueAsString(confiances));
+            } catch (Exception e) {
+                log.error("Erreur ajout confiances phonétiques NFC", e);
+            }
+        }
+
+        // 3. Remplacer les champs infaillibles du NFC
+        if (nfcEntity.getNin() != null && !nfcEntity.getNin().isEmpty()) ocrEntity.setNin(nfcEntity.getNin());
+        if (nfcEntity.getDateNaissance() != null) ocrEntity.setDateNaissance(nfcEntity.getDateNaissance());
+        if (nfcEntity.getSexe() != null && !nfcEntity.getSexe().isEmpty()) ocrEntity.setSexe(nfcEntity.getSexe());
+        if (nfcEntity.getNumeroPiece() != null && !nfcEntity.getNumeroPiece().isEmpty()) ocrEntity.setNumeroPiece(nfcEntity.getNumeroPiece());
+        
+        ocrEntity.setMrzValid(true); // NFC implies 100% validity of MRZ data
+
+        // 4. Enrichir le JSON de confiances
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            String json = ocrEntity.getConfidencesJson();
+            Map<String, Object> confiances = new HashMap<>();
+            if (json != null && !json.isBlank()) {
+                confiances = mapper.readValue(json, Map.class);
+            }
+            
+            if (nomMismatch) confiances.put("nom", 0.0);
+            if (prenomMismatch) confiances.put("prenom", 0.0);
+            
+            // Score NFC (1.0) garantis
+            confiances.put("mrz_nom", 1.0);
+            confiances.put("mrz_prenom", 1.0);
+            confiances.put("mrz_nin", 1.0);
+            confiances.put("mrz_dateNaissance", 1.0);
+            confiances.put("nin", 1.0);
+            
+            ocrEntity.setConfidencesJson(mapper.writeValueAsString(confiances));
+        } catch(Exception e) {
+            log.error("Erreur fusion confidences NFC", e);
+        }
+
+        log.info("✅ Fusion OCR+NFC réussie pour {} {}", ocrEntity.getPrenom(), ocrEntity.getNom());
+        return ocrEntity;
     }
 
     // ============================== Mapping ==============================
@@ -211,12 +417,13 @@ public class OcrMappingService {
                 }
             }
 
-            confiances.put(entry.getKey(), score);
-            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
-            
             if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
                 hasLowConfidence = true;
+                score = 0.0; // S'assure que le champ apparaîtra dans la fiche de correction
             }
+            
+            confiances.put(entry.getKey(), score);
+            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
         }
 
         try {
@@ -286,12 +493,13 @@ public class OcrMappingService {
                 }
             }
 
-            confiances.put(entry.getKey(), score);
-            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
-            
             if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
                 hasLowConfidence = true;
+                score = 0.0; // S'assure que le champ apparaîtra dans la fiche de correction
             }
+
+            confiances.put(entry.getKey(), score);
+            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
         }
 
         try {

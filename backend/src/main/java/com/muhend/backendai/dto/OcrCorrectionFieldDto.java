@@ -27,8 +27,15 @@ public class OcrCorrectionFieldDto {
     private String champLabel;
     /** Valeur lue par l'OCR */
     private String valeurOcr;
+    /** Valeur de référence (ex: nom latin de la MRZ) pour aider à la correction */
+    private String valeurReference;
     /** Score de confiance OCR (0.0 à 1.0) */
     private Double confiance;
     /** numParente de l'héritier, null pour le défunt */
     private String numParente;
+    
+    /** Indique si ce champ est suspect (nécessite correction) */
+    private boolean isSuspect;
+    /** Raison pour laquelle il a été validé ou rejeté (ex: "Score OCR élevé", "Phonétique OK") */
+    private String validationReason;
 }

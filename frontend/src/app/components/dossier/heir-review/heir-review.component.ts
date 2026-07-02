@@ -118,7 +118,31 @@ interface Personne {
           Aucun héritier enregistré. Cliquez sur "Ajouter manuellement" pour en créer un.
         </div>
 
-
+        <!-- Section des détails OCR -->
+        <div class="valides-section" *ngIf="champsOcr.length > 0">
+          <button class="toggle-valides-btn" (click)="showOcrDetails = !showOcrDetails">
+            {{ showOcrDetails ? '⬇️ Masquer l\\'audit de l\\'IA' : '➡️ Afficher l\\'audit de l\\'IA et les champs validés automatiquement (' + champsOcr.length + ')' }}
+          </button>
+          
+          <div class="champs-list valides-list" *ngIf="showOcrDetails">
+            <div class="champ-card valid-card" *ngFor="let c of champsOcr" [ngClass]="{'is-suspect': c.isSuspect}">
+              <div class="champ-card-header">
+                <div class="personne-info">
+                  <span class="personne-badge">{{ c.personneLabel }}</span>
+                </div>
+                <span class="champ-name">{{ c.champLabel }}</span>
+              </div>
+              <div class="valid-info">
+                <div class="valid-value">
+                  <span class="ocr-text valid-text" [ngStyle]="{'color': c.isSuspect ? '#ffb84d' : 'var(--text-primary)'}">{{ c.valeurOcr || '(vide)' }}</span>
+                </div>
+                <div class="valid-reason">
+                  <span class="check-icon-small">{{ c.isSuspect ? '⚠️' : '✅' }}</span> {{ c.validationReason || (c.isSuspect ? 'Confiance faible' : 'Validé') }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="actions">
           <button class="btn btn-secondary" (click)="goBack()">Retourner au carrousel</button>
@@ -182,6 +206,21 @@ interface Personne {
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     .loading-state { text-align: center; padding: 3rem; font-size: 1.2rem; color: var(--text-secondary); }
     .empty-state { padding: 2rem; text-align: center; color: var(--text-secondary); font-style: italic; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 1rem; }
+    
+    .valides-section { margin-top: 2rem; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 1.5rem; }
+    .toggle-valides-btn { background: none; border: none; color: var(--text-secondary); font-size: 0.95rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; transition: color 0.2s; }
+    .toggle-valides-btn:hover { color: var(--text-primary); }
+    .valides-list { margin-top: 1rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .champ-card { padding: 1rem; border-radius: 8px; }
+    .champ-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .personne-badge { background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 12px; font-size: 0.8rem; }
+    .champ-name { font-weight: bold; font-size: 0.9rem; color: var(--text-primary); }
+    .valid-card { background: rgba(78, 204, 163, 0.05); border: 1px solid rgba(78, 204, 163, 0.2); }
+    .valid-card.is-suspect { background: rgba(255, 184, 77, 0.05); border-color: rgba(255, 184, 77, 0.3); }
+    .valid-info { display: flex; flex-direction: column; gap: 0.5rem; }
+    .valid-text { font-size: 1.1rem; font-weight: bold; }
+    .valid-reason { font-size: 0.85rem; color: var(--accent-color); display: flex; align-items: center; gap: 0.4rem; }
+    .is-suspect .valid-reason { color: #ffb84d; }
   `]
 })
 export class HeirReviewComponent implements OnInit {
@@ -215,10 +254,24 @@ export class HeirReviewComponent implements OnInit {
       this.numFrida = params['numFrida'];
       if (this.numFrida) {
         this.loadData();
+        this.loadOcrDetails();
       } else {
         this.isLoading = false;
         alert("Aucun numéro de dossier fourni.");
       }
+    });
+  }
+
+  champsOcr: any[] = [];
+  showOcrDetails = false;
+
+  loadOcrDetails() {
+    this.ocrPipelineService.getChampsSuspects(this.numFrida).subscribe({
+      next: (data) => {
+        // On ne garde QUE les noms et prénoms pour l'audit phonétique
+        this.champsOcr = (data || []).filter(c => c.champ === 'nom' || c.champ === 'prenom');
+      },
+      error: (err) => console.error("Erreur chargement détails OCR", err)
     });
   }
 

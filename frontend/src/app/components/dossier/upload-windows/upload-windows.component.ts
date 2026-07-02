@@ -36,7 +36,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f1'].isUploading">
             <h2 class="window-title">1. Document du Défunt</h2>
             <app-file-upload #fileUploadF1
-                [config]="getUploadConfig('01', 'Défunt', false, '', 1)"
+                [config]="getUploadConfig('01', 'Défunt', false, '', 2)"
                 [initialFiles]="windows['f1'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"
@@ -186,7 +186,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Père vivant ?</h2>
             <app-file-upload #fileUploadFPere
-                [config]="getUploadConfig('04', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 1)"
+                [config]="getUploadConfig('04', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 2)"
                 [initialFiles]="windows['f_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_pere')"
@@ -205,7 +205,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_grand_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Grand-père paternel vivant ?</h2>
             <app-file-upload #fileUploadFGrandPere
-                [config]="getUploadConfig('08', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 1)"
+                [config]="getUploadConfig('08', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 2)"
                 [initialFiles]="windows['f_grand_pere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_grand_pere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_grand_pere')"
@@ -224,7 +224,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_mere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il une Mère vivante ?</h2>
             <app-file-upload #fileUploadFMere
-                [config]="getUploadConfig('04', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 1)"
+                [config]="getUploadConfig('04', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 2)"
                 [initialFiles]="windows['f_mere'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_mere', $event)"
                 (previousClicked)="moveToPreviousWindow('f_mere')"
@@ -243,7 +243,7 @@ import { forkJoin, Observable, of } from 'rxjs';
           <ng-container *ngIf="!windows['f_grand_mere_paternelle'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il une Grand-mère paternelle vivante ?</h2>
             <app-file-upload #fileUploadFGrandMerePaternelle
-                [config]="getUploadConfig('11', 'Grand-mère paternelle', true, 'Continuer s\\'il n\\'y a pas de grand-mère paternelle', 1)"
+                [config]="getUploadConfig('11', 'Grand-mère paternelle', true, 'Continuer s\\'il n\\'y a pas de grand-mère paternelle', 2)"
                 [initialFiles]="windows['f_grand_mere_paternelle'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f_grand_mere_paternelle', $event)"
                 (previousClicked)="moveToPreviousWindow('f_grand_mere_paternelle')"

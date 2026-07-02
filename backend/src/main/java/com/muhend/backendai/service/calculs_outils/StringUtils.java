@@ -65,6 +65,7 @@ public class StringUtils {
                 java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"),
                 java.time.format.DateTimeFormatter.ofPattern("yyyy/MM/dd"),
                 java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"),
+                java.time.format.DateTimeFormatter.ofPattern("yyMMdd"), // Format MRZ standard
                 java.time.format.DateTimeFormatter.ofPattern("ddMMyyyy"),
                 java.time.format.DateTimeFormatter.ofPattern("dd/MM/yy"),
                 new java.time.format.DateTimeFormatterBuilder()

@@ -62,7 +62,7 @@ public class FolderService {
                         } else if (Files.isRegularFile(filePath)) {
                             String fileName = filePath.getFileName().toString().toLowerCase();
                             if (fileName.endsWith(".pdf") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")
-                                    || fileName.endsWith(".png")) {
+                                    || fileName.endsWith(".png") || fileName.endsWith(".json")) {
                                 result.getPdfFiles().add(filePath);
                                 String folderName = directoryName[0] != null ? directoryName[0].getFileName().toString() : filePath.getParent().getFileName().toString();
                                 log.info("Fichier détecté : {} dans dossier {}", filePath.getFileName(), folderName);

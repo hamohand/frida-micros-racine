@@ -139,13 +139,16 @@ public class MrzService {
         boolean nomMismatch = false;
         boolean prenomMismatch = false;
 
+        PhoneticResult resNom = null;
+        PhoneticResult resPrenom = null;
+        
         // 1. Toujours remplir les champs latins et faire la validation croisée
         if (mrz.getSurname() != null && !mrz.getSurname().isEmpty()) {
             ocrResult.setLatines(mrz.getSurname());
             // Validation croisée du nom arabe
             if (ocrResult.getNom() != null && !ocrResult.getNom().isEmpty()) {
-                boolean match = verifierTranslitteration(ocrResult.getNom(), mrz.getSurname());
-                if (!match) {
+                resNom = verifierTranslitteration(ocrResult.getNom(), mrz.getSurname());
+                if (!resNom.match) {
                     ocrResult.setRequiresCorrection(true);
                     nomMismatch = true;
                 }
@@ -155,8 +158,8 @@ public class MrzService {
             ocrResult.setPrenomLatines(mrz.getGivenNames());
             // Validation croisée du prénom arabe
             if (ocrResult.getPrenom() != null && !ocrResult.getPrenom().isEmpty()) {
-                boolean match = verifierTranslitteration(ocrResult.getPrenom(), mrz.getGivenNames());
-                if (!match) {
+                resPrenom = verifierTranslitteration(ocrResult.getPrenom(), mrz.getGivenNames());
+                if (!resPrenom.match) {
                     ocrResult.setRequiresCorrection(true);
                     prenomMismatch = true;
                 }
@@ -197,16 +200,28 @@ public class MrzService {
         ocrResult.setMrzValid(true);
 
         // 7. Enrichir le JSON de confiances avec les scores MRZ et pénalités
-        enrichirConfidencesJson(ocrResult, mrz, nomMismatch, prenomMismatch);
+        enrichirConfidencesJson(ocrResult, mrz, nomMismatch, prenomMismatch, resNom, resPrenom);
 
         return ocrResult;
+    }
+
+    public static class PhoneticResult {
+        public boolean match;
+        public double score;
+        public String translit;
+        public String norm;
+        public PhoneticResult(boolean match, double score, String translit, String norm) {
+            this.match = match; this.score = score; this.translit = translit; this.norm = norm;
+        }
     }
 
     /**
      * Appelle le service Python pour vérifier la correspondance phonétique.
      */
-    private boolean verifierTranslitteration(String arabe, String latin) {
-        if (arabe == null || latin == null || arabe.isEmpty() || latin.isEmpty()) return false;
+    public PhoneticResult verifierTranslitteration(String arabe, String latin) {
+        if (arabe == null || latin == null || arabe.isEmpty() || latin.isEmpty()) {
+            return new PhoneticResult(false, 0.0, "", "");
+        }
         try {
             String url = ocrApiUrl + "/api/translitteration/verifier";
             HttpHeaders headers = new HttpHeaders();
@@ -223,6 +238,24 @@ public class MrzService {
                 String translit = response.has("arabe_translit") ? response.get("arabe_translit").asText() : "";
                 String norm = response.has("latin_norm") ? response.get("latin_norm").asText() : "";
                 
+                String debugMsg = "Arabe: " + arabe + " | Latin: " + latin + " | Match: " + match + " | Score: " + score;
+                try {
+                    java.nio.file.Files.writeString(
+                        java.nio.file.Paths.get("phonetic_debug.txt"),
+                        debugMsg + "\n",
+                        java.nio.file.StandardOpenOption.CREATE,
+                        java.nio.file.StandardOpenOption.APPEND
+                    );
+                } catch (Exception ex) {}
+
+                if (match && !translit.isEmpty() && !norm.isEmpty()) {
+                    if (Character.toLowerCase(translit.charAt(0)) != Character.toLowerCase(norm.charAt(0))) {
+                        log.warn("⚠️ Translittération stricte : La première lettre diffère ('{}' vs '{}'). On force MISMATCH.", 
+                                translit.charAt(0), norm.charAt(0));
+                        match = false;
+                    }
+                }
+
                 if (match) {
                     log.info("✅ Translittération MATCH: Arabe='{}' [{}] <-> Latin='{}' [{}] (Score: {}%)", 
                             arabe, translit, latin, norm, Math.round(score));
@@ -230,12 +263,20 @@ public class MrzService {
                     log.warn("❌ Translittération MISMATCH: Arabe='{}' [{}] <-> Latin='{}' [{}] (Score: {}%)", 
                             arabe, translit, latin, norm, Math.round(score));
                 }
-                return match;
+                return new PhoneticResult(match, score, translit, norm);
             }
         } catch (Exception e) {
             log.warn("Erreur vérification translittération : {}", e.getMessage());
+            try {
+                java.nio.file.Files.writeString(
+                    java.nio.file.Paths.get("phonetic_debug.txt"),
+                    "ERREUR phonétique: " + e.getMessage() + "\n",
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.APPEND
+                );
+            } catch (Exception ex) {}
         }
-        return false;
+        return new PhoneticResult(false, 0.0, "", "");
     }
 
     // =========================================================================
@@ -553,7 +594,7 @@ public class MrzService {
     // ENRICHISSEMENT DU JSON DE CONFIANCES
     // =========================================================================
 
-    private void enrichirConfidencesJson(IdentitesEntity entity, MrzResult mrz, boolean nomMismatch, boolean prenomMismatch) {
+    private void enrichirConfidencesJson(IdentitesEntity entity, MrzResult mrz, boolean nomMismatch, boolean prenomMismatch, PhoneticResult resNom, PhoneticResult resPrenom) {
         try {
             String json = entity.getConfidencesJson();
             Map<String, Object> confiances;
@@ -569,6 +610,16 @@ public class MrzService {
             }
             if (prenomMismatch) {
                 confiances.put("prenom", 0.0);
+            }
+
+            // Ajouter les scores phonétiques
+            if (resNom != null) {
+                confiances.put("phonetic_nom_score", resNom.score);
+                confiances.put("phonetic_nom_translit", resNom.translit);
+            }
+            if (resPrenom != null) {
+                confiances.put("phonetic_prenom_score", resPrenom.score);
+                confiances.put("phonetic_prenom_translit", resPrenom.translit);
             }
 
             // Ajouter les scores MRZ (confiance élevée car validé par checksum)
