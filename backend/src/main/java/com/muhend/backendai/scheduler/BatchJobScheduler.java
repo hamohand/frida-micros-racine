@@ -33,9 +33,9 @@ public class BatchJobScheduler {
     public void processPendingBatches() {
         log.info("Démarrage du BatchJobScheduler pour rechercher des dossiers en attente...");
 
-        Path rootPath = Paths.get(rootPathString);
+        Path rootPath = Paths.get(rootPathString, "dossiers");
         if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
-            log.warn("Le dossier racine ROOT_PATH n'existe pas : {}", rootPathString);
+            log.warn("Le dossier 'dossiers' n'existe pas : {}", rootPath);
             return;
         }
 

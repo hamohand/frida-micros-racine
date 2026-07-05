@@ -18,7 +18,7 @@ public class PathResolver {
     private String rootPathString;
 
     public Path resolveTargetPath(String subFolder) throws IOException {
-        Path rootPath = Paths.get(rootPathString);
+        Path rootPath = Paths.get(rootPathString, "dossiers");
         ensureDirectoryExists(rootPath);
 
         Path latestFolder = findLatestFolder(rootPath);
@@ -29,7 +29,7 @@ public class PathResolver {
     }
 
     public Path getLatestFolder() throws IOException {
-        Path rootPath = Paths.get(rootPathString);
+        Path rootPath = Paths.get(rootPathString, "dossiers");
         if (!Files.exists(rootPath)) {
             Files.createDirectories(rootPath);
         }

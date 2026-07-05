@@ -17,10 +17,7 @@ import { forkJoin, Observable, of } from 'rxjs';
   imports: [CommonModule, FormsModule, FileUploadComponent],
   template: `
     <div class="windows-container carousel-viewport">
-      <!-- DEBUG BADGE DISCRET -->
-      <div style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(0, 0, 0, 0.4); color: rgba(255, 255, 255, 0.7); padding: 3px 8px; border-radius: 4px; font-size: 0.7rem; pointer-events: none; border: 1px solid rgba(78, 204, 163, 0.3);">
-        Hajb: Fils={{ getFiche().nbGarcons }} | Père={{ getFiche().pereVivant ? 'Oui' : 'Non' }} | Fenêtres={{ getActiveWindowKeys().length }}
-      </div>
+
 
       <!-- Action Globale pour sauter aux témoins -->
       <div class="global-skip-action" *ngIf="isHeirWindowActive()">

@@ -17,15 +17,14 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         class="drop-zone"
         (dragover)="onDragOver($event)"
         (dragleave)="onDragLeave($event)"
+        (click)="fileInput.click()"
+        style="cursor: pointer;"
         [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
       >
         <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
           <span class="material-icons">cloud_upload</span>
-          <p>Glissez-déposez vos fichiers ici ou</p>
-          <div style="display: flex; gap: 8px; justify-content: center;">
-            <button class="btn btn-secondary" (click)="fileInput.click()">
-              Sélectionnez des fichiers
-            </button>
+          <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
+          <div style="display: flex; gap: 8px; justify-content: center;" (click)="$event.stopPropagation()">
             <button class="btn btn-primary" style="background: #4ecca3; color: #0a1f0f; border: none; display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
               📱 Scanner via Mobile
             </button>
@@ -39,6 +38,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
           #fileInput
           type="file"
           multiple
+          style="display: none;"
           [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
           (change)="onFileSelected($event)"
         />

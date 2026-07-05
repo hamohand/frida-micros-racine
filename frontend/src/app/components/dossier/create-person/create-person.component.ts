@@ -13,7 +13,7 @@ import { ConstitutionService } from '../../../services/constitution.service';
   template: `
     <div class="container form-container">
       <h1 class="form-title">Création du dossier</h1>
-      <cite style="color: #2eaf7d">Tapez le nom de famille et le prénom du défunt</cite>
+      <cite style="color: #2eaf7d">Tapez le nom de famille et le prénom du défunt en lettres latines</cite>
       <form [formGroup]="personForm" (ngSubmit)="onSubmit()" class="person-form">
         <div class="form-group">
           <label for="lastName">Nom</label>

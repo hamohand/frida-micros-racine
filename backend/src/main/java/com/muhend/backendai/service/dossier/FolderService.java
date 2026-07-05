@@ -156,7 +156,16 @@ public class FolderService {
     }
 
     private Path findAvailablePath(String baseName) { // ajoute "_i" si le dossier existe dèjà
-        Path baseFolder = Paths.get(rootPathString, baseName);
+        Path dossiersPath = Paths.get(rootPathString, "dossiers");
+        try {
+            if (!Files.exists(dossiersPath)) {
+                Files.createDirectories(dossiersPath);
+            }
+        } catch (IOException e) {
+            log.error("Erreur lors de la création du dossier parent 'dossiers': {}", e.getMessage());
+        }
+        
+        Path baseFolder = dossiersPath.resolve(baseName);
         if (!Files.exists(baseFolder)) {
             return baseFolder;
         }
@@ -164,7 +173,7 @@ public class FolderService {
         int suffix = 1;
         Path folderPath;
         do {
-            folderPath = Paths.get(rootPathString, baseName + "_" + suffix++);
+            folderPath = dossiersPath.resolve(baseName + "_" + suffix++);
         } while (Files.exists(folderPath));
 
         return folderPath;
@@ -189,7 +198,7 @@ public class FolderService {
 
     public java.util.List<String> getPendingBatchFolders() {
         java.util.List<String> pendingFolders = new java.util.ArrayList<>();
-        Path rootPath = Paths.get(rootPathString);
+        Path rootPath = Paths.get(rootPathString, "dossiers");
         if (!Files.exists(rootPath) || !Files.isDirectory(rootPath)) {
             return pendingFolders;
         }

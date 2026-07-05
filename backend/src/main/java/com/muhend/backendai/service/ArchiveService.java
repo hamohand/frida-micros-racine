@@ -202,7 +202,7 @@ public class ArchiveService {
                     // Restaurer les fichiers OCR
                     String relativePath = entry.getName().substring("fichiers/".length());
                     if (!relativePath.isEmpty()) {
-                        Path targetFile = Paths.get(rootPath).resolve(relativePath);
+                        Path targetFile = Paths.get(rootPath, "dossiers").resolve(relativePath);
                         if (entry.isDirectory()) {
                             Files.createDirectories(targetFile);
                         } else {
@@ -271,7 +271,7 @@ public class ArchiveService {
         if (nom == null || prenom == null) return null;
 
         String folderPrefix = (nom + prenom).toLowerCase().replaceAll("\\s+", "");
-        Path rootDir = Paths.get(rootPath);
+        Path rootDir = Paths.get(rootPath, "dossiers");
 
         try (Stream<Path> paths = Files.list(rootDir)) {
             return paths
