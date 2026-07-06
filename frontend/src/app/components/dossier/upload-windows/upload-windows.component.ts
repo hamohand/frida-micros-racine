@@ -632,12 +632,21 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   /** Types de documents disponibles pour le sélecteur */
-  docTypeOptions: DocTypeOption[] = [
-    { id: 'en', label: 'Extrait de naissance' },
-    { id: 'ad', label: 'Acte de décès' },
-    { id: 'cni', label: 'Carte d\'identité' },
-    { id: 'passeport', label: 'Passeport' }
-  ];
+  get docTypeOptions(): DocTypeOption[] {
+    const isBeta = window.location.hostname.includes('frida.enclume-numerique.com');
+    if (isBeta) {
+      return [
+        { id: 'en', label: 'Extrait de naissance' },
+        { id: 'ad', label: 'Acte de décès' }
+      ];
+    }
+    return [
+      { id: 'en', label: 'Extrait de naissance' },
+      { id: 'ad', label: 'Acte de décès' },
+      { id: 'cni', label: 'Carte d\'identité' },
+      { id: 'passeport', label: 'Passeport' }
+    ];
+  }
 
   getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = '', maxFiles: number = 10): UploadConfig & { allowPrevious?: boolean } {
     return {
