@@ -69,7 +69,7 @@ fi
 # Build des images (uniquement si --build est passé)
 if [ "$1" = "--build" ]; then
     echo "🔨 Construction des images Docker (Mode Demo)..."
-    docker compose -f docker-compose.demo.yml build
+    docker compose -f compose/dev.demo.yml build
 else
     echo "⏭️  Saut de la construction des images (utilisez ./start.demo.sh --build pour forcer le build)"
 fi
@@ -77,7 +77,7 @@ fi
 # Démarrer les services
 echo ""
 echo "⚡ Démarrage des services (Mode Demo)..."
-docker compose -f docker-compose.demo.yml up -d
+docker compose -f compose/dev.demo.yml up -d
 
 # Attendre que le backend soit prêt
 echo ""

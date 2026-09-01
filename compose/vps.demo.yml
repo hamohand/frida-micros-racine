@@ -1,81 +1,11 @@
-
 services:
-  # Base de données Licences (Isolée)
-  license-db:
-    image: postgres:15-alpine
-    container_name: frida-license-db
-    environment:
-      POSTGRES_DB: frida_licenses_db
-      POSTGRES_USER: ${DB_USER:-muhend}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-motdepassetresfortVPS2026}
-    volumes:
-      - license_db_data:/var/lib/postgresql/data
-    networks:
-      - internal
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 256M
+  # ============================================================
+  # FRIDA — Composante 2 : Démo en ligne (VPS Hostinger)
+  # Vitrine commerciale sur frida.enclume-numerique.com
+  # OCR léger (QR uniquement), mode démo, aucune donnée client sensible.
+  # ============================================================
 
-  # Serveur de licences (VPS)
-  license-api:
-    build:
-      context: ./license-api
-      dockerfile: Dockerfile
-    container_name: frida-license-api
-    environment:
-      - DB_HOST=license-db
-      - DB_PORT=5432
-      - DB_NAME=frida_licenses_db
-      - DB_USER=${DB_USER:-muhend}
-      - DB_PASSWORD=${DB_PASSWORD:-motdepassetresfortVPS2026}
-      - KEYCLOAK_URL=https://auth.hscode.enclume-numerique.com
-      - KEYCLOAK_REALM=frida-realm
-    depends_on:
-      - license-db
-    networks:
-      - internal
-      - webproxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=webproxy"
-      - "traefik.http.routers.license-api.rule=Host(`licences.frida.enclume-numerique.com`) && PathPrefix(`/api`)"
-      - "traefik.http.routers.license-api.entrypoints=websecure"
-      - "traefik.http.routers.license-api.tls=true"
-      - "traefik.http.routers.license-api.tls.certresolver=myresolver"
-      - "traefik.http.services.license-api.loadbalancer.server.port=8083"
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-
-  # Dashboard Administrateur des licences (VPS)
-  license-dashboard:
-    build:
-      context: ./license-dashboard
-      dockerfile: Dockerfile
-      args:
-        - API_URL=https://licences.frida.enclume-numerique.com/api
-    container_name: frida-license-dashboard
-    networks:
-      - webproxy
-    labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=webproxy"
-      # Configuration HTTPS uniquement
-      - "traefik.http.routers.license-dashboard.rule=Host(`licences.frida.enclume-numerique.com`)"
-      - "traefik.http.routers.license-dashboard.entrypoints=websecure"
-      - "traefik.http.routers.license-dashboard.tls=true"
-      - "traefik.http.routers.license-dashboard.tls.certresolver=myresolver"
-      - "traefik.http.services.license-dashboard.loadbalancer.server.port=80"
-    restart: always
-    deploy:
-      resources:
-        limits:
-          memory: 100M
-  # Base de données PostgreSQL
+  # Base de données PostgreSQL (données de démonstration)
   db:
     image: postgres:15-alpine
     container_name: frida-db
@@ -93,17 +23,17 @@ services:
         limits:
           memory: 512M
 
-  # OCR Léger (QR code uniquement)
+  # OCR léger (QR code uniquement — pas d'EasyOCR/PyTorch)
   ocr-api:
     build:
-      context: ./ocr-api
+      context: ../ocr-api
       dockerfile: Dockerfile
     container_name: frida-ocr-api
     environment:
       - PORT=8082
       - OCR_MODE=qrcode_only
     volumes:
-      - ./ocr-api/entities:/app/app_ocr/entities
+      - ../ocr-api/entities:/app/app_ocr/entities
     networks:
       - internal
     restart: always
@@ -112,10 +42,10 @@ services:
         limits:
           memory: 300M
 
-  # Backend Frida (incluant désormais le service Calculs)
+  # Backend Frida (incluant le module Calculs — non extrait pour le moment)
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
     container_name: frida-backend
     environment:
@@ -150,10 +80,10 @@ services:
         limits:
           memory: 800M
 
-  # Frontend Angular
+  # Frontend Angular (vitrine)
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
       args:
         - API_URL=https://frida.enclume-numerique.com/api
@@ -163,12 +93,12 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=webproxy"
-      # Configuration HTTP vers HTTPS
+      # HTTP → HTTPS
       - "traefik.http.routers.frida-frontend-http.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend-http.entrypoints=web"
       - "traefik.http.routers.frida-frontend-http.middlewares=frida-redirect"
       - "traefik.http.middlewares.frida-redirect.redirectscheme.scheme=https"
-      # Configuration HTTPS
+      # HTTPS
       - "traefik.http.routers.frida-frontend.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend.entrypoints=websecure"
       - "traefik.http.routers.frida-frontend.tls=true"
@@ -183,12 +113,10 @@ services:
 volumes:
   postgres_data:
   frida_uploads:
-  license_db_data:
 
 networks:
   internal:
     internal: true
   webproxy:
-    # Réseau externe créé manuellement (ou géré par Traefik)
     name: webproxy
     external: true

@@ -35,13 +35,26 @@ git pull origin main
 ```
 
 ### 4. Lancement des Services
+
+> [!IMPORTANT]
+> Depuis la réorganisation des composes, l'infrastructure VPS est scindée en deux stacks indépendants :
+> - `compose/vps.licences.yml` — infra licences (license-db, license-api, license-dashboard)
+> - `compose/vps.demo.yml` — appli démo Frida (db, ocr-api, backend, frontend)
+>
+> Les deux peuvent tourner ensemble ou séparément (ils partagent le réseau `webproxy` de Traefik).
+
 Démarrez les conteneurs liés aux licences (Base de données isolée, API, et Dashboard) :
 ```bash
-docker compose -f docker-compose.licences.yml up -d
+docker compose -f compose/vps.licences.yml up -d
+```
+
+Pour lancer aussi la vitrine démo :
+```bash
+docker compose -f compose/vps.demo.yml up -d
 ```
 
 > [!NOTE]
-> Au premier lancement, Traefik va interroger Let's Encrypt pour obtenir le certificat SSL. Si vous obtenez une erreur de connexion non privée, attendez 2 minutes et redémarrez avec `docker compose -f docker-compose.licences.yml restart`.
+> Au premier lancement, Traefik va interroger Let's Encrypt pour obtenir le certificat SSL. Si vous obtenez une erreur de connexion non privée, attendez 2 minutes et redémarrez avec `docker compose -f compose/vps.licences.yml restart`.
 
 ### 5. Utilisation du Dashboard
 1. Rendez-vous sur `https://licences.frida.enclume-numerique.com`

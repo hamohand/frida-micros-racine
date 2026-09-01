@@ -10,7 +10,7 @@ services:
       - "${DATABASE_PORT}:5432"
     volumes:
       - frida_data:/var/lib/postgresql/data
-      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
+      - ../scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - frida-network
     healthcheck:
@@ -22,7 +22,7 @@ services:
   # ===== Backend (Spring Boot) =====
   backend:
     build:
-      context: ./backend
+      context: ../backend
       dockerfile: Dockerfile
       network: host
     environment:
@@ -48,7 +48,7 @@ services:
     networks:
       - frida-network
     volumes:
-      - ./backend/uploads:/app/uploads
+      - ../backend/uploads:/app/uploads
       - ${ROOT_PATH}:/frida-storage/
       - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/config/google-credentials.json:ro
     restart: unless-stopped
@@ -56,7 +56,7 @@ services:
   # ===== Frontend (Angular + Nginx) =====
   frontend:
     build:
-      context: ./frontend
+      context: ../frontend
       dockerfile: Dockerfile
       network: host
     ports:
