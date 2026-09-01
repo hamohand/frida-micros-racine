@@ -21,15 +21,15 @@ import { forkJoin, Observable, of } from 'rxjs';
 
       <!-- Action Globale pour sauter aux témoins -->
       <div class="global-skip-action" *ngIf="isHeirWindowActive()">
-        <button class="skip-all-btn" (click)="skipToTemoins()">
-          ⏭️ Il n'y a plus d'héritiers (Aller aux témoins)
+        <button class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; display: flex; align-items: center; gap: 6px;" (click)="skipToTemoins()">
+          <span class="material-icons" style="font-size: 1.2rem;">skip_next</span> Il n'y a plus d'héritiers (Aller aux témoins)
         </button>
       </div>
 
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
         <!-- Fenêtre Défunt -->
-        <div class="window-section" *ngIf="isWindowActive('f1')">
+        <div class="window-section" *ngIf="isWindowActive('f1')" [class.active-slide]="windows['f1'].isVisible">
           <ng-container *ngIf="!windows['f1'].isUploading">
             <h2 class="window-title">1. Document du Défunt</h2>
             <app-file-upload #fileUploadF1
@@ -45,7 +45,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Conjoint -->
-        <div class="window-section" *ngIf="isWindowActive('f2')">
+        <div class="window-section" *ngIf="isWindowActive('f2')" [class.active-slide]="windows['f2'].isVisible">
           <ng-container *ngIf="!windows['f2'].isUploading">
             <h2 class="window-title">2. Document du Conjoint</h2>
             <app-file-upload #fileUploadF2
@@ -64,7 +64,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Fils (Garçons) -->
-        <div class="window-section" *ngIf="isWindowActive('f_garcons')">
+        <div class="window-section" *ngIf="isWindowActive('f_garcons')" [class.active-slide]="windows['f_garcons'].isVisible">
           <ng-container *ngIf="!windows['f_garcons'].isUploading">
             <h2 class="window-title">3. Documents des Fils</h2>
             <app-file-upload #fileUploadFGarcons
@@ -83,7 +83,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Filles -->
-        <div class="window-section" *ngIf="isWindowActive('f_filles')">
+        <div class="window-section" *ngIf="isWindowActive('f_filles')" [class.active-slide]="windows['f_filles'].isVisible">
           <ng-container *ngIf="!windows['f_filles'].isUploading">
             <h2 class="window-title">4. Documents des Filles</h2>
             <app-file-upload #fileUploadFFilles
@@ -102,7 +102,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Déclaration Tombes -->
-        <div class="window-section" *ngIf="isWindowActive('f_tombes_declare')">
+        <div class="window-section" *ngIf="isWindowActive('f_tombes_declare')" [class.active-slide]="windows['f_tombes_declare'].isVisible">
           <div class="upload-container" style="max-width: 600px; margin: 0 auto; text-align: center;">
             <h2 class="window-title">Enfants prédécédés (Tombes)</h2>
             <p style="color: #64748b; margin-bottom: 2rem;">Avez-vous des enfants décédés avant le défunt (laissant des descendants) ?</p>
@@ -136,7 +136,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 
         <!-- Fenêtres dynamiques Fils Prédécédés -->
         <ng-container *ngFor="let idx of getRange(nbFilsDecedes)">
-          <div class="window-section" *ngIf="isWindowActive('tombe_M_' + (idx + 1))">
+          <div class="window-section" *ngIf="isWindowActive('tombe_M_' + (idx + 1))" [class.active-slide]="getWindow('tombe_M_' + (idx + 1)).isVisible">
             <ng-container *ngIf="!getWindow('tombe_M_' + (idx + 1)).isUploading">
               <h2 class="window-title">Tombe {{ idx + 1 }} (Fils prédécédé)</h2>
               <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
@@ -158,7 +158,7 @@ import { forkJoin, Observable, of } from 'rxjs';
 
         <!-- Fenêtres dynamiques Filles Prédécédées -->
         <ng-container *ngFor="let idx of getRange(nbFillesDecedees)">
-          <div class="window-section" *ngIf="isWindowActive('tombe_F_' + (idx + 1))">
+          <div class="window-section" *ngIf="isWindowActive('tombe_F_' + (idx + 1))" [class.active-slide]="getWindow('tombe_F_' + (idx + 1)).isVisible">
             <ng-container *ngIf="!getWindow('tombe_F_' + (idx + 1)).isUploading">
               <h2 class="window-title">Tombe {{ idx + 1 }} (Fille prédécédée)</h2>
               <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
@@ -179,7 +179,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </ng-container>
 
         <!-- Fenêtre Père -->
-        <div class="window-section" *ngIf="isWindowActive('f_pere')">
+        <div class="window-section" *ngIf="isWindowActive('f_pere')" [class.active-slide]="windows['f_pere'].isVisible">
           <ng-container *ngIf="!windows['f_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Père vivant ?</h2>
             <app-file-upload #fileUploadFPere
@@ -198,7 +198,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Grand-père paternel -->
-        <div class="window-section" *ngIf="isWindowActive('f_grand_pere')">
+        <div class="window-section" *ngIf="isWindowActive('f_grand_pere')" [class.active-slide]="windows['f_grand_pere'].isVisible">
           <ng-container *ngIf="!windows['f_grand_pere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il un Grand-père paternel vivant ?</h2>
             <app-file-upload #fileUploadFGrandPere
@@ -217,7 +217,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Mère -->
-        <div class="window-section" *ngIf="isWindowActive('f_mere')">
+        <div class="window-section" *ngIf="isWindowActive('f_mere')" [class.active-slide]="windows['f_mere'].isVisible">
           <ng-container *ngIf="!windows['f_mere'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il une Mère vivante ?</h2>
             <app-file-upload #fileUploadFMere
@@ -236,7 +236,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Grand-mère paternelle -->
-        <div class="window-section" *ngIf="isWindowActive('f_grand_mere_paternelle')">
+        <div class="window-section" *ngIf="isWindowActive('f_grand_mere_paternelle')" [class.active-slide]="windows['f_grand_mere_paternelle'].isVisible">
           <ng-container *ngIf="!windows['f_grand_mere_paternelle'].isUploading">
             <h2 class="window-title">Le Défunt a-t-il une Grand-mère paternelle vivante ?</h2>
             <app-file-upload #fileUploadFGrandMerePaternelle
@@ -255,7 +255,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Frères et sœurs du défunt -->
-        <div class="window-section" *ngIf="isWindowActive('f5')">
+        <div class="window-section" *ngIf="isWindowActive('f5')" [class.active-slide]="windows['f5'].isVisible">
           <ng-container *ngIf="!windows['f5'].isUploading">
             <app-file-upload #fileUploadF5
                 [config]="getUploadConfig('05', 'Frères et sœurs du défunt', true, 'Continuer s\\'il n\\'y a pas de frères et sœurs', 10)"
@@ -273,7 +273,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Oncles paternels -->
-        <div class="window-section" *ngIf="isWindowActive('f6')">
+        <div class="window-section" *ngIf="isWindowActive('f6')" [class.active-slide]="windows['f6'].isVisible">
           <ng-container *ngIf="!windows['f6'].isUploading">
             <app-file-upload #fileUploadF6
                 [config]="getUploadConfig('06', 'Oncles paternels', true, 'Continuer s\\'il n\\'y a pas d\\'oncles paternels', 10)"
@@ -291,7 +291,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Cousins paternels -->
-        <div class="window-section" *ngIf="isWindowActive('f7')">
+        <div class="window-section" *ngIf="isWindowActive('f7')" [class.active-slide]="windows['f7'].isVisible">
           <ng-container *ngIf="!windows['f7'].isUploading">
             <app-file-upload #fileUploadF7
                 [config]="getUploadConfig('07', 'Cousins paternels', true, 'Continuer s\\'il n\\'y a pas de cousins paternels', 10)"
@@ -309,7 +309,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre témoins -->
-        <div class="window-section" *ngIf="isWindowActive('f_temoins')">
+        <div class="window-section" *ngIf="isWindowActive('f_temoins')" [class.active-slide]="windows['f_temoins'].isVisible">
           <ng-container *ngIf="!windows['f_temoins'].isUploading">
             <app-file-upload #fileUploadFTemoins
                 [config]="getUploadConfig('00', 'Témoins', true, 'Continuer s\\'il n\\'y a pas de temoin', 2)"
@@ -327,7 +327,7 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
         <!-- Fenêtre Lecture AI ---------------- -->
-        <div class="window-section" *ngIf="isWindowActive('f_ai')">
+        <div class="window-section" *ngIf="isWindowActive('f_ai')" [class.active-slide]="windows['f_ai'].isVisible">
           <div class="drop-zone">
             <div class="upload-container">
               <h2>Validation finale du dossier</h2>
@@ -401,6 +401,14 @@ import { forkJoin, Observable, of } from 'rxjs';
         </div>
 
       </div> <!-- End Carousel Track -->
+
+      <!-- Message d'information global -->
+      <div class="global-info-message" style="margin: var(--spacing-md) auto 0 auto; max-width: 800px; padding: var(--spacing-sm); background: rgba(78, 204, 163, 0.05); border: 1px solid var(--accent-color); border-radius: var(--border-radius); font-size: 0.9rem; text-align: center; color: var(--text-secondary);">
+        <span class="material-icons" style="font-size: 1.2rem; vertical-align: middle; color: #ffb84d; margin-right: 5px;">info</span>
+        Utiliser uniquement les actes de naissance et de décès numériques, à demander aux adresses respectives :<br/>
+        <a href="https://etatcivil.interieur.gov.dz/ActeNaissance/" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">https://etatcivil.interieur.gov.dz/ActeNaissance/</a> et 
+        <a href="https://etatcivil.interieur.gov.dz/ActeDeces/" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">https://etatcivil.interieur.gov.dz/ActeDeces/</a>
+      </div>
     </div> <!-- End Windows Container -->
   `,
   styles: [`
@@ -457,7 +465,7 @@ import { forkJoin, Observable, of } from 'rxjs';
       overflow-x: hidden; /* Hide horizontal overflow for sliding */
       overflow-y: auto;   /* Allow vertical scrolling if the content is too tall */
       width: 100%;
-      height: 100%;
+      height: auto;
       max-height: 85vh;   /* Prevent the component from exceeding the screen height and being clipped by central flexbox */
       padding-top: 20px;
       padding-bottom: 20px;
@@ -477,6 +485,16 @@ import { forkJoin, Observable, of } from 'rxjs';
       flex: 0 0 100%;
       padding: 0 var(--spacing-sm);
       box-sizing: border-box;
+      transition: opacity 0.3s ease, height 0.3s ease;
+    }
+
+    .window-section:not(.active-slide) {
+      height: 0;
+      overflow: hidden;
+      opacity: 0;
+      padding: 0;
+      margin: 0;
+      border: none;
     }
 
     .continue-btn {

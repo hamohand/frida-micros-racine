@@ -24,9 +24,12 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
           <span class="material-icons">cloud_upload</span>
           <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
-          <div *ngIf="!isBeta" style="display: flex; gap: 8px; justify-content: center;" (click)="$event.stopPropagation()">
-            <button class="btn btn-primary" style="background: #4ecca3; color: #0a1f0f; border: none; display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
-              📱 Scanner via Mobile
+          <div style="display: flex; gap: 8px; justify-content: center;" (click)="$event.stopPropagation()">
+            <button class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;" (click)="fileInput.click()">
+              <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionnez des fichiers
+            </button>
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
+              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
             </button>
           </div>
         </div>
@@ -68,9 +71,13 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
           <!-- Verso optionnel pour CNI -->
           <div class="verso-section" *ngIf="file.docType === 'cni'">
             <div class="verso-info" *ngIf="file.versoFile">
-              <span class="verso-badge">📋 Verso :</span>
+              <span class="verso-badge" style="display: flex; align-items: center; gap: 4px;">
+                <span class="material-icons" style="font-size: 1rem;">content_paste</span> Verso :
+              </span>
               <span class="file-name">{{ file.versoFile.name }}</span>
-              <button class="btn-icon btn-sm" (click)="removeVerso(file.id)" aria-label="Supprimer verso">✕</button>
+              <button class="btn-icon btn-sm" (click)="removeVerso(file.id)" aria-label="Supprimer verso">
+                <span class="material-icons" style="font-size: 1.2rem;">close</span>
+              </button>
             </div>
             <button class="btn btn-verso" *ngIf="!file.versoFile" (click)="triggerVersoInput(file.id)">
               + Ajouter verso (optionnel)

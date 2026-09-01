@@ -63,6 +63,7 @@ services:
       - webproxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=webproxy"
       # Configuration HTTPS uniquement
       - "traefik.http.routers.license-dashboard.rule=Host(`licences.frida.enclume-numerique.com`)"
       - "traefik.http.routers.license-dashboard.entrypoints=websecure"
@@ -161,6 +162,7 @@ services:
       - webproxy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=webproxy"
       # Configuration HTTP vers HTTPS
       - "traefik.http.routers.frida-frontend-http.rule=Host(`frida.enclume-numerique.com`) || Host(`www.frida.enclume-numerique.com`) || Host(`simul-frida.enclume-numerique.com`)"
       - "traefik.http.routers.frida-frontend-http.entrypoints=web"
