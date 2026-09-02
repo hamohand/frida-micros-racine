@@ -10,17 +10,21 @@ public class WebConfig implements WebMvcConfigurer {
     @org.springframework.beans.factory.annotation.Value("${CORS_ORIGINS:http://localhost:4200,http://localhost:3000}")
     private String corsOrigins;
 
+    @org.springframework.beans.factory.annotation.Value("${CORS_ALLOW_CREDENTIALS:true}")
+    private boolean corsAllowCredentials;
+
     // Optionnel : absent en profil calc-only (LicenseInterceptor est guardé)
     @org.springframework.beans.factory.annotation.Autowired
     private ObjectProvider<LicenseInterceptor> licenseInterceptorProvider;
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
+        // allowedOriginPatterns supporte le wildcard "*" même avec credentials=true
         registry.addMapping("/**")
-                .allowedOrigins(corsOrigins.split(","))
+                .allowedOriginPatterns(corsOrigins.split(","))
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(corsAllowCredentials);
     }
 
     @Override
