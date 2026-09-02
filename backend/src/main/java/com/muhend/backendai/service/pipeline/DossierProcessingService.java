@@ -9,6 +9,7 @@ import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.enums.HeirCategory;
 import com.muhend.backendai.service.dossier.FolderService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -36,6 +37,7 @@ import jakarta.annotation.PostConstruct;
  * ce qui rend ce service thread-safe.
  */
 @Slf4j
+@Profile("!calc-only")
 @Service
 public class DossierProcessingService {
 

@@ -3,12 +3,14 @@ package com.muhend.backendai.controller;
 import com.muhend.backendai.service.HardwareInfoService;
 import com.muhend.backendai.service.LicenseValidationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Profile("!calc-only")
 @RestController
 @RequestMapping("/api/license")
 public class LicenseController {

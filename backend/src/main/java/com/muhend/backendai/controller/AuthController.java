@@ -6,6 +6,7 @@ import com.muhend.backendai.dto.LoginRequest;
 import com.muhend.backendai.entities.UtilisateurEntity;
 import com.muhend.backendai.repository.UtilisateurRepo;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.util.List;
 
+@Profile("!calc-only")
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor

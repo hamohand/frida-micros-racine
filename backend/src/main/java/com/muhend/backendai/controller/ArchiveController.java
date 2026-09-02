@@ -4,6 +4,7 @@ import com.muhend.backendai.dto.ArchiveInfo;
 import com.muhend.backendai.dto.FridaDetailsDTO;
 import com.muhend.backendai.service.ArchiveService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -16,6 +17,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+@Profile("!calc-only")
 @RestController
 @RequestMapping("/api/archives")
 @RequiredArgsConstructor

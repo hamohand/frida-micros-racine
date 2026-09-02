@@ -1,6 +1,7 @@
 package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.service.calculs_outils.StringUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -10,6 +11,7 @@ import java.time.format.DateTimeFormatter;
  * Service responsable de la génération d'identifiants uniques pour les fiches Frida.
  * L'identifiant est composé de la date de naissance nettoyée + un timestamp précis.
  */
+@Profile("!calc-only")
 @Service
 public class FridaIdentifierService {
 

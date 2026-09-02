@@ -9,6 +9,7 @@ import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.repository.FridaRepo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+@Profile("!calc-only")
 @Service
 @Slf4j
 public class ArchiveService {

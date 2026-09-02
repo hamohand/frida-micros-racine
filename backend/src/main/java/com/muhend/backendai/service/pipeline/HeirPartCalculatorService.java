@@ -8,6 +8,7 @@ import com.muhend.backendai.entities.CalculEntity;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.utils.SexeUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +18,7 @@ import java.util.List;
  * via le moteur de calcul intégré.
  */
 @Slf4j
+@Profile("!calc-only")
 @Service
 public class HeirPartCalculatorService {
 

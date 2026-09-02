@@ -3,6 +3,7 @@ package com.muhend.backendai.controller;
 import com.muhend.backendai.dto.BackupInfo;
 import com.muhend.backendai.service.BackupService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
@@ -15,6 +16,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
+@Profile("!calc-only")
 @RestController
 @RequestMapping("/api/backups")
 @RequiredArgsConstructor

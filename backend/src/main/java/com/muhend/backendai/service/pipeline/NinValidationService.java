@@ -1,5 +1,6 @@
 package com.muhend.backendai.service.pipeline;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import lombok.extern.slf4j.Slf4j;
 
@@ -7,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
  * Service dédié à la validation et au nettoyage du Numéro d'Identification National (NIN).
  */
 @Slf4j
+@Profile("!calc-only")
 @Service
 public class NinValidationService {
 

@@ -15,12 +15,14 @@ import com.muhend.backendai.service.pipeline.HeirPartCalculatorService;
 import com.muhend.backendai.service.pipeline.MrzService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.*;
 import org.springframework.transaction.annotation.Transactional;
 
+@Profile("!calc-only")
 @Service
 @Slf4j
 public class FridaService {

@@ -11,6 +11,7 @@ import com.muhend.backendai.service.FridaService;
 import com.muhend.backendai.service.HeritierService;
 import com.muhend.backendai.service.TemoinService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+@Profile("!calc-only")
 @RestController
 @RequestMapping("/api/frida")
 public class FridaController {

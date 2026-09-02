@@ -3,11 +3,13 @@ package com.muhend.backendai.service;
 import com.muhend.backendai.dto.FridaDetailsDTO;
 import com.muhend.backendai.repository.DefuntRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@Profile("!calc-only")
 @Service
 public class DefuntService {
     @Autowired

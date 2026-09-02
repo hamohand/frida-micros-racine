@@ -5,6 +5,7 @@ import com.muhend.backendai.entities.HeritierEntity;
 import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.entities.TemoinEntity;
 import com.muhend.backendai.utils.SexeUtils;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 /**
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
  * <p>
  * Responsabilité unique : construire les objets, sans les persister.
  */
+@Profile("!calc-only")
 @Service
 public class PersonneFactory {
 

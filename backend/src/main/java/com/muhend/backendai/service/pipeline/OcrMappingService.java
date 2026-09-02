@@ -8,6 +8,7 @@ import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.enums.DocumentType;
 import com.muhend.backendai.service.calculs_outils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * et du mapping des résultats vers les entités JPA.
  */
 @Slf4j
+@Profile("!calc-only")
 @Service
 public class OcrMappingService {
 

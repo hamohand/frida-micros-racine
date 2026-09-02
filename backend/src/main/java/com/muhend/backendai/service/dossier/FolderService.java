@@ -8,6 +8,7 @@ import com.muhend.backendai.dto.dossier.FolderResponse;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -25,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import com.muhend.backendai.config.util.PathResolver;
 import lombok.RequiredArgsConstructor;
 
+@Profile("!calc-only")
 @Service
 @Slf4j
 @RequiredArgsConstructor
