@@ -1,0 +1,43 @@
+services:
+  # ============================================================
+  # FRIDA — Composante 3 : Calculs SaaS (VPS Hostinger)
+  # Backend seul, profil calc-only : uniquement /api/calculs/*
+  # Stateless — aucune base de données, aucun OCR, aucun frontend.
+  # Domaine : calc.frida.enclume-numerique.com
+  # ============================================================
+
+  calc-api:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: frida-calc-api
+    environment:
+      - SPRING_PROFILES_ACTIVE=calc-only
+      - BACKEND_PORT=8080
+      - CORS_ORIGINS=${CALC_CORS_ORIGINS:-*}
+    networks:
+      - webproxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=webproxy"
+      # HTTP → HTTPS
+      - "traefik.http.routers.frida-calc-http.rule=Host(`calc.frida.enclume-numerique.com`)"
+      - "traefik.http.routers.frida-calc-http.entrypoints=web"
+      - "traefik.http.routers.frida-calc-http.middlewares=frida-calc-redirect"
+      - "traefik.http.middlewares.frida-calc-redirect.redirectscheme.scheme=https"
+      # HTTPS
+      - "traefik.http.routers.frida-calc.rule=Host(`calc.frida.enclume-numerique.com`)"
+      - "traefik.http.routers.frida-calc.entrypoints=websecure"
+      - "traefik.http.routers.frida-calc.tls=true"
+      - "traefik.http.routers.frida-calc.tls.certresolver=myresolver"
+      - "traefik.http.services.frida-calc.loadbalancer.server.port=8080"
+    restart: always
+    deploy:
+      resources:
+        limits:
+          memory: 400M
+
+networks:
+  webproxy:
+    name: webproxy
+    external: true
