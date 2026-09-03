@@ -6,11 +6,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 FridaAI is a full-stack web application for managing succession records (*fiches*) with OCR document processing. It uses a **hybrid architecture**: Docker-hosted services plus a native Windows/Python OCR service.
 
+### The 3 Composantes
+
+FridaAI is delivered in **three distinct composantes**, each with its own compose file and target audience. Understanding this split is essential — it drives Spring profiles, compose file selection, and deployment decisions.
+
+| Composante | Compose file | Target | Backend profile |
+|---|---|---|---|
+| **1 — Local notaire (OCR lourd)** | `install-notaire/docker-installation/docker-compose.local.yml` | Poste du notaire (installation via zip WSL) | `docker` / `prod` |
+| **2 — Démo en ligne** | `compose/vps.demo.yml` | Vitrine commerciale `frida.enclume-numerique.com` + `simul-frida.enclume-numerique.com` | `prod` + `APP_DEMO_MODE=true` |
+| **3 — Calculs SaaS** | `compose/vps.calc.yml` | API JSON pure `calc.frida.enclume-numerique.com` pour appelants machine (Tarif-Cloak, mobile NFC, intégrations) | `calc-only` |
+
+The `calc-only` profile guards all controllers/services except `CalculController` and its dependencies via `@Profile("!calc-only")`. See `backend/src/main/resources/application-calc-only.properties` for the autoconfigure exclusions (DataSource, JPA, Security).
+
+Transverse infrastructure: `compose/vps.licences.yml` (license-db + license-api + license-dashboard on `licences.frida.enclume-numerique.com`).
+
+The default `docker-compose.yml` at repo root is for local dev with native Windows OCR. See `compose/README.md` for the full map.
+
 ## Commands
 
-### Docker (full stack)
+### Docker (full stack, dev par défaut)
 ```bash
-make up              # Start all services
+make up              # Start all services (uses root docker-compose.yml)
 make down            # Stop all services
 make build           # Rebuild all images (no-cache)
 make restart         # Restart all services
@@ -23,12 +39,23 @@ make shell-db        # psql into PostgreSQL container
 make db-backup       # Dump database to SQL file
 ```
 
+### Docker par composante
+```bash
+docker compose -f compose/vps.demo.yml up -d       # Composante 2 (VPS)
+docker compose -f compose/vps.calc.yml up -d       # Composante 3 (VPS)
+docker compose -f compose/vps.licences.yml up -d   # Infra licences (VPS)
+docker compose -f compose/dev.demo.yml up -d       # Dev local en mode démo
+```
+
+> **Note WSL**: sur Windows, Docker tourne dans WSL Ubuntu (pas Docker Desktop). Invoquer les commandes via `wsl -d Ubuntu -e bash -c "cd <projet> && docker ..."`.
+
 ### Backend (Spring Boot, Java 21)
 ```bash
-cd backend && mvn spring-boot:run        # Dev mode (port 8080)
-cd backend && mvn clean package -DskipTests  # Build JAR
-cd backend && mvn test                   # Run tests
-cd backend && mvn test -Dtest=ClassName  # Run a single test class
+cd backend && mvn spring-boot:run                                        # Dev mode (port 8080)
+cd backend && SPRING_PROFILES_ACTIVE=calc-only mvn spring-boot:run       # Composante 3 en local
+cd backend && mvn clean package -DskipTests                              # Build JAR
+cd backend && mvn test                                                   # Run tests
+cd backend && mvn test -Dtest=ClassName                                  # Run a single test class
 ```
 
 ### Frontend (Angular 18)
@@ -38,23 +65,30 @@ cd frontend && npm run build # Production build
 cd frontend && npm test      # Run tests
 ```
 
-### Service URLs
+### Service URLs (dev local)
 | Service        | URL                                        |
 |----------------|--------------------------------------------|
 | Frontend       | http://localhost:4200                      |
 | Backend API    | http://localhost:8080                      |
 | Swagger UI     | http://localhost:8080/swagger-ui.html      |
-| Calculs API    | http://localhost:8081                      |
 | OCR API        | http://localhost:8082 (native, not Docker) |
+
+### Service URLs (production VPS)
+| Composante | URL                                             |
+|------------|-------------------------------------------------|
+| Démo (2)   | https://frida.enclume-numerique.com             |
+| Démo (2)   | https://simul-frida.enclume-numerique.com       |
+| Calc (3)   | https://calc.frida.enclume-numerique.com        |
+| Licences   | https://licences.frida.enclume-numerique.com    |
 
 ## Architecture
 
 ### Services
-- **backend** (Spring Boot 3.3.4, Java 21) — main REST API, JPA/PostgreSQL, Swagger docs
+- **backend** (Spring Boot 3.3.4, Java 21) — main REST API, JPA/PostgreSQL, Swagger docs. **Le module de calculs (`calculs/` package) est intégré au backend** — plus de microservice séparé. En profil `calc-only`, seul `CalculController` est actif.
 - **frontend** (Angular 18, Nginx) — SPA proxying `/api/*` to backend
-- **postgres** (PostgreSQL 16) — primary database
-- **calculs-api** (Spring Boot, port 8081) — inheritance share calculations microservice
-- **OCR API** (Python Flask + EasyTess, port 8082) — **runs natively on Windows, never in Docker**
+- **postgres** (PostgreSQL 16) — primary database (absent en Composante 3)
+- **ocr-api** (Python Flask + pyzbar / EasyOCR) — mode dockerisé `qrcode_only` sur VPS, natif Windows en local pour l'OCR complet
+- **license-api / license-dashboard** — infra transverse pour la validation des licences chez les notaires
 
 The `start.sh` detects WSL and automatically sets `WINDOWS_HOST_IP` so the backend can reach the native OCR service. `MAX_PARALLEL_FOLDERS` (default 2) controls OCR concurrency.
 
@@ -69,11 +103,11 @@ FridaEntity (succession record)
 
 `IdentitesEntity` is a single identity table that stores data extracted from multiple document types (birth certificate, CNI, passport, etc.).
 
-### OCR Processing Pipeline
+### OCR Processing Pipeline (Composantes 1 & 2 uniquement)
 1. Frontend uploads documents → Backend (`FileController`, `OcrProcessingController`)
 2. Backend calls OCR API (Python) → receives structured JSON
 3. Backend maps OCR JSON to JPA entities → persists to PostgreSQL
-4. Optionally calls Calculs API for share calculations
+4. Backend calcule les parts via le module interne `calculs/`
 
 ### Folder Naming Convention
 Uploaded folders follow `{code}_{documentType}`:
@@ -81,12 +115,13 @@ Uploaded folders follow `{code}_{documentType}`:
 - Person codes: 1=Défunt, 2=Conjoint, 3=Enfant, 4=Parent, 5=Fratrie, 11=Témoin
 
 ### Backend Package Layout (`backend/src/main/java/`)
-- `controller/` — REST endpoints (Frida, File, Folder, OcrProcessing)
-- `service/` — business logic, OCR orchestration
+- `calculs/` — module de calcul islamique successoral (model, service, validator). Auto-porteur : aucune dépendance JPA/OCR, seul actif en profil `calc-only`.
+- `controller/` — REST endpoints. Tous annotés `@Profile("!calc-only")` sauf `CalculController` et `CalcInfoController` (page `/` en calc-only).
+- `service/` — business logic, OCR orchestration (guardé `@Profile("!calc-only")`)
 - `entities/` — JPA models
 - `repository/` — Spring Data repositories
-- `client/` — HTTP clients to Calculs API and OCR API
-- `config/` — CORS, RestTemplate
+- `client/` — HTTP clients to OCR API
+- `config/` — CORS (`WebConfig`), sécurité, `LicenseInterceptor`
 - `enums/` — `DocumentType`, `HeirCategory`
 - `dto/` — request/response objects
 
@@ -99,11 +134,14 @@ Uploaded folders follow `{code}_{documentType}`:
 
 Copy `.env.example` to `.env` and set values. Key variables:
 - `DB_PASSWORD` — PostgreSQL password
-- `SPRING_PROFILES_ACTIVE` — `docker` | `development` | `production`
+- `SPRING_PROFILES_ACTIVE` — `docker` | `development` | `production` | `calc-only`
 - `SPRING_JPA_HIBERNATE_DDL_AUTO` — `update` for dev, `validate` for prod
-- `CORS_ORIGINS` — comma-separated allowed origins
+- `CORS_ORIGINS` — comma-separated allowed origins (ou `*` en profil calc-only)
+- `CORS_ALLOW_CREDENTIALS` — `true` par défaut ; forcer `false` en calc-only avec `CORS_ORIGINS=*`
 - `MAX_PARALLEL_FOLDERS` — OCR parallelism (default 2)
 - `ROOT_PATH` — host path mounted as `/frida-storage/` in containers
+
+> **Note compose subdirectory**: les fichiers de `compose/` ne chargent PAS automatiquement le `.env` de la racine. Utiliser `docker compose --env-file .env -f compose/xxx.yml ...` si nécessaire.
 
 ## Additional Documentation
 
@@ -111,4 +149,8 @@ Detailed docs are in `docs/`:
 - `ARCHITECTURE.md` — full system design
 - `DEPLOYMENT.md` — production deployment
 - `TESTS.md` — testing strategy
-- `INSTALLATION_PROCEDURE.md` — setup instructions
+- `architecture/architecture_saas_frida.md` — architecture SaaS et les 3 composantes
+- `architecture/configuration_licences_vps.md` — déploiement infra licences
+- `architecture/deploiement_vps.md` — déploiement général VPS
+- `compose/README.md` — table des correspondances fichier compose ↔ composante
+- `install-notaire/documentation/INSTALLATION_PROCEDURE.md` — setup notaire
