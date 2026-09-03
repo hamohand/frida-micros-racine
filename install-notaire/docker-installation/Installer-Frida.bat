@@ -1,4 +1,9 @@
 @echo off
+:: ============================================================
+::   FRIDA - Installation locale (Docker dans WSL Ubuntu)
+::   Double-cliquez pour lancer. Elevation Administrateur requise.
+:: ============================================================
+
 :: Verifie les droits d'administration
 NET SESSION >nul 2>&1
 if %errorLevel% == 0 (
@@ -11,6 +16,6 @@ if %errorLevel% == 0 (
 )
 
 :: Lancement du script PowerShell principal
-echo Lancement de l'installation de Frida-Micros...
-PowerShell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Installer-WSL.ps1"
+echo Lancement de l'installation de FRIDA...
+PowerShell -NoProfile -ExecutionPolicy Bypass -File "%~dp0Installer-Frida.ps1"
 pause

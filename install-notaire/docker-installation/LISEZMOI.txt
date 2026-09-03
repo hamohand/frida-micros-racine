@@ -9,57 +9,56 @@ PRÉREQUIS
 • 8 Go de RAM minimum (16 Go recommandé)
 • 10 Go d'espace disque libre
 • Connexion Internet (uniquement pour l'installation)
+• Compte administrateur Windows (nécessaire pour installer WSL)
 
 
-ÉTAPE 1 : Installer Docker Desktop
-───────────────────────────────────
-1. Téléchargez Docker Desktop :
-   https://www.docker.com/products/docker-desktop/
-
-2. Lancez l'installation et suivez les instructions.
-   ⚠ Si Windows vous demande d'activer WSL2, acceptez.
-
-3. Redémarrez votre ordinateur si demandé.
-
-4. Lancez Docker Desktop depuis le menu Démarrer.
-   Attendez que l'icône de la baleine (🐳) dans la
-   barre des tâches devienne verte et stable.
-
-
-ÉTAPE 2 : Installer Frida
+ÉTAPE 1 : Installer FRIDA
 ──────────────────────────
-1. Décompressez le fichier .zip reçu dans un dossier
-   de votre choix (ex: C:\Frida).
+1. Décompressez le dossier reçu dans un dossier de votre choix
+   (ex : C:\Frida ou sur le Bureau).
 
-2. Double-cliquez sur « Installer-Docker.bat »
+2. Vous devez avoir dans ce dossier :
+   • Installer-Frida.bat
+   • Installer-Frida.ps1
+   • frida-micros.zip
+   • LISEZMOI.txt (ce fichier)
 
-3. Patientez 5 à 15 minutes (première installation).
-   Le script télécharge et construit les composants.
+3. Double-cliquez sur « Installer-Frida.bat ».
 
-4. Votre navigateur s'ouvrira automatiquement sur :
-   http://localhost
+4. Windows vous demandera d'autoriser les droits administrateur.
+   → Cliquez sur « Oui ».
+
+5. Le script vérifie et installe automatiquement :
+   • WSL (sous-système Linux de Windows), si absent
+   • Docker à l'intérieur de WSL
+   • Les composants FRIDA (backend, frontend, OCR)
+
+6. Au premier lancement, l'opération prend 10 à 20 minutes
+   (téléchargement + compilation).
+
+7. Le navigateur s'ouvre automatiquement sur http://localhost
 
 
 UTILISATION QUOTIDIENNE
 ───────────────────────
-• Pour DÉMARRER Frida :
-  Ouvrez Docker Desktop, puis double-cliquez sur
-  « Installer-Docker.bat » (le démarrage sera instantané
-  les fois suivantes).
+• Pour DÉMARRER FRIDA après avoir éteint le PC :
+  Double-cliquez sur « Demarrer-Frida » (raccourci créé sur le Bureau).
+  Attendez ~30 secondes, le navigateur s'ouvre.
 
-• Pour ARRÊTER Frida :
-  Double-cliquez sur « desinstaller.bat » et choisissez
-  de CONSERVER vos données (répondez O).
+• Pour ARRÊTER FRIDA :
+  Fermez juste le navigateur. Pour libérer complètement la RAM,
+  double-cliquez sur « desinstaller.bat » et répondez « O » pour
+  CONSERVER vos données.
 
 • Pour SAUVEGARDER vos données :
   Double-cliquez sur « sauvegarder.bat ».
-  Copiez le dossier de sauvegarde créé sur une clé USB
-  ou un disque externe.
+  Un dossier daté est créé dans data\backups\.
+  → Copiez ce dossier sur une clé USB ou un disque externe.
 
 
 OÙ SONT MES DONNÉES ?
 ──────────────────────
-Toutes vos données sont dans le dossier « data\ » :
+Toutes vos données sont dans « C:\Users\<votre_nom>\Frida-Micros\data\ » :
 
   data\
   ├── uploads\    ← Vos documents scannés (PDF, images)
@@ -67,23 +66,38 @@ Toutes vos données sont dans le dossier « data\ » :
   └── backups\    ← Vos sauvegardes
 
 ⚠ IMPORTANT : Aucune donnée ne quitte votre ordinateur.
-  Les documents d'identité et extraits de naissance
-  restent strictement sur cette machine.
+  Les documents d'identité et extraits de naissance restent
+  strictement sur cette machine.
+
+
+PREMIÈRE INSTALLATION : ATTENTION AU REDÉMARRAGE
+────────────────────────────────────────────────
+Si votre PC n'a jamais utilisé WSL, l'installation peut demander
+un redémarrage. Dans ce cas :
+
+  1. Redémarrez Windows quand demandé.
+  2. Après le redémarrage, une fenêtre noire Ubuntu s'ouvre :
+     créez un nom d'utilisateur UNIX + un mot de passe.
+  3. Fermez la fenêtre Ubuntu.
+  4. RE-DOUBLE-CLIQUEZ sur « Installer-Frida.bat »
+     pour reprendre l'installation.
 
 
 EN CAS DE PROBLÈME
 ───────────────────
-• « Docker n'est pas démarré » :
-  → Lancez Docker Desktop et attendez la baleine verte.
+• « Docker installation failed » :
+  → Vérifiez votre connexion Internet.
+  → Relancez « Installer-Frida.bat ».
 
 • « Port 80 déjà utilisé » :
-  → Modifiez PORT_WEB=8080 dans le fichier .env
-  → Relancez Installer-Docker.bat
+  → Ouvrez « .env » dans C:\Users\<vous>\Frida-Micros\
+  → Changez PORT_WEB=80 en PORT_WEB=8080
+  → Relancez « Installer-Frida.bat »
   → Accédez à http://localhost:8080
 
 • L'application est très lente :
   → Vérifiez que vous avez au moins 8 Go de RAM.
-  → Fermez les applications gourmandes en mémoire.
+  → Fermez les applications gourmandes (Chrome, Photoshop, etc.).
 
 • Autre problème :
   → Contactez le support : [votre email ici]

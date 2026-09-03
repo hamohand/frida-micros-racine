@@ -1,6 +1,12 @@
 # Activation de Licence - Client (Chez le Notaire)
 
-Ce guide détaille l'activation du logiciel Frida sur les PC des clients (Notaires) à l'aide du système de licences.
+> [!WARNING]
+> **Statut actuel : vérification de licence SUSPENDUE** (voir commit `62f75c8` du 2026-08).
+> Le backend n'appelle plus `licences.frida.enclume-numerique.com` lors du démarrage, et n'exige plus de clé pour donner accès à l'application. Le code de vérification reste en place mais est court-circuité.
+>
+> Ce document décrit le flux **prévu** pour réactiver la vérification. Pour la beta actuelle, le notaire accède directement à FRIDA sans saisir de clé.
+
+Ce guide détaille l'activation du logiciel Frida sur les PC des clients (Notaires) à l'aide du système de licences, une fois la vérification réactivée.
 
 ---
 
