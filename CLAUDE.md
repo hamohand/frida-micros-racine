@@ -149,6 +149,7 @@ Detailed docs are in `docs/`:
 - `ARCHITECTURE.md` — full system design
 - `DEPLOYMENT.md` — production deployment
 - `TESTS.md` — testing strategy
+- `CHECKLIST_TEST_TERRAIN.md` — checklist de test à emporter chez le notaire (Composante 1)
 - `architecture/architecture_saas_frida.md` — architecture SaaS et les 3 composantes
 - `architecture/configuration_licences_vps.md` — déploiement infra licences
 - `architecture/deploiement_vps.md` — déploiement général VPS
