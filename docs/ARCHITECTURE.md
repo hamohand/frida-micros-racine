@@ -123,23 +123,26 @@ frida-ai/
     └────────────────┬───────────┘
                      │ HTTP:8080
                      ▼
-         ┌───────────────────────┐
-         │ Backend (Spring Boot) │
-         │ - REST API Endpoints  │
-         │ - Business Logic      │
-         │ - OCR Client          │
-         │ - Calculs Client      │
-         └──┬────────┬────────┬──┘
-            │        │        │
-    JDBC:5432  HTTP:8082  HTTP:8081
-            │        │        │
-            ▼        ▼        ▼
-  ┌──────────┐ ┌──────────┐ ┌──────────────┐
-  │PostgreSQL│ │ OCR API  │ │ Calculs API  │
-  │  (DB)    │ │ (Python) │ │ (Spring Boot)│
-  │ :5432    │ │ :8082    │ │ :8081        │
-  └──────────┘ └──────────┘ └──────────────┘
+         ┌────────────────────────────┐
+         │ Backend (Spring Boot)      │
+         │ - REST API Endpoints       │
+         │ - Business Logic           │
+         │ - OCR Client               │
+         │ - Module calculs/ (intégré)│
+         └──────┬───────────┬─────────┘
+                │           │
+        JDBC:5432       HTTP:8082
+                │           │
+                ▼           ▼
+        ┌──────────┐ ┌──────────┐
+        │PostgreSQL│ │ OCR API  │
+        │  (DB)    │ │ (Python) │
+        │ :5432    │ │ :8082    │
+        └──────────┘ └──────────┘
 ```
+
+> **Note** : le calcul des parts successorales n'est plus un service séparé.
+> Le code vit dans le package `calculs/` du backend (voir « Module de calculs » ci-dessous).
 
 ### ⚠️ Règle d'or : Le service OCR est TOUJOURS externe à Docker
 
@@ -158,8 +161,19 @@ frida-ai/
 | **frontend** | 4200 | Angular + Nginx | Interface utilisateur | Docker |
 | **backend** | 8080 | Spring Boot (Java 21) | API REST, orchestration | Docker |
 | **db** | 5432 | PostgreSQL 16 | Base de données | Docker |
-| **calculs-api** | 8081 | Spring Boot | Calcul des parts successorales | Docker |
 | **ocr-api** | 8082 | Python Flask (EasyTess) | OCR / Extraction de texte | **Natif (hôte)** |
+
+### Module de calculs (intégré au backend)
+
+Le calcul des parts successorales est un **package du backend** (`com.muhend.backendai.calculs`),
+plus un microservice. Un seul moteur, `CalculPartsService`, sert deux chemins d'entrée :
+
+| Chemin | Entrée | Usage |
+|--------|--------|-------|
+| `CalculController` → `CalculPartsEtenduService` → `CalculPartsService` | `POST /api/calculs/simuler` | Saisie manuelle (simulateur web, API SaaS) |
+| `HeirPartCalculatorService` → `CalculPartsService` | Pipeline OCR | Calcul automatique sur fiche, persisté en `CalculEntity` |
+
+En profil `calc-only` (Composante 3), seul le premier chemin est actif.
 
 ## 🔐 Sécurité - Couches
 

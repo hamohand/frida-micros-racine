@@ -136,7 +136,6 @@ MAX_PARALLEL_FOLDERS=2
 | **frontend** | 4200 | Angular + Nginx |
 | **backend** | 8080 | Spring Boot API (orchestration) |
 | **db** | 5432 | PostgreSQL Database |
-| **calculs-api** | 8081 | Microservice de calcul des parts successorales (Spring Boot) |
 | **ocr-api** | 8082 | Microservice OCR / Extraction de texte (Python Flask / EasyTess) — **Natif sur l'hôte, jamais dans Docker** |
 
 ### Network & Volumes
@@ -144,6 +143,9 @@ MAX_PARALLEL_FOLDERS=2
 - **Network**: `frida-network` (communication inter-containers)
 - **Volume**: `postgres_data` (persistance des données DB)
 - **Volume**: `./backend/uploads` (stockage des fichiers)
+
+> Le calcul des parts successorales n'est pas un service Docker : c'est le package
+> interne `com.muhend.backendai.calculs` du backend.
 
 ## 📁 Backend (Spring Boot)
 
