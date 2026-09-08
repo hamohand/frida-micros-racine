@@ -21,6 +21,8 @@ PRÉREQUIS
    • Installer-Frida.bat
    • Installer-Frida.ps1
    • frida-micros.zip
+   • sauvegarder.bat
+   • desinstaller.bat
    • LISEZMOI.txt (ce fichier)
 
 3. Double-cliquez sur « Installer-Frida.bat ».
@@ -31,7 +33,7 @@ PRÉREQUIS
 5. Le script vérifie et installe automatiquement :
    • WSL (sous-système Linux de Windows), si absent
    • Docker à l'intérieur de WSL
-   • Les composants FRIDA (backend, frontend, OCR)
+   • Les composants FRIDA (backend, frontend, lecture de QR codes)
 
 6. Au premier lancement, l'opération prend 10 à 20 minutes
    (téléchargement + compilation).
@@ -41,19 +43,24 @@ PRÉREQUIS
 
 UTILISATION QUOTIDIENNE
 ───────────────────────
+Deux raccourcis sont créés sur votre Bureau :
+
 • Pour DÉMARRER FRIDA après avoir éteint le PC :
-  Double-cliquez sur « Demarrer-Frida » (raccourci créé sur le Bureau).
+  Double-cliquez sur « Demarrer-Frida ».
   Attendez ~30 secondes, le navigateur s'ouvre.
 
-• Pour ARRÊTER FRIDA :
-  Fermez juste le navigateur. Pour libérer complètement la RAM,
-  double-cliquez sur « desinstaller.bat » et répondez « O » pour
-  CONSERVER vos données.
+• Pour ARRÊTER FRIDA (et libérer la mémoire) :
+  Double-cliquez sur « Arreter-Frida ».
+  Vos données sont conservées.
 
 • Pour SAUVEGARDER vos données :
-  Double-cliquez sur « sauvegarder.bat ».
+  Double-cliquez sur « sauvegarder.bat », qui se trouve dans
+  C:\Users\<votre_nom>\Frida-Micros\
   Un dossier daté est créé dans data\backups\.
   → Copiez ce dossier sur une clé USB ou un disque externe.
+
+⚠ « desinstaller.bat » SUPPRIME l'installation. Ne l'utilisez pas
+  pour un arrêt quotidien : utilisez « Arreter-Frida ».
 
 
 OÙ SONT MES DONNÉES ?
@@ -92,7 +99,8 @@ EN CAS DE PROBLÈME
 • « Port 80 déjà utilisé » :
   → Ouvrez « .env » dans C:\Users\<vous>\Frida-Micros\
   → Changez PORT_WEB=80 en PORT_WEB=8080
-  → Relancez « Installer-Frida.bat »
+  → Relancez « Installer-Frida.bat » (le raccourci du Bureau est
+    mis à jour avec le nouveau port)
   → Accédez à http://localhost:8080
 
 • L'application est très lente :
@@ -100,7 +108,7 @@ EN CAS DE PROBLÈME
   → Fermez les applications gourmandes (Chrome, Photoshop, etc.).
 
 • Autre problème :
-  → Contactez le support : [votre email ici]
+  → Contactez le support : mohhamroun@gmail.com
 
 
 ════════════════════════════════════════════════════

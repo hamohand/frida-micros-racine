@@ -1,6 +1,6 @@
 # Documentation — Installation notaire (Composante 1)
 
-Tous les documents nécessaires à l'installation de FRIDA sur le poste d'un notaire (Composante 1 : local notaire, OCR lourd, Docker natif dans WSL Ubuntu).
+Tous les documents nécessaires à l'installation de FRIDA sur le poste d'un notaire (Composante 1 : local notaire, Docker natif dans WSL Ubuntu).
 
 ## Index
 

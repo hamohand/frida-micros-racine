@@ -6,21 +6,30 @@ Ce document décrit comment **préparer** l'archive à envoyer au notaire. Il s'
 
 ## Vue d'ensemble
 
-Le notaire reçoit un dossier contenant 4 fichiers :
+Le notaire reçoit un dossier contenant 6 fichiers :
 
 ```
 ├── Installer-Frida.bat         ← script de lancement (demande droits admin)
 ├── Installer-Frida.ps1         ← script principal PowerShell
 ├── frida-micros.zip            ← sources FRIDA (backend + frontend + ocr-api + compose + .env)
+├── sauvegarder.bat             ← sauvegarde manuelle (copié par l'installeur dans l'install)
+├── desinstaller.bat            ← désinstallation (copié par l'installeur dans l'install)
 └── LISEZMOI.txt                ← notice utilisateur
 ```
 
-Ces 4 fichiers sont dans `install-notaire/docker-installation/` du dépôt.
+Ces 6 fichiers sont dans `install-notaire/docker-installation/` du dépôt.
+
+`sauvegarder.bat` et `desinstaller.bat` agissent sur l'installation (`%USERPROFILE%\Frida-Micros`),
+pas sur le dossier d'où ils sont lancés : l'installeur les y recopie en phase 2 pour que le notaire
+les trouve à côté de ses données. Ils pilotent Docker **via WSL** (`wsl -u root -d Ubuntu -e bash -c ...`),
+puisque Docker n'est pas installé côté Windows.
 
 ## Stratégie technique
 
 - **Docker natif dans WSL Ubuntu** (pas Docker Desktop) — voir `docs/architecture/architecture_saas_frida.md` et la note dans `CLAUDE.md`
-- Le script d'install : (1) installe WSL Ubuntu si absent, (2) installe Docker via `get.docker.com` dans WSL, (3) extrait le zip, (4) lance `docker compose up -d --build`, (5) crée un lanceur `Demarrer-Frida.bat` sur le Bureau.
+- Le script d'install : (1) installe WSL Ubuntu si absent, (2) extrait le zip et recopie les scripts de maintenance, (3) installe Docker via `get.docker.com` dans WSL, (4) lance `docker compose up -d --build`, (5) crée les lanceurs `Demarrer-Frida.bat` et `Arreter-Frida.bat` sur le Bureau.
+- Le chemin WSL de l'installation est obtenu avec `wslpath` sur `$env:USERPROFILE`, et non reconstruit à partir de `$env:USERNAME` : le dossier de profil ne porte pas toujours le nom du compte (compte Microsoft, poste en domaine).
+- Le port web est relu depuis `.env` (`PORT_WEB`) pour que les raccourcis et l'ouverture du navigateur pointent au bon endroit.
 
 ## Régénérer `frida-micros.zip` après une évolution du code
 
@@ -51,8 +60,9 @@ Le zip fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
 
 1. `git pull` puis régénérer le zip (le zip est daté et gèle un état du code).
 2. Vérifier que `.env.local` a des valeurs non compromises (le mot de passe DB dedans finira sur la machine du client).
-3. Zipper les 4 fichiers du dossier `install-notaire/docker-installation/` (sauf `desinstaller.bat` et `sauvegarder.bat` qui doivent rester dans le dossier extrait — ils ne sont pas dans le zip mais accessibles au notaire pour la maintenance).
-4. Tester l'installation complète sur une VM Windows 10/11 vierge **avant** l'envoi.
+3. Livrer les 6 fichiers du dossier `install-notaire/docker-installation/`. `sauvegarder.bat` et `desinstaller.bat` ne sont **pas** dans `frida-micros.zip` : ils voyagent à côté et c'est l'installeur qui les recopie dans l'installation.
+4. Vérifier l'adresse de support en fin de `LISEZMOI.txt` (actuellement `mohhamroun@gmail.com`).
+5. Tester l'installation complète sur une VM Windows 10/11 vierge **avant** l'envoi (voir `CHECKLIST_TEST_TERRAIN.md`).
 
 ## Prérequis chez le notaire
 
@@ -64,5 +74,5 @@ Le zip fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
 
 ## URLs après installation
 
-- Application FRIDA : http://localhost (port 80 par défaut, ajustable via `.env`)
-- Backend Swagger : http://localhost:8080/swagger-ui.html (accès direct sans passer par le proxy Nginx)
+- Application FRIDA : http://localhost (port 80 par défaut, ajustable via `PORT_WEB` dans `.env`)
+- Backend Swagger : http://localhost/swagger-ui.html — le backend n'expose **aucun port** sur l'hôte ; nginx proxifie `/swagger-ui/`, `/swagger-ui.html` et `/v3/api-docs/` vers `backend:8080` (voir `frontend/default.conf`). Si `PORT_WEB` a été changé, adapter le port.

@@ -1,6 +1,6 @@
 # Checklist de test terrain — Installation Composante 1 chez un notaire
 
-Cette checklist accompagne le déploiement de la Composante 1 (local notaire, OCR lourd) chez un client. À imprimer ou avoir en fenêtre séparée pendant l'installation.
+Cette checklist accompagne le déploiement de la Composante 1 (local notaire) chez un client. À imprimer ou avoir en fenêtre séparée pendant l'installation.
 
 > Contexte : voir `INSTALLATION_PROCEDURE.md` (même dossier) pour la préparation du package et `../docker-installation/LISEZMOI.txt` pour la notice utilisateur remise au notaire.
 
@@ -37,7 +37,8 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire, OC
 
 ## Phase 3 — Extraction zip
 
-- [ ] Vérifier création `C:\Users\<nom>\Frida-Micros\` avec `backend/`, `frontend/`, `ocr-api/`, `docker-compose.local.yml`, `.env.local`
+- [ ] Vérifier création `C:\Users\<nom>\Frida-Micros\` avec `backend/`, `frontend/`, `ocr-api/`, `docker-compose.local.yml`, `.env.local`, `.env`
+- [ ] Vérifier que l'installeur y a copié `sauvegarder.bat` et `desinstaller.bat`
 - [ ] Taille du dossier extrait : ~2 Mo
 
 ## Phase 4 — Build docker compose (⏱ 10–20 min — critique)
@@ -56,22 +57,28 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire, OC
 - [ ] `wsl -u root -d Ubuntu -e bash -c "docker ps"` → **4 containers doivent être Up** : `frida-db`, `frida-ocr-api`, `frida-backend`, `frida-frontend`
 - [ ] Après ~30 s : http://localhost s'ouvre-t-il ?
 - [ ] Si erreur : quel container est en erreur ? `docker logs frida-backend` (ou autre)
-- [ ] http://localhost:8080/swagger-ui.html accessible ?
+- [ ] http://localhost/swagger-ui.html accessible ? (le backend n'expose aucun port : Swagger passe par le proxy nginx du frontend)
 
 ## Phase 6 — Test fonctionnel de base
 
 - [ ] Écran d'accueil rendu correctement (police, styles, icônes Material)
 - [ ] Créer un nouveau dossier de test
-- [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test OCR complet
-- [ ] L'OCR extrait-il le NIN, la date, les noms correctement ?
+- [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test de lecture du QR code
+- [ ] Le QR code est-il décodé (nom, prénom, date et lieu de naissance, sexe) ?
+- [ ] Si le QR est absent, abîmé ou illisible : le message d'erreur est-il compréhensible pour le notaire ?
+
+> Rappel : l'OCR ne lit **que des QR codes**. Aucune extraction de texte d'image
+> (Tesseract/EasyOCR) n'est embarquée — un document sans QR code exploitable ne sera pas lu.
 - [ ] Le calcul de parts fonctionne-t-il sur une composition simple (conjoint + 2 enfants) ?
 - [ ] Note les erreurs remontées à l'écran (screenshot)
 
 ## Phase 7 — Persistance et redémarrage
 
-- [ ] `sauvegarder.bat` : produit-il un `data\backups\<date>\database.sql` valide ?
+- [ ] `sauvegarder.bat` (dans `C:\Users\<nom>\Frida-Micros\`) : produit-il un `data\backups\<date>\database.sql` non vide ?
 - [ ] **Redémarrer le PC** complètement
+- [ ] Vérifier les DEUX raccourcis créés sur le Bureau : `Demarrer-Frida` et `Arreter-Frida`
 - [ ] Après redémarrage, double-clic sur `Demarrer-Frida` (bureau) → chronométrer jusqu'à écran d'accueil
+- [ ] `Arreter-Frida` : les conteneurs passent-ils bien à l'état `Exited` ? (`docker ps -a`)
 - [ ] Le dossier de test créé avant est-il toujours là ?
 
 ## Phase 8 — Empreinte RAM en régime
@@ -87,7 +94,7 @@ Une fois tout démarré, note :
 
 - [ ] **Screenshots** de chaque écran clé (accueil, upload, résultat calcul, erreurs)
 - [ ] **Timing total** de l'install (de double-clic à navigateur ouvert)
-- [ ] **Un test « démonter/remonter »** : `desinstaller.bat` (conservation données) + `Demarrer-Frida.bat` — les données sont bien préservées ?
+- [ ] **Un test « démonter/remonter »** : `desinstaller.bat` en répondant **O** aux deux questions (confirmation, puis conservation des données), puis relancer `Installer-Frida.bat` — les données sont bien préservées ?
 - [ ] Sentiment du notaire — vitesse ressentie, ergonomie, ce qu'il trouve bizarre
 
 ## Points où on sait déjà que ça peut coincer
@@ -96,6 +103,7 @@ Une fois tout démarré, note :
 - **RAM < 8 Go** : le build risque de swap et prendre 30+ min.
 - **Windows 10 < build 19041** : WSL 2 pas disponible. Vérifier au préalable.
 - **Notaire pressé** : ne pas se laisser embarquer dans « c'est plus vite comme ça », suivre le script.
+- **PostgreSQL sur un dossier Windows** : le compose monte `./data/postgres`, soit `/mnt/c/...` vu de WSL. PostgreSQL refuse parfois de démarrer sur DrvFs (`data directory has invalid permissions`) et y est plus lent. **À valider en priorité** : `docker logs frida-db` juste après le premier `up`. Si ça coince, basculer `data/postgres` sur un volume Docker nommé — mais les données ne seront alors plus visibles depuis l'explorateur Windows.
 
 ---
 
