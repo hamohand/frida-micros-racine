@@ -45,16 +45,21 @@ git pull origin main
 
 Démarrez les conteneurs liés aux licences (Base de données isolée, API, et Dashboard) :
 ```bash
-docker compose -f compose/vps.licences.yml up -d
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.licences.yml up -d
 ```
+
+> [!WARNING]
+> Le `-p frida-micros-racine` est **obligatoire** : la stack licences en production porte ce
+> nom de projet et son volume s'appelle `frida-micros-racine_license_db_data`. Sans `-p`,
+> Compose crée un projet `compose` avec une base de licences **vide**. Voir `compose/README.md`.
 
 Pour lancer aussi la vitrine démo :
 ```bash
-docker compose -f compose/vps.demo.yml up -d
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.demo.yml up -d
 ```
 
 > [!NOTE]
-> Au premier lancement, Traefik va interroger Let's Encrypt pour obtenir le certificat SSL. Si vous obtenez une erreur de connexion non privée, attendez 2 minutes et redémarrez avec `docker compose -f compose/vps.licences.yml restart`.
+> Au premier lancement, Traefik va interroger Let's Encrypt pour obtenir le certificat SSL. Si vous obtenez une erreur de connexion non privée, attendez 2 minutes et redémarrez avec `docker compose -p frida-micros-racine -f compose/vps.licences.yml restart`.
 
 ### 5. Utilisation du Dashboard
 1. Rendez-vous sur `https://licences.frida.enclume-numerique.com`

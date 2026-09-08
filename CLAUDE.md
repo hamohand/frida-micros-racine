@@ -41,9 +41,11 @@ make db-backup       # Dump database to SQL file
 
 ### Docker par composante
 ```bash
-docker compose -f compose/vps.demo.yml up -d       # Composante 2 (VPS)
-docker compose -f compose/vps.calc.yml up -d       # Composante 3 (VPS)
-docker compose -f compose/vps.licences.yml up -d   # Infra licences (VPS)
+# Sur le VPS, démo et licences tournent sous le projet `frida-micros-racine` :
+# le -p et le --env-file sont obligatoires (sinon volumes vides). Voir compose/README.md.
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.demo.yml up -d      # Composante 2 (VPS)
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.licences.yml up -d  # Infra licences (VPS)
+docker compose -f compose/vps.calc.yml up -d       # Composante 3 (VPS, projet `compose`)
 docker compose -f compose/dev.demo.yml up -d       # Dev local en mode démo
 ```
 

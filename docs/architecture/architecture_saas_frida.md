@@ -98,9 +98,12 @@ Domaines :
 Le déploiement s'appuie sur **trois stacks compose indépendants** (voir `compose/README.md`), reliés par le réseau Traefik `webproxy` :
 
 ```bash
-docker compose -f compose/vps.demo.yml up -d       # Composante 2
-docker compose -f compose/vps.calc.yml up -d       # Composante 3
-docker compose -f compose/vps.licences.yml up -d   # Infra licences
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.demo.yml up -d      # Composante 2
+docker compose -f compose/vps.calc.yml up -d       # Composante 3 (projet `compose`)
+docker compose -p frida-micros-racine --env-file .env -f compose/vps.licences.yml up -d  # Infra licences
+
+# Le -p frida-micros-racine est obligatoire pour la démo et les licences : sans lui,
+# Compose crée un projet `compose` avec des volumes vides. Voir compose/README.md.
 ```
 
 Chaque stack peut être redéployé indépendamment (le rebuild de la démo ne touche pas au serveur de licences ni à l'API calc).
