@@ -95,8 +95,29 @@ if (-not (Test-Path $envInTarget)) {
     }
 }
 
-# Convertit le chemin Windows en chemin WSL (/mnt/c/...)
-$linuxPath = "/mnt/c/Users/$env:USERNAME/Frida-Micros"
+# Copie les scripts de maintenance a cote de l'installation (les donnees sont ici,
+# pas dans le dossier d'installation d'origine)
+foreach ($tool in @("sauvegarder.bat", "desinstaller.bat")) {
+    $src = Join-Path $PSScriptRoot $tool
+    if (Test-Path $src) { Copy-Item $src (Join-Path $targetPath $tool) -Force }
+}
+
+# Convertit le chemin Windows en chemin WSL, sans supposer que le dossier de profil
+# porte le nom du compte (faux avec un compte Microsoft ou en domaine)
+$linuxPath = (wsl -d Ubuntu -e wslpath -a "$targetPath" 2>$null | Select-Object -First 1)
+if (-not $linuxPath) {
+    Write-Host "ERREUR : impossible de convertir $targetPath en chemin WSL." -ForegroundColor Red
+    Write-Host "Verifiez que WSL Ubuntu fonctionne (wsl -d Ubuntu -e echo test)."
+    pause
+    exit 1
+}
+$linuxPath = $linuxPath.Trim()
+
+# Port web choisi par l'utilisateur dans .env (80 par defaut)
+$portWeb = "80"
+$portLine = Select-String -Path $envInTarget -Pattern '^\s*PORT_WEB\s*=\s*(\d+)' -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($portLine) { $portWeb = $portLine.Matches[0].Groups[1].Value }
+$appUrl = if ($portWeb -eq "80") { "http://localhost" } else { "http://localhost:$portWeb" }
 
 # ------------------------------------------------------------
 #  Phase 3 : Installation de Docker dans WSL Ubuntu
@@ -183,7 +204,7 @@ echo Attente du demarrage complet (30 secondes)...
 timeout /t 30 /nobreak >nul
 echo.
 echo Ouverture du navigateur...
-start http://localhost
+start $appUrl
 echo.
 echo FRIDA est pret a l'usage.
 echo Fermez cette fenetre quand vous voulez.
@@ -193,6 +214,30 @@ pause
 Set-Content -Path $launcherPath -Value $launcherContent -Encoding ASCII
 Write-Host "Raccourci 'Demarrer-Frida.bat' cree sur le Bureau." -ForegroundColor Green
 
+# Raccourci d'arret : eviter que l'utilisateur passe par desinstaller.bat pour
+# simplement liberer la RAM
+$stopPath = Join-Path -Path $desktopPath -ChildPath "Arreter-Frida.bat"
+$stopContent = @"
+@echo off
+title FRIDA - Arret
+chcp 65001 >nul
+echo.
+echo ============================================
+echo          Arret de FRIDA
+echo ============================================
+echo.
+echo Vos donnees sont conservees. Pour redemarrer,
+echo double-cliquez sur "Demarrer-Frida".
+echo.
+wsl -u root -d Ubuntu -e bash -c "cd '$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env stop"
+echo.
+echo FRIDA est arrete.
+pause
+"@
+
+Set-Content -Path $stopPath -Value $stopContent -Encoding ASCII
+Write-Host "Raccourci 'Arreter-Frida.bat' cree sur le Bureau." -ForegroundColor Green
+
 # ------------------------------------------------------------
 #  Fin
 # ------------------------------------------------------------
@@ -201,10 +246,13 @@ Write-Host "=============================================" -ForegroundColor Gree
 Write-Host "  INSTALLATION TERMINEE AVEC SUCCES !" -ForegroundColor Green
 Write-Host "=============================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "  - Ouvrez votre navigateur : http://localhost"
+Write-Host "  - Ouvrez votre navigateur : $appUrl"
 Write-Host "  - Pour redemarrer FRIDA plus tard : double-cliquez sur 'Demarrer-Frida' sur le Bureau."
+Write-Host "  - Pour arreter FRIDA (liberer la RAM) : 'Arreter-Frida' sur le Bureau."
 Write-Host ""
 Write-Host "  Vos donnees sont dans : $targetPath\data\"
+Write-Host "  Sauvegarde / desinstallation : sauvegarder.bat et desinstaller.bat"
+Write-Host "  dans $targetPath"
 Write-Host ""
 Start-Sleep -Seconds 3
-Start-Process "http://localhost"
+Start-Process $appUrl
