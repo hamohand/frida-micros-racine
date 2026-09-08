@@ -2,7 +2,7 @@
 
 Cette checklist accompagne le déploiement de la Composante 1 (local notaire, OCR lourd) chez un client. À imprimer ou avoir en fenêtre séparée pendant l'installation.
 
-> Contexte : voir `install-notaire/documentation/INSTALLATION_PROCEDURE.md` pour la préparation du package et `install-notaire/docker-installation/LISEZMOI.txt` pour la notice utilisateur remise au notaire.
+> Contexte : voir `INSTALLATION_PROCEDURE.md` (même dossier) pour la préparation du package et `../docker-installation/LISEZMOI.txt` pour la notice utilisateur remise au notaire.
 
 ---
 

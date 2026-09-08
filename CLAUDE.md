@@ -149,9 +149,14 @@ Detailed docs are in `docs/`:
 - `ARCHITECTURE.md` — full system design
 - `DEPLOYMENT.md` — production deployment
 - `TESTS.md` — testing strategy
-- `CHECKLIST_TEST_TERRAIN.md` — checklist de test à emporter chez le notaire (Composante 1)
 - `architecture/architecture_saas_frida.md` — architecture SaaS et les 3 composantes
 - `architecture/configuration_licences_vps.md` — déploiement infra licences
 - `architecture/deploiement_vps.md` — déploiement général VPS
 - `compose/README.md` — table des correspondances fichier compose ↔ composante
-- `install-notaire/documentation/INSTALLATION_PROCEDURE.md` — setup notaire
+
+Documentation d'installation notaire (Composante 1) regroupée dans `install-notaire/documentation/` :
+- `README.md` — index des documents d'installation
+- `INSTALLATION_PROCEDURE.md` — préparation du package (dev)
+- `CHECKLIST_TEST_TERRAIN.md` — checklist de test à emporter chez le notaire
+- `activation_licence_notaire.md` — activation licence (actuellement suspendue)
+- `../docker-installation/LISEZMOI.txt` — notice remise au notaire
