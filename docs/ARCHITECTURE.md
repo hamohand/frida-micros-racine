@@ -392,10 +392,9 @@ ng serve --disable-host-check
 
 ## 📚 Documentation supplémentaire
 
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Guide de contribution
-- [DEPLOYMENT.md](DEPLOYMENT.md) - Guide de déploiement
-- [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Dépannage
-- [API_DOCUMENTATION.md](API_DOCUMENTATION.md) - API détaillée
+- [architecture/deploiement_vps.md](architecture/deploiement_vps.md) - Déploiement VPS (Composantes 2, 3, licences)
+- [../install-notaire/documentation/README.md](../install-notaire/documentation/README.md) - Installation chez un notaire (Composante 1)
+- [legacy/DEPLOYMENT.md](legacy/DEPLOYMENT.md) - Ancien guide générique (archivé)
 
 ---
 

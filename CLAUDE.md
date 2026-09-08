@@ -147,8 +147,8 @@ Copy `.env.example` to `.env` and set values. Key variables:
 
 Detailed docs are in `docs/`:
 - `ARCHITECTURE.md` — full system design
-- `DEPLOYMENT.md` — production deployment
 - `TESTS.md` — testing strategy
+- `legacy/` — anciens documents (STRATEGIE_PRODUCTION.md, DEPLOYMENT.md) conservés pour historique — voir `legacy/README.md`
 - `architecture/architecture_saas_frida.md` — architecture SaaS et les 3 composantes
 - `architecture/configuration_licences_vps.md` — déploiement infra licences
 - `architecture/deploiement_vps.md` — déploiement général VPS
