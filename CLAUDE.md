@@ -154,6 +154,12 @@ Detailed docs are in `docs/`:
 - `architecture/deploiement_vps.md` — déploiement général VPS
 - `compose/README.md` — table des correspondances fichier compose ↔ composante
 
+Documentation NFC & lectures biométriques regroupée dans `docs/nfc/` :
+- `README.md` — index
+- `lectures_biometriques.md` — stratégie en 3 phases (OCR+MRZ, lecteur USB, mobile)
+- `etude_lecteur_nfc.md` — étude Phase 2 (lecteur NFC USB de bureau)
+- `architecture_app_mobile_nfc.md` — architecture Phase 3 (app Flutter, code dans `frida_mobile_nfc/`)
+
 Documentation d'installation notaire (Composante 1) regroupée dans `install-notaire/documentation/` :
 - `README.md` — index des documents d'installation
 - `INSTALLATION_PROCEDURE.md` — préparation du package (dev)
