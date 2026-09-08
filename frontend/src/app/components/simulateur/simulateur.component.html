@@ -4,25 +4,6 @@
     <p>Calculez instantanément les parts d'héritage en renseignant la composition de la famille.</p>
   </header>
 
-  <!-- Indicateur de complexité (Tombes) -->
-  <div class="tombes-bar" *ngIf="resultats">
-      <button class="tombes-toggle" (click)="showTombes = !showTombes">
-          {{ showTombes ? '🔽' : '▶️' }} Indicateur de complexité
-      </button>
-      <div class="tombes-badge" *ngIf="showTombes">
-          <span class="tombes-icon">🪦</span>
-          <span class="tombes-count">{{ getNombreTombes() }}</span>
-          <span class="tombes-label">tombe{{ getNombreTombes() > 1 ? 's' : '' }}</span>
-          <span class="tombes-level" [ngClass]="{
-              'level-easy': getNombreTombes() <= 1,
-              'level-medium': getNombreTombes() === 2,
-              'level-hard': getNombreTombes() >= 3
-          }">
-              {{ getNombreTombes() <= 1 ? 'Simple' : (getNombreTombes() === 2 ? 'Moyen' : 'Complexe') }}
-          </span>
-      </div>
-  </div>
-
   <div class="sim-layout">
     <!-- Colonne Gauche : Formulaire de Saisie -->
     <div class="sim-form-column">
@@ -86,12 +67,14 @@
           
           <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-size: 1rem; color: #475569; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #64748b;">
-                  <path d="M5 22h14"/>
-                  <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
-                </svg>
-                Enfants prédécédés <span title="Ajoutez ici les enfants décédés avant le défunt pour calculer la part (Wasiya Wajiba) revenant à leurs propres enfants (vos petits-enfants)." style="cursor: help; background: #e2e8f0; color: #475569; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">?</span>
+              <h3 class="titre-predecedes">
+                <span class="icone-predecede" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 22h14"/>
+                    <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
+                  </svg>
+                </span>
+                Enfants prédécédés <span title="Ajoutez ici les enfants décédés avant le défunt pour calculer la part (Wasiya Wajiba) revenant à leurs propres enfants (vos petits-enfants)." class="aide-predecede">?</span>
               </h3>
             </div>
             
@@ -209,12 +192,14 @@
 
           <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #cbd5e1;" [class.disabled-item]="tombesFratrie.disabled">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-              <h3 style="font-size: 1rem; color: #475569; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #64748b;">
-                  <path d="M5 22h14"/>
-                  <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
-                </svg>
-                Frères/Sœurs prédécédés <span title="Ajoutez ici les frères/sœurs décédés avant le défunt pour calculer la part revenant à leurs enfants." style="cursor: help; background: #e2e8f0; color: #475569; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">?</span>
+              <h3 class="titre-predecedes">
+                <span class="icone-predecede" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 22h14"/>
+                    <path d="M7 22V9a5 5 0 0 1 10 0v13"/>
+                  </svg>
+                </span>
+                Frères/Sœurs prédécédés <span title="Ajoutez ici les frères/sœurs décédés avant le défunt pour calculer la part revenant à leurs enfants." class="aide-predecede">?</span>
               </h3>
             </div>
             
@@ -273,6 +258,26 @@
 
     <!-- Colonne Droite : Résultats (Fixe) -->
     <div class="sim-results-column">
+      <!-- Indicateur de complexité (Tombes) -->
+      <div class="tombes-bar" *ngIf="resultats">
+        <button class="tombes-toggle" (click)="showTombes = !showTombes">
+          <span class="tombes-toggle-chevron">{{ showTombes ? '🔽' : '▶️' }}</span>
+          <span class="tombes-toggle-text">Indicateur de complexité</span>
+        </button>
+        <div class="tombes-badge" *ngIf="showTombes">
+          <span class="tombes-icon">🪦</span>
+          <span class="tombes-count">{{ getNombreTombes() }}</span>
+          <span class="tombes-label">tombe{{ getNombreTombes() > 1 ? 's' : '' }}</span>
+          <span class="tombes-level" [ngClass]="{
+              'level-easy': getNombreTombes() <= 1,
+              'level-medium': getNombreTombes() === 2,
+              'level-hard': getNombreTombes() >= 3
+          }">
+              {{ getNombreTombes() <= 1 ? 'Simple' : (getNombreTombes() === 2 ? 'Moyen' : 'Complexe') }}
+          </span>
+        </div>
+      </div>
+
       <div class="results-card" [class.loading]="enChargement">
         
         <h2>Résultats de la répartition</h2>
@@ -324,7 +329,7 @@
           
           <!-- Tombes details -->
           <div class="tombes-section" *ngIf="resultats.detailTombes && resultats.detailTombes.length > 0">
-            <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #334155; font-size: 1.1rem; border-bottom: 2px solid #e2e8f0; padding-bottom: 0.5rem;">
+            <h3 style="margin-top: 2rem; margin-bottom: 1rem; font-size: 1.1rem; border-bottom: 2px solid; padding-bottom: 0.5rem;">
               Détail de la Représentation (Système de Tombes)
             </h3>
             
