@@ -144,15 +144,21 @@ frida-ai/
 > **Note** : le calcul des parts successorales n'est plus un service séparé.
 > Le code vit dans le package `calculs/` du backend (voir « Module de calculs » ci-dessous).
 
-### ⚠️ Règle d'or : Le service OCR est TOUJOURS externe à Docker
+### Le service OCR ne lit que des QR codes
 
-> **Jamais de service OCR dans Docker, le laisser comme service externe.**
+> L'OCR sert **uniquement à lire des QR codes** (pyzbar + OpenCV). Aucune extraction
+> de texte d'image n'est faite en production.
 >
-> Tesseract/OpenCV sont massivement multithreadés (OpenMP). Dans un conteneur Docker
-> sous WSL2/Windows, la contention des threads, les limites mémoire (OOM Killer) et
-> la latence I/O des volumes partagés provoquent une dégradation silencieuse de la
-> qualité OCR lors du traitement parallèle. L'exécution native sur l'OS hôte élimine
-> ces problèmes. Le backend l'appelle via `host.docker.internal:8082`.
+> `ocr-api/Dockerfile` n'installe donc ni Tesseract, ni EasyOCR, ni PaddleOCR, et
+> ignore volontairement `app_ocr/requirements.txt` qui les liste. Le service tient
+> dans ~300 Mo et tourne en conteneur, y compris chez le notaire.
+>
+> Le code d'OCR texte (`ocr_engine.py`, `ocr_engine_v2.py`) reste dans le dépôt mais
+> est **dormant** : ses imports sont sous `try/except ImportError` avec les flags
+> `TESSERACT_DISPONIBLE` / `EASYOCR_DISPONIBLE` / `PADDLEOCR_DISPONIBLE`, et le
+> service dégrade proprement en journalisant un avertissement.
+>
+> L'historique de cette décision est dans `architecture/deploiement_vps.md`.
 
 ### Microservices
 
@@ -161,7 +167,7 @@ frida-ai/
 | **frontend** | 4200 | Angular + Nginx | Interface utilisateur | Docker |
 | **backend** | 8080 | Spring Boot (Java 21) | API REST, orchestration | Docker |
 | **db** | 5432 | PostgreSQL 16 | Base de données | Docker |
-| **ocr-api** | 8082 | Python Flask (EasyTess) | OCR / Extraction de texte | **Natif (hôte)** |
+| **ocr-api** | 8082 | Python Flask (pyzbar) | Lecture de QR codes | Docker |
 
 ### Module de calculs (intégré au backend)
 

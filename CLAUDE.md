@@ -12,7 +12,7 @@ FridaAI is delivered in **three distinct composantes**, each with its own compos
 
 | Composante | Compose file | Target | Backend profile |
 |---|---|---|---|
-| **1 — Local notaire (OCR lourd)** | `install-notaire/docker-installation/docker-compose.local.yml` | Poste du notaire (installation via zip WSL) | `docker` / `prod` |
+| **1 — Local notaire** | `install-notaire/docker-installation/docker-compose.local.yml` | Poste du notaire (installation via zip WSL) | `docker` / `prod` |
 | **2 — Démo en ligne** | `compose/vps.demo.yml` | Vitrine commerciale `frida.enclume-numerique.com` + `simul-frida.enclume-numerique.com` | `prod` + `APP_DEMO_MODE=true` |
 | **3 — Calculs SaaS** | `compose/vps.calc.yml` | API JSON pure `calc.frida.enclume-numerique.com` pour appelants machine (Tarif-Cloak, mobile NFC, intégrations) | `calc-only` |
 
@@ -87,7 +87,7 @@ cd frontend && npm test      # Run tests
 - **backend** (Spring Boot 3.3.4, Java 21) — main REST API, JPA/PostgreSQL, Swagger docs. **Le module de calculs (`calculs/` package) est intégré au backend** — plus de microservice séparé. En profil `calc-only`, seul `CalculController` est actif.
 - **frontend** (Angular 18, Nginx) — SPA proxying `/api/*` to backend
 - **postgres** (PostgreSQL 16) — primary database (absent en Composante 3)
-- **ocr-api** (Python Flask + pyzbar / EasyOCR) — mode dockerisé `qrcode_only` sur VPS, natif Windows en local pour l'OCR complet
+- **ocr-api** (Python Flask + pyzbar) — **lecture de QR codes uniquement**. L'image Docker n'embarque ni Tesseract ni EasyOCR : `ocr-api/Dockerfile` ignore volontairement `app_ocr/requirements.txt`. Le code d'OCR texte (`ocr_engine_v2.py`, flags `TESSERACT_DISPONIBLE` / `EASYOCR_DISPONIBLE` / `PADDLEOCR_DISPONIBLE` sous `try/except ImportError`) est dormant et dégrade proprement.
 - **license-api / license-dashboard** — infra transverse pour la validation des licences chez les notaires
 
 The `start.sh` detects WSL and automatically sets `WINDOWS_HOST_IP` so the backend can reach the native OCR service. `MAX_PARALLEL_FOLDERS` (default 2) controls OCR concurrency.
@@ -134,7 +134,7 @@ Uploaded folders follow `{code}_{documentType}`:
 
 Copy `.env.example` to `.env` and set values. Key variables:
 - `DB_PASSWORD` — PostgreSQL password
-- `SPRING_PROFILES_ACTIVE` — `docker` | `development` | `production` | `calc-only`
+- `SPRING_PROFILES_ACTIVE` — seul `calc-only` a un effet (voir `application-calc-only.properties`). Les autres valeurs (`docker`, `prod`, …) n'activent aucune configuration : il n'existe pas de fichier `application-<profil>.properties` correspondant.
 - `SPRING_JPA_HIBERNATE_DDL_AUTO` — `update` for dev, `validate` for prod
 - `CORS_ORIGINS` — comma-separated allowed origins (ou `*` en profil calc-only)
 - `CORS_ALLOW_CREDENTIALS` — `true` par défaut ; forcer `false` en calc-only avec `CORS_ORIGINS=*`

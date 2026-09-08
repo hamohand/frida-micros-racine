@@ -10,7 +10,6 @@ graph LR
         FE["Frontend<br/>nginx"]
         BE["Backend<br/>Spring Boot"]
         DB["PostgreSQL"]
-        CA["Calculs API"]
         OCR_LIGHT["OCR Léger<br/>Flask + pyzbar<br/>QR code seulement"]
     end
     subgraph "Option future"
@@ -18,7 +17,6 @@ graph LR
     end
     FE -->|/api/| BE
     BE --> DB
-    BE --> CA
     BE --> OCR_LIGHT
     BE -.->|tunnel / 2e VPS| OCR_FULL
 ```
@@ -110,7 +108,7 @@ CMD ["python", "run.py"]
 
 ### 2. Adapter le service Python (optionnel mais propre)
 
-Le code actuel dans [ocr_engine.py](file:///c:/Users/hamoh/Documents/projets/frida/frida-micros/easytess_ocr_api/backend/app_ocr/app/services/ocr_engine.py) gère déjà gracieusement l'absence de Tesseract/EasyOCR :
+Le code actuel dans `ocr-api/app_ocr/app/services/ocr_engine.py` gère déjà gracieusement l'absence de Tesseract/EasyOCR :
 
 ```python
 # Ligne 708-739 — déjà du lazy detection
@@ -118,7 +116,7 @@ TESSERACT_DISPONIBLE = False  # Si pas installé → False
 EASYOCR_DISPONIBLE = False    # Si pas installé → False
 ```
 
-Le QR code est traité par [qrcode_utils.py](file:///c:/Users/hamoh/Documents/projets/frida/frida-micros/easytess_ocr_api/backend/app_ocr/app/utils/qrcode_utils.py) via `decoder_code_hybride()` qui :
+Le QR code est traité par `ocr-api/app_ocr/app/utils/qrcode_utils.py` via `decoder_code_hybride()` qui :
 1. Essaie **pyzbar** (supporte QR + codes-barres)
 2. Fallback sur **OpenCV QRCodeDetector** (si pyzbar absent)
 
@@ -133,7 +131,7 @@ Ne déployer que `en_01.json` (et `en_01_qrcode_01.json`) dans le répertoire `e
 services:
   ocr-api:
     build:
-      context: ../easytess_ocr_api/backend
+      context: ../ocr-api
       dockerfile: Dockerfile.qrcode
     volumes:
       # Monter seulement les entités QR code

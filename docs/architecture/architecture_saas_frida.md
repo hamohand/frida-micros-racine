@@ -4,7 +4,7 @@
 
 Frida est distribué en **trois composantes** distinctes :
 
-1. **Composante 1 — Local notaire (OCR lourd)** : logiciel complet installé chez chaque étude. Aucun document d'identité ne quitte la machine.
+1. **Composante 1 — Local notaire** : logiciel complet installé chez chaque étude. Aucun document d'identité ne quitte la machine.
 2. **Composante 2 — Démo en ligne** : vitrine commerciale sur le VPS, OCR léger (QR uniquement), aucune donnée client sensible.
 3. **Composante 3 — Calculs SaaS** : API JSON pure sur le VPS, stateless, pour appelants machine (Tarif-Cloak, app mobile Frida NFC, intégrations tierces).
 
@@ -19,7 +19,7 @@ graph TB
     subgraph notaire1["Composante 1 — Étude Notaire A"]
         F1[Frontend Angular]
         B1[Backend Spring Boot]
-        O1[OCR Python natif Windows]
+        O1[OCR Python - QR codes]
         DB1[(PostgreSQL locale)]
         FS1[(Fichiers locaux)]
         F1 --> B1
@@ -74,7 +74,7 @@ Domaines :
 |---|---|---|
 | **Frontend** | Interface utilisateur | Angular, Nginx |
 | **Backend** | Logique métier, calculs d'héritage | Spring Boot, Java 21 |
-| **OCR** | Lecture des documents (QR codes, extraits) | Python, EasyOCR/pyzbar |
+| **OCR** | Lecture des QR codes des documents | Python, pyzbar |
 | **Base de données** | Stockage des fiches Frida, héritiers, calculs | PostgreSQL |
 | **Fichiers** | Scans originaux (PDF, images) | Système de fichiers local |
 

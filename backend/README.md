@@ -127,7 +127,7 @@ FridaEntity
 
 | Service | URL | Rôle |
 |---------|-----|------|
-| **OCR API** | `http://host.docker.internal:8082` | Extraction de texte (Tesseract + EasyOCR) |
+| **OCR API** | `http://ocr-api:8082` | Lecture de QR codes (pyzbar) |
 
 > Le calcul des parts successorales n'est **pas** un service externe : c'est le package
 > interne `com.muhend.backendai.calculs` (`CalculPartsService`).

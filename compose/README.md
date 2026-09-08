@@ -7,17 +7,17 @@ Le compose par défaut de développement reste à la racine du dépôt (`docker-
 
 | Fichier | Composante | Rôle | Où ça tourne |
 |---|---|---|---|
-| `../docker-compose.yml` | Dev par défaut | Stack complète pour développer, OCR natif Windows | Poste dev |
+| `../docker-compose.yml` | Dev par défaut | Stack complète pour développer | Poste dev |
 | `dev.demo.yml` | Dev en mode démo | Backend en `APP_DEMO_MODE=true`, OCR pointe sur `Medell-i7.local:8082` | Poste dev |
 | `vps.demo.yml` | **Composante 2 — Démo en ligne** | Vitrine commerciale `frida.enclume-numerique.com`, OCR léger (QR uniquement), aucune donnée client | VPS Hostinger |
 | `vps.licences.yml` | Infrastructure licences (transverse) | Serveur de licences `licences.frida.enclume-numerique.com` — appelé par le backend chez chaque notaire | VPS Hostinger |
-| `../install-notaire/docker-installation/docker-compose.local.yml` | **Composante 1 — Local notaire** | Livré au notaire dans le zip d'installation, OCR complet (natif Windows ou image lourde) | Poste notaire |
+| `../install-notaire/docker-installation/docker-compose.local.yml` | **Composante 1 — Local notaire** | Livré au notaire dans le zip d'installation | Poste notaire |
 | `vps.calc.yml` | **Composante 3 — Calculs SaaS** | Backend seul en profil `calc-only`, stateless, uniquement `/api/calculs/*` | VPS Hostinger |
 
 ## Lancement (depuis la racine du dépôt)
 
 ```bash
-# Dev local par défaut (OCR natif)
+# Dev local par défaut
 docker compose up -d
 
 # Dev local en mode démo

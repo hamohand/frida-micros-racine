@@ -1,6 +1,6 @@
 # FridaAI - Application Full-Stack
 
-Application de gestion des fiches de succession (**Frida**) avec Angular + Spring Boot + PostgreSQL + OCR (EasyTess) + Calculs des parts, orchestrée avec Docker.
+Application de gestion des fiches de succession (**Frida**) avec Angular + Spring Boot + PostgreSQL + lecture de QR codes + calcul des parts, orchestrée avec Docker.
 
 ## 📋 Architecture
 
@@ -136,7 +136,7 @@ MAX_PARALLEL_FOLDERS=2
 | **frontend** | 4200 | Angular + Nginx |
 | **backend** | 8080 | Spring Boot API (orchestration) |
 | **db** | 5432 | PostgreSQL Database |
-| **ocr-api** | 8082 | Microservice OCR / Extraction de texte (Python Flask / EasyTess) — **Natif sur l'hôte, jamais dans Docker** |
+| **ocr-api** | 8082 | Lecture des QR codes des documents (Python Flask / pyzbar) |
 
 ### Network & Volumes
 
@@ -199,7 +199,7 @@ Format : `{code_catégorie}_{type_document}` (ex: `3_cni` = enfant avec CNI).
 
 ### Entités OCR
 
-Les définitions d'entités OCR (zones + cadre de référence) sont stockées dans `easytess_ocr_api/entities/` :
+Les définitions d'entités OCR (zones + cadre de référence) sont stockées dans `ocr-api/entities/` :
 - `en01.json` → Extrait de naissance
 - `cni01.json` → Carte nationale d'identité
 - `pp01.json` → Passeport
