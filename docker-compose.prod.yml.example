@@ -50,7 +50,6 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
-      SERVICES_CALCULS_URL: http://calculs-api:8081
       SERVICES_OCR_URL: http://ocr-api:8082
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"
@@ -78,15 +77,8 @@ services:
       - frida-network
     restart: unless-stopped
 
-  # ===== Service Calculs (Spring Boot) =====
-  calculs-api:
-    image: mon-entreprise/frida-calculs-api:1.0.0
-    environment:
-      SERVER_PORT: 8081
-      CORS_ORIGINS: ${CORS_ORIGINS}
-    networks:
-      - frida-network
-    restart: unless-stopped
+  # Note : pas de service "calculs-api". Le calcul des parts successorales est
+  # intégré au backend (package com.muhend.backendai.calculs).
 
 networks:
   frida-network:

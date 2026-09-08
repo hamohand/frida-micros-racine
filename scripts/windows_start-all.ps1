@@ -45,7 +45,6 @@ Write-Host "   Frontend Angular : http://localhost:4200"
 Write-Host "   Backend Spring   : http://localhost:8080"
 Write-Host "   Swagger UI       : http://localhost:8080/swagger-ui.html"
 Write-Host "   Service OCR      : http://localhost:8082 (Dans l'autre fenêtre)"
-Write-Host "   Service Calculs  : http://localhost:8081"
 Write-Host ""
 Write-Host "📝 Commandes utiles :" -ForegroundColor Yellow
 Write-Host "   Arrêter Docker   : docker-compose down"
