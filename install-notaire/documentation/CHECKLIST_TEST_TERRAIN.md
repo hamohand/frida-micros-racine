@@ -61,6 +61,10 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 
 ## Phase 6 — Test fonctionnel de base
 
+- [ ] La popup de fin d'installation affiche-t-elle bien un utilisateur et un mot de passe ?
+- [ ] Le fichier `C:\Users\<nom>\Frida-Micros\IDENTIFIANTS.txt` existe-t-il, avec le même mot de passe ?
+- [ ] La connexion avec ces identifiants fonctionne-t-elle ?
+- [ ] Relancer `Installer-Frida.bat` : le mot de passe reste-t-il le même (pas de régénération) ?
 - [ ] Écran d'accueil rendu correctement (police, styles, icônes Material)
 - [ ] Créer un nouveau dossier de test
 - [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test de lecture du QR code
@@ -75,6 +79,7 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 ## Phase 7 — Persistance et redémarrage
 
 - [ ] `sauvegarder.bat` (dans `C:\Users\<nom>\Frida-Micros\`) : produit-il un `data\backups\<date>\database.sql` non vide ?
+- [ ] `restaurer.bat` : créer une fiche de test, sauvegarder, supprimer la fiche, restaurer — la fiche revient-elle ?
 - [ ] **Redémarrer le PC** complètement
 - [ ] Vérifier les DEUX raccourcis créés sur le Bureau : `Demarrer-Frida` et `Arreter-Frida`
 - [ ] Après redémarrage, double-clic sur `Demarrer-Frida` (bureau) → chronométrer jusqu'à écran d'accueil
@@ -103,7 +108,7 @@ Une fois tout démarré, note :
 - **RAM < 8 Go** : le build risque de swap et prendre 30+ min.
 - **Windows 10 < build 19041** : WSL 2 pas disponible. Vérifier au préalable.
 - **Notaire pressé** : ne pas se laisser embarquer dans « c'est plus vite comme ça », suivre le script.
-- **PostgreSQL sur un dossier Windows** : le compose monte `./data/postgres`, soit `/mnt/c/...` vu de WSL. PostgreSQL refuse parfois de démarrer sur DrvFs (`data directory has invalid permissions`) et y est plus lent. **À valider en priorité** : `docker logs frida-db` juste après le premier `up`. Si ça coince, basculer `data/postgres` sur un volume Docker nommé — mais les données ne seront alors plus visibles depuis l'explorateur Windows.
+- **PostgreSQL** : le problème est **réglé** depuis le test du 2026-09-09 — la base est sur le volume Docker `frida_pgdata`, plus sur `./data/postgres`. Le bind mount échouait avec `chmod: /var/lib/postgresql/data: Operation not permitted` (DrvFs n'autorise pas `chmod 0700`). Vérifier quand même `docker logs frida-db` : on doit y lire `database system is ready to accept connections`.
 
 ---
 

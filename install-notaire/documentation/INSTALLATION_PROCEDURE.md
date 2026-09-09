@@ -6,18 +6,39 @@ Ce document décrit comment **préparer** l'archive à envoyer au notaire. Il s'
 
 ## Vue d'ensemble
 
-Le notaire reçoit un dossier contenant 6 fichiers :
+Le notaire reçoit un dossier contenant 7 fichiers :
 
 ```
 ├── Installer-Frida.bat         ← script de lancement (demande droits admin)
 ├── Installer-Frida.ps1         ← script principal PowerShell
 ├── frida-micros.zip            ← sources FRIDA (backend + frontend + ocr-api + compose + .env)
 ├── sauvegarder.bat             ← sauvegarde manuelle (copié par l'installeur dans l'install)
+├── restaurer.bat               ← restauration d'une sauvegarde (idem)
 ├── desinstaller.bat            ← désinstallation (copié par l'installeur dans l'install)
 └── LISEZMOI.txt                ← notice utilisateur
 ```
 
-Ces 6 fichiers sont dans `install-notaire/docker-installation/` du dépôt.
+Ces 7 fichiers sont dans `install-notaire/docker-installation/` du dépôt.
+
+### PostgreSQL tourne sur un volume Docker, pas sur un dossier Windows
+
+`docker-compose.local.yml` monte `frida_pgdata` (volume Docker nommé) sur
+`/var/lib/postgresql/data`. Un bind mount vers `./data/postgres` **ne fonctionne pas** :
+PostgreSQL exige un data dir en 0700 et `/mnt/c` (DrvFs) n'autorise pas `chmod`, ce qui
+donne `initdb: error: could not change permissions of directory` et un conteneur qui
+redémarre en boucle. Constaté en test terrain le 2026-09-09.
+
+Conséquence : la base n'est pas visible depuis l'explorateur Windows. `data/uploads` et
+`data/backups` y restent, et `sauvegarder.bat` extrait la base vers `data/backups` — c'est
+la seule voie de récupération, d'où l'ajout de `restaurer.bat`.
+
+### Identifiants applicatifs générés par poste
+
+Aucun mot de passe n'est codé en dur. `DataInitializer` lit `app.admin.username` /
+`app.admin.password` (`ADMIN_USERNAME` / `ADMIN_PASSWORD`) ; si le mot de passe est vide,
+il en génère un aléatoire et le journalise. L'installeur en génère un à la première
+exécution, l'écrit dans le `.env` de l'installation, et le remet au notaire via une popup
+et le fichier `IDENTIFIANTS.txt`. Relancer l'installeur ne le régénère pas.
 
 `sauvegarder.bat` et `desinstaller.bat` agissent sur l'installation (`%USERPROFILE%\Frida-Micros`),
 pas sur le dossier d'où ils sont lancés : l'installeur les y recopie en phase 2 pour que le notaire
@@ -62,6 +83,8 @@ Le zip fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
 2. Vérifier que `.env.local` a des valeurs non compromises (le mot de passe DB dedans finira sur la machine du client).
 3. Livrer les 6 fichiers du dossier `install-notaire/docker-installation/`. `sauvegarder.bat` et `desinstaller.bat` ne sont **pas** dans `frida-micros.zip` : ils voyagent à côté et c'est l'installeur qui les recopie dans l'installation.
 4. Vérifier l'adresse de support en fin de `LISEZMOI.txt` (actuellement `mohhamroun@gmail.com`).
+   Ne pas pré-remplir `ADMIN_PASSWORD` dans `.env.local` : il doit rester vide pour que
+   chaque poste reçoive un mot de passe distinct.
 5. Tester l'installation complète sur une VM Windows 10/11 vierge **avant** l'envoi (voir `CHECKLIST_TEST_TERRAIN.md`).
 
 ## Prérequis chez le notaire

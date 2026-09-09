@@ -118,7 +118,7 @@ if (-not (Test-Path $envInTarget)) {
 
 # Copie les scripts de maintenance a cote de l'installation (les donnees sont ici,
 # pas dans le dossier d'installation d'origine)
-foreach ($tool in @("sauvegarder.bat", "desinstaller.bat")) {
+foreach ($tool in @("sauvegarder.bat", "restaurer.bat", "desinstaller.bat")) {
     $src = Join-Path $PSScriptRoot $tool
     if (Test-Path $src) { Copy-Item $src (Join-Path $targetPath $tool) -Force }
 }
@@ -133,6 +133,30 @@ if (-not $linuxPath) {
     exit 1
 }
 $linuxPath = $linuxPath.Trim()
+
+# Identifiants applicatifs : un mot de passe unique par poste, genere une seule
+# fois et conserve dans le .env. Aucun mot de passe par defaut n'est livre.
+$envContent = Get-Content $envInTarget -Raw
+if ($envContent -notmatch '(?m)^\s*ADMIN_PASSWORD\s*=\s*\S') {
+    $bytes = New-Object byte[] 9
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    $generated = [Convert]::ToBase64String($bytes).Replace('+','').Replace('/','').Replace('=','')
+    if ($envContent -match '(?m)^\s*ADMIN_PASSWORD\s*=') {
+        $envContent = $envContent -replace '(?m)^\s*ADMIN_PASSWORD\s*=.*$', "ADMIN_PASSWORD=$generated"
+    } else {
+        $envContent = $envContent.TrimEnd() + "`r`nADMIN_PASSWORD=$generated`r`n"
+    }
+    Set-Content -Path $envInTarget -Value $envContent -Encoding ASCII
+    Write-Host "Mot de passe applicatif genere pour ce poste." -ForegroundColor Green
+}
+
+# Relecture des identifiants effectifs
+$adminUser = "maitre"
+$adminPass = ""
+$uLine = Select-String -Path $envInTarget -Pattern '^\s*ADMIN_USERNAME\s*=\s*(\S+)' -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($uLine) { $adminUser = $uLine.Matches[0].Groups[1].Value }
+$pLine = Select-String -Path $envInTarget -Pattern '^\s*ADMIN_PASSWORD\s*=\s*(\S+)' -ErrorAction SilentlyContinue | Select-Object -First 1
+if ($pLine) { $adminPass = $pLine.Matches[0].Groups[1].Value }
 
 # Port web choisi par l'utilisateur dans .env (80 par defaut)
 $portWeb = "80"
@@ -271,9 +295,36 @@ Write-Host "  - Ouvrez votre navigateur : $appUrl"
 Write-Host "  - Pour redemarrer FRIDA plus tard : double-cliquez sur 'Demarrer-Frida' sur le Bureau."
 Write-Host "  - Pour arreter FRIDA (liberer la RAM) : 'Arreter-Frida' sur le Bureau."
 Write-Host ""
+# Fiche d'identifiants deposee a cote de l'installation : le notaire ne peut pas
+# deviner le mot de passe, et il n'est affiche qu'une fois a la creation du compte.
+$credPath = Join-Path $targetPath "IDENTIFIANTS.txt"
+$credContent = @"
+FRIDA - Identifiants de connexion
+=================================
+
+Adresse    : $appUrl
+Utilisateur: $adminUser
+Mot de passe: $adminPass
+
+Ce mot de passe est propre a ce poste. Conservez ce fichier en lieu sur
+et ne le diffusez pas : il donne acces a tous les dossiers de succession.
+
+Il est egalement stocke dans le fichier .env de ce dossier.
+"@
+Set-Content -Path $credPath -Value $credContent -Encoding UTF8
+
+Write-Host ""
+Write-Host "  CONNEXION A FRIDA" -ForegroundColor Yellow
+Write-Host "    Utilisateur  : $adminUser"
+Write-Host "    Mot de passe : $adminPass"
+Write-Host "    (egalement dans $credPath)"
+Write-Host ""
 Write-Host "  Vos donnees sont dans : $targetPath\data\"
-Write-Host "  Sauvegarde / desinstallation : sauvegarder.bat et desinstaller.bat"
+Write-Host "  Sauvegarde / restauration / desinstallation : sauvegarder.bat,"
+Write-Host "  restaurer.bat et desinstaller.bat"
 Write-Host "  dans $targetPath"
 Write-Host ""
+Show-Popup "Installation terminee.`n`nConnectez-vous a FRIDA avec :`n`n   Utilisateur  : $adminUser`n   Mot de passe : $adminPass`n`nCes identifiants sont aussi dans le fichier :`n$credPath`n`nConservez-les : le mot de passe est propre a ce poste." "FRIDA - Vos identifiants de connexion"
+
 Start-Sleep -Seconds 3
 Start-Process $appUrl

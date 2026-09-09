@@ -22,6 +22,7 @@ PRÉREQUIS
    • Installer-Frida.ps1
    • frida-micros.zip
    • sauvegarder.bat
+   • restaurer.bat
    • desinstaller.bat
    • LISEZMOI.txt (ce fichier)
 
@@ -39,6 +40,18 @@ PRÉREQUIS
    (téléchargement + compilation).
 
 7. Le navigateur s'ouvre automatiquement sur http://localhost
+
+
+VOS IDENTIFIANTS DE CONNEXION
+──────────────────────────────
+À la fin de l'installation, une fenêtre affiche votre nom d'utilisateur
+et votre mot de passe. Ils sont aussi écrits dans le fichier :
+
+   C:\Users\<votre_nom>\Frida-Micros\IDENTIFIANTS.txt
+
+⚠ Ce mot de passe est propre à VOTRE poste : il est généré au moment de
+  l'installation. Conservez ce fichier en lieu sûr et ne le diffusez pas,
+  il donne accès à tous vos dossiers de succession.
 
 
 UTILISATION QUOTIDIENNE
@@ -59,18 +72,31 @@ Deux raccourcis sont créés sur votre Bureau :
   Un dossier daté est créé dans data\backups\.
   → Copiez ce dossier sur une clé USB ou un disque externe.
 
+  ⚠ FAITES-LE RÉGULIÈREMENT. La sauvegarde est le seul moyen de
+    récupérer vos fiches en cas de panne du PC.
+
+• Pour RESTAURER une sauvegarde :
+  Double-cliquez sur « restaurer.bat » (même dossier), puis indiquez
+  le nom du dossier de sauvegarde à remettre en place.
+
 ⚠ « desinstaller.bat » SUPPRIME l'installation. Ne l'utilisez pas
   pour un arrêt quotidien : utilisez « Arreter-Frida ».
 
 
 OÙ SONT MES DONNÉES ?
 ──────────────────────
-Toutes vos données sont dans « C:\Users\<votre_nom>\Frida-Micros\data\ » :
+Dans « C:\Users\<votre_nom>\Frida-Micros\data\ » :
 
   data\
   ├── uploads\    ← Vos documents scannés (PDF, images)
-  ├── postgres\   ← Base de données (fiches, calculs)
   └── backups\    ← Vos sauvegardes
+
+La base de données (fiches, héritiers, calculs) est stockée à l'intérieur
+de Docker et n'apparaît pas dans l'explorateur Windows. C'est normal :
+PostgreSQL ne peut pas fonctionner depuis un dossier Windows.
+
+→ C'est pourquoi « sauvegarder.bat » est important : il extrait la base
+  vers data\backups\, où vous pouvez la copier sur une clé USB.
 
 ⚠ IMPORTANT : Aucune donnée ne quitte votre ordinateur.
   Les documents d'identité et extraits de naissance restent

@@ -13,7 +13,10 @@ services:
       POSTGRES_USER: ${DB_USER:-frida}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-frida_local_2026}
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      # Volume Docker nomme, PAS un dossier Windows : PostgreSQL exige un data dir
+      # en 0700 et refuse de demarrer sur /mnt/c (DrvFs n'autorise pas chmod).
+      # Les donnees restent recuperables cote Windows via data/backups (pg_dump).
+      - frida_pgdata:/var/lib/postgresql/data
     networks:
       - frida-net
     restart: unless-stopped
@@ -57,6 +60,8 @@ services:
       - SERVICES_OCR_URL=http://ocr-api:8082
       - CORS_ORIGINS=http://localhost:${PORT_WEB:-80}
       - APP_DEMO_MODE=false
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-maitre}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
       - ROOT_PATH=/app/uploads
       - BACKUP_AUTO_ENABLED=true
       - BACKUP_RETENTION_DAYS=30
@@ -89,6 +94,9 @@ services:
       resources:
         limits:
           memory: 100M
+
+volumes:
+  frida_pgdata:
 
 networks:
   frida-net:
