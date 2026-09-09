@@ -228,11 +228,46 @@ Write-Host "FRIDA est en cours d'execution." -ForegroundColor Green
 # ------------------------------------------------------------
 #  Phase 5 : Creation du raccourci Demarrer-Frida sur le Bureau
 # ------------------------------------------------------------
-Write-Section "[5/5] Creation du raccourci de demarrage"
+Write-Section "[5/5] Creation des raccourcis et du demarrage automatique"
 
 $desktopPath = [Environment]::GetFolderPath("Desktop")
-$launcherPath = Join-Path -Path $desktopPath -ChildPath "Demarrer-Frida.bat"
 
+# ------------------------------------------------------------------
+# frida-service.ps1 : pilote unique du demarrage / arret.
+#
+# WSL2 eteint sa machine virtuelle des qu'aucun processus n'y tourne. Un
+# "docker compose up -d" rend la main immediatement : quelques secondes plus
+# tard WSL s'arrete, les conteneurs avec lui, et Windows n'a plus rien a
+# rediriger sur le port 80 (constate en test terrain le 2026-09-09).
+# On pose donc un processus d'ancrage qui maintient la VM en vie.
+# ------------------------------------------------------------------
+$servicePath = Join-Path $targetPath "frida-service.ps1"
+$serviceContent = @"
+param([ValidateSet("start","stop")][string]`$Action = "start")
+
+`$linuxPath = '$linuxPath'
+`$marker    = 'frida-wsl-anchor'
+
+function Get-Anchor {
+    Get-CimInstance Win32_Process -Filter "Name='wsl.exe'" -ErrorAction SilentlyContinue |
+        Where-Object { `$_.CommandLine -like "*`$marker*" }
+}
+
+if (`$Action -eq "start") {
+    if (-not (Get-Anchor)) {
+        Start-Process wsl -ArgumentList '-d','Ubuntu','-u','root','-e','sh','-c',"sleep infinity # `$marker" -WindowStyle Hidden
+        Start-Sleep -Seconds 3
+    }
+    wsl -u root -d Ubuntu -e bash -c "cd '`$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env up -d"
+} else {
+    wsl -u root -d Ubuntu -e bash -c "cd '`$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env stop"
+    Get-Anchor | ForEach-Object { Stop-Process -Id `$_.ProcessId -Force -ErrorAction SilentlyContinue }
+}
+"@
+Set-Content -Path $servicePath -Value $serviceContent -Encoding UTF8
+
+# ---- Raccourci de demarrage sur le Bureau ----
+$launcherPath = Join-Path -Path $desktopPath -ChildPath "Demarrer-Frida.bat"
 $launcherContent = @"
 @echo off
 title FRIDA - Demarrage
@@ -243,7 +278,7 @@ echo         Demarrage de FRIDA
 echo ============================================
 echo.
 echo Reveil des services Docker dans WSL...
-wsl -u root -d Ubuntu -e bash -c "cd '$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env up -d"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$servicePath" -Action start
 echo.
 echo Attente du demarrage complet (30 secondes)...
 timeout /t 30 /nobreak >nul
@@ -252,15 +287,13 @@ echo Ouverture du navigateur...
 start $appUrl
 echo.
 echo FRIDA est pret a l'usage.
-echo Fermez cette fenetre quand vous voulez.
+echo Fermez cette fenetre quand vous voulez : FRIDA continue de tourner.
 pause
 "@
-
 Set-Content -Path $launcherPath -Value $launcherContent -Encoding ASCII
 Write-Host "Raccourci 'Demarrer-Frida.bat' cree sur le Bureau." -ForegroundColor Green
 
-# Raccourci d'arret : eviter que l'utilisateur passe par desinstaller.bat pour
-# simplement liberer la RAM
+# ---- Raccourci d'arret sur le Bureau ----
 $stopPath = Join-Path -Path $desktopPath -ChildPath "Arreter-Frida.bat"
 $stopContent = @"
 @echo off
@@ -274,14 +307,29 @@ echo.
 echo Vos donnees sont conservees. Pour redemarrer,
 echo double-cliquez sur "Demarrer-Frida".
 echo.
-wsl -u root -d Ubuntu -e bash -c "cd '$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env stop"
+powershell -NoProfile -ExecutionPolicy Bypass -File "$servicePath" -Action stop
 echo.
 echo FRIDA est arrete.
 pause
 "@
-
 Set-Content -Path $stopPath -Value $stopContent -Encoding ASCII
 Write-Host "Raccourci 'Arreter-Frida.bat' cree sur le Bureau." -ForegroundColor Green
+
+# ---- Demarrage automatique a l'ouverture de session ----
+# Sans cela, FRIDA est eteint apres chaque redemarrage du PC et le notaire doit
+# penser a cliquer sur un raccourci avant de pouvoir travailler.
+$startupDir = [Environment]::GetFolderPath("Startup")
+$autoStart  = Join-Path $startupDir "FRIDA-Demarrage.vbs"
+$autoContent = @"
+' Demarre FRIDA en arriere-plan a l'ouverture de session, sans fenetre.
+CreateObject("WScript.Shell").Run "powershell -NoProfile -ExecutionPolicy Bypass -File ""$servicePath"" -Action start", 0, False
+"@
+Set-Content -Path $autoStart -Value $autoContent -Encoding ASCII
+Write-Host "Demarrage automatique installe (FRIDA-Demarrage.vbs)." -ForegroundColor Green
+
+# Pose l'ancre tout de suite : la stack vient d'etre demarree par la phase 4,
+# sans ancrage elle s'arreterait a la fin de ce script.
+Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',$servicePath,'-Action','start' -WindowStyle Hidden
 
 # ------------------------------------------------------------
 #  Fin

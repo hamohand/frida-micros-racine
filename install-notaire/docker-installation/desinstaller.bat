@@ -42,6 +42,14 @@ echo.
 set /p KEEP_DATA="Voulez-vous CONSERVER vos données (dossiers, base de données) ? (O/N) : "
 echo.
 
+echo Arrêt du démarrage automatique...
+set "AUTOSTART=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\FRIDA-Demarrage.vbs"
+if exist "%AUTOSTART%" (
+    del /q "%AUTOSTART%"
+    echo    Démarrage automatique retiré.
+)
+if exist "%FRIDA_DIR%\frida-service.ps1" powershell -NoProfile -ExecutionPolicy Bypass -File "%FRIDA_DIR%\frida-service.ps1" -Action stop
+
 echo Arrêt des services...
 wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env down"
 if errorlevel 1 (
@@ -53,6 +61,7 @@ if errorlevel 1 (
 if /i "%KEEP_DATA%"=="N" (
     echo.
     echo Suppression des données...
+    wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env down -v"
     wsl -u root -d Ubuntu -e bash -c "rm -rf '%LINUX_DIR%/data'"
     if exist "%FRIDA_DIR%\data" rmdir /s /q "%FRIDA_DIR%\data"
     echo    Données supprimées.

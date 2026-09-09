@@ -58,13 +58,18 @@ UTILISATION QUOTIDIENNE
 ───────────────────────
 Deux raccourcis sont créés sur votre Bureau :
 
-• Pour DÉMARRER FRIDA après avoir éteint le PC :
-  Double-cliquez sur « Demarrer-Frida ».
+• FRIDA démarre TOUT SEUL à l'allumage du PC.
+  Ouvrez simplement votre navigateur sur http://localhost
+  (comptez une minute après l'ouverture de session).
+
+• Si FRIDA ne répond pas :
+  Double-cliquez sur « Demarrer-Frida » (raccourci du Bureau).
   Attendez ~30 secondes, le navigateur s'ouvre.
 
 • Pour ARRÊTER FRIDA (et libérer la mémoire) :
   Double-cliquez sur « Arreter-Frida ».
-  Vos données sont conservées.
+  Vos données sont conservées. FRIDA repartira au prochain
+  démarrage du PC.
 
 • Pour SAUVEGARDER vos données :
   Double-cliquez sur « sauvegarder.bat », qui se trouve dans
