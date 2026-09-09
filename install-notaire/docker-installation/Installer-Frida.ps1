@@ -7,6 +7,26 @@
 $ErrorActionPreference = "Continue"
 $OutputEncoding = [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+# wsl.exe emet ses propres messages en UTF-16LE : PowerShell 5.1 les lit alors comme
+# du texte entrecoupe de NUL et tout -match echoue silencieusement. WSL_UTF8 corrige
+# cela (WSL 0.64+). Le filtre Clean-WslOutput couvre les versions plus anciennes.
+$env:WSL_UTF8 = "1"
+
+function Show-Popup($message, $title) {
+    # La fenetre Ubuntu ouverte par "wsl --install" recouvre la console : sans popup
+    # systeme, l'utilisateur ne voit jamais la consigne et croit l'install terminee.
+    try {
+        $wshell = New-Object -ComObject WScript.Shell
+        # 0x1000 = MB_SYSTEMMODAL : la boite reste au premier plan
+        $wshell.Popup($message, 0, $title, 0x1000 + 64) | Out-Null
+    } catch { }
+}
+
+function Clean-WslOutput($raw) {
+    if (-not $raw) { return "" }
+    return (($raw -join " ") -replace "`0", "").Trim()
+}
+
 function Write-Section($title) {
     Write-Host ""
     Write-Host "=====================================" -ForegroundColor Cyan
@@ -16,7 +36,7 @@ function Write-Section($title) {
 
 function Test-WslUbuntuReady {
     try {
-        $test = wsl -d Ubuntu -e echo "ready" 2>&1
+        $test = Clean-WslOutput (wsl -d Ubuntu -e echo "ready" 2>&1)
         return ($test -match "ready")
     } catch { return $false }
 }
@@ -28,8 +48,7 @@ Write-Section "[1/5] Verification de l'environnement Linux (WSL Ubuntu)"
 
 if (-not (Test-WslUbuntuReady)) {
     # Ubuntu present mais pas initialise ?
-    $list = wsl -l -q 2>&1
-    $listStr = if ($list) { $list -join " " } else { "" }
+    $listStr = Clean-WslOutput (wsl -l -q 2>&1)
 
     if ($listStr -match "Ubuntu") {
         Write-Host "Ubuntu est installe mais non initialise." -ForegroundColor Yellow
@@ -39,6 +58,7 @@ if (-not (Test-WslUbuntuReady)) {
         Write-Host "  2. Cherchez 'Ubuntu' et lancez l'application."
         Write-Host "  3. Creez votre nom d'utilisateur UNIX et un mot de passe."
         Write-Host "  4. Fermez la fenetre Ubuntu et relancez ce script."
+        Show-Popup "Ubuntu doit d'abord etre initialise.`n`n1. Ouvrez 'Ubuntu' depuis le menu Demarrer`n2. Creez votre nom d'utilisateur UNIX et un mot de passe`n3. Fermez la fenetre Ubuntu`n4. Double-cliquez a nouveau sur Installer-Frida.bat`n`nL'installation de FRIDA n'est PAS terminee." "FRIDA - Action requise (etape 1 sur 5)"
         pause
         exit
     } else {
@@ -49,7 +69,8 @@ if (-not (Test-WslUbuntuReady)) {
         Write-Host "IMPORTANT :" -ForegroundColor Yellow
         Write-Host "  - Windows peut vous demander de REDEMARRER."
         Write-Host "  - Apres redemarrage, Ubuntu s'ouvrira pour creer votre profil UNIX."
-        Write-Host "  - Une fois le profil cree, RELANCEZ ce script."
+            Write-Host "  - Une fois le profil cree, RELANCEZ ce script."
+        Show-Popup "WSL Ubuntu vient d'etre installe.`n`n1. Si Windows le demande, REDEMARREZ le PC`n2. Dans la fenetre Ubuntu qui s'ouvre, creez votre nom d'utilisateur UNIX et un mot de passe`n3. Fermez la fenetre Ubuntu`n4. Double-cliquez a nouveau sur Installer-Frida.bat`n`nL'installation de FRIDA n'est PAS terminee : il reste Docker et le build (etapes 3 a 5). Le navigateur ne s'ouvrira qu'a la fin." "FRIDA - Relancez l'installation (etape 1 sur 5)"
         pause
         exit
     }
