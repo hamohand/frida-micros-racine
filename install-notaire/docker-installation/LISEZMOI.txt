@@ -108,17 +108,17 @@ PostgreSQL ne peut pas fonctionner depuis un dossier Windows.
   strictement sur cette machine.
 
 
-PREMIÈRE INSTALLATION : ATTENTION AU REDÉMARRAGE
+PREMIÈRE INSTALLATION : REDÉMARRAGE ÉVENTUEL
 ────────────────────────────────────────────────
-Si votre PC n'a jamais utilisé WSL, l'installation peut demander
-un redémarrage. Dans ce cas :
+Si votre PC n'a jamais utilisé WSL, Windows peut demander un
+redémarrage pour l'activer. Une fenêtre vous le signale. Dans ce cas :
 
-  1. Redémarrez Windows quand demandé.
-  2. Après le redémarrage, une fenêtre noire Ubuntu s'ouvre :
-     créez un nom d'utilisateur UNIX + un mot de passe.
-  3. Fermez la fenêtre Ubuntu.
-  4. RE-DOUBLE-CLIQUEZ sur « Installer-Frida.bat »
-     pour reprendre l'installation.
+  1. Redémarrez Windows.
+  2. RE-DOUBLE-CLIQUEZ sur « Installer-Frida.bat » :
+     l'installation reprend là où elle s'était arrêtée.
+
+Aucun compte Linux n'est à créer : aucune fenêtre Ubuntu ne doit vous
+demander de nom d'utilisateur ni de mot de passe.
 
 
 EN CAS DE PROBLÈME

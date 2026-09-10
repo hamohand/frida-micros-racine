@@ -22,8 +22,8 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] **UAC apparaît ?** (bandeau bleu droits admin) → clique Oui
 - [ ] Message « Droits administrateur confirmés »
 - [ ] Si le script demande un **redémarrage** pour WSL → note l'heure, redémarre, chronométrage jusqu'à Ubuntu prêt
-- [ ] Si Ubuntu demande de créer un user UNIX → **note le nom que tu crées** (utile pour debug)
-- [ ] Après création user, RE-double-clic sur Installer-Frida.bat
+- [ ] **Aucune invite Ubuntu** (nom d'utilisateur, mot de passe) ne doit apparaître : WSL est installé en `--no-launch` et FRIDA travaille en root. Si une invite apparaît, noter la version (`wsl --version`)
+- [ ] Sans redémarrage demandé, l'installation doit enchaîner directement sur l'étape [2/5], sans relancer le script
 
 ## Phase 2 — Installation Docker dans WSL (⏱ 3–5 min)
 

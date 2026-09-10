@@ -35,10 +35,25 @@ function Write-Section($title) {
 }
 
 function Test-WslUbuntuReady {
+    # Toujours en root : FRIDA n'utilise aucun compte Linux, et une commande non
+    # interactive en root ne declenche pas la creation de compte d'Ubuntu.
     try {
-        $test = Clean-WslOutput (wsl -d Ubuntu -e echo "ready" 2>&1)
+        $test = Clean-WslOutput (wsl -d Ubuntu -u root -e echo "ready" 2>&1)
         return ($test -match "ready")
     } catch { return $false }
+}
+
+function Show-RedemarrageRequis {
+    Write-Host ""
+    Write-Host "REDEMARRAGE NECESSAIRE" -ForegroundColor Yellow
+    Write-Host "  1. Redemarrez Windows."
+    Write-Host "  2. Double-cliquez a nouveau sur Installer-Frida.bat : l'installation reprendra."
+    Write-Host "  Aucun compte Linux n'est a creer."
+    Write-Host "  Si ce message revient apres le redemarrage : lancez 'wsl --update' dans"
+    Write-Host "  PowerShell, puis relancez Installer-Frida.bat."
+    Show-Popup "Le sous-systeme Linux (WSL) est installe, mais Windows doit redemarrer pour l'activer.`n`n1. Redemarrez le PC`n2. Double-cliquez a nouveau sur Installer-Frida.bat`n`nAucun compte Linux n'est a creer. L'installation de FRIDA n'est PAS terminee : elle reprendra au prochain lancement." "FRIDA - Redemarrage necessaire (etape 1 sur 5)"
+    pause
+    exit
 }
 
 # ------------------------------------------------------------
@@ -47,32 +62,20 @@ function Test-WslUbuntuReady {
 Write-Section "[1/5] Verification de l'environnement Linux (WSL Ubuntu)"
 
 if (-not (Test-WslUbuntuReady)) {
-    # Ubuntu present mais pas initialise ?
     $listStr = Clean-WslOutput (wsl -l -q 2>&1)
 
-    if ($listStr -match "Ubuntu") {
-        Write-Host "Ubuntu est installe mais non initialise." -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "Action requise :"
-        Write-Host "  1. Ouvrez le menu Demarrer de Windows."
-        Write-Host "  2. Cherchez 'Ubuntu' et lancez l'application."
-        Write-Host "  3. Creez votre nom d'utilisateur UNIX et un mot de passe."
-        Write-Host "  4. Fermez la fenetre Ubuntu et relancez ce script."
-        Show-Popup "Ubuntu doit d'abord etre initialise.`n`n1. Ouvrez 'Ubuntu' depuis le menu Demarrer`n2. Creez votre nom d'utilisateur UNIX et un mot de passe`n3. Fermez la fenetre Ubuntu`n4. Double-cliquez a nouveau sur Installer-Frida.bat`n`nL'installation de FRIDA n'est PAS terminee." "FRIDA - Action requise (etape 1 sur 5)"
-        pause
-        exit
-    } else {
-        Write-Host "WSL Ubuntu n'est pas installe." -ForegroundColor Yellow
-        Write-Host "Lancement de l'installation..."
-        wsl --install -d Ubuntu
-        Write-Host ""
-        Write-Host "IMPORTANT :" -ForegroundColor Yellow
-        Write-Host "  - Windows peut vous demander de REDEMARRER."
-        Write-Host "  - Apres redemarrage, Ubuntu s'ouvrira pour creer votre profil UNIX."
-            Write-Host "  - Une fois le profil cree, RELANCEZ ce script."
-        Show-Popup "WSL Ubuntu vient d'etre installe.`n`n1. Si Windows le demande, REDEMARREZ le PC`n2. Dans la fenetre Ubuntu qui s'ouvre, creez votre nom d'utilisateur UNIX et un mot de passe`n3. Fermez la fenetre Ubuntu`n4. Double-cliquez a nouveau sur Installer-Frida.bat`n`nL'installation de FRIDA n'est PAS terminee : il reste Docker et le build (etapes 3 a 5). Le navigateur ne s'ouvrira qu'a la fin." "FRIDA - Relancez l'installation (etape 1 sur 5)"
-        pause
-        exit
+    if ($listStr -notmatch "Ubuntu") {
+        Write-Host "WSL Ubuntu n'est pas installe. Installation en cours..." -ForegroundColor Yellow
+        # --no-launch : sans cette option, WSL ouvre Ubuntu DANS cette console pour creer
+        # un compte Linux, et ne rend la main qu'a la fermeture du shell (constate le
+        # 2026-09-10 avec WSL 2.7.13 : l'installeur restait bloque sur un prompt Linux).
+        # FRIDA travaille entierement en root : ce compte est inutile.
+        wsl --install -d Ubuntu --no-launch
+    }
+
+    if (-not (Test-WslUbuntuReady)) {
+        # Ubuntu present mais inutilisable : Windows doit redemarrer pour activer WSL
+        Show-RedemarrageRequis
     }
 }
 Write-Host "WSL Ubuntu detecte et pret." -ForegroundColor Green
