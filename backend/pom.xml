@@ -140,6 +140,29 @@
                     </excludes>
                 </configuration>
             </plugin>
+            <!-- Mockito 5 injecte son agent Java a la volee. Cette auto-injection
+                 echoue dans le conteneur maven:3.9.9-eclipse-temurin-21 (Could not
+                 self-attach to current VM) : on charge donc explicitement un agent.
+                 byte-buddy-agent et non mockito-core : le jar mockito-core 5.11 (version
+                 fixee par Spring Boot 3.3.4) ne declare pas de Premain-Class. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <argLine>-javaagent:${net.bytebuddy:byte-buddy-agent:jar}</argLine>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
