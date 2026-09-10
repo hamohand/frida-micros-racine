@@ -57,7 +57,7 @@ echo    Base de données sauvegardée.
 
 echo [2/2] Sauvegarde des documents...
 if exist "%FRIDA_DIR%\data\uploads" (
-    xcopy "%FRIDA_DIR%\data\uploads" "%BACKUP_DIR%\uploads\" /E /I /Q >nul
+    xcopy "%FRIDA_DIR%\data\uploads" "%BACKUP_DIR%\uploads" /E /I /Q >nul
     echo    Documents sauvegardés.
 ) else (
     echo    Aucun document à sauvegarder.

@@ -81,17 +81,29 @@ if errorlevel 1 (
 )
 
 echo [3/4] Restauration de la base de données...
-wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%DB_NAME%' AND pid<>pg_backend_pid();\" && docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"DROP DATABASE IF EXISTS %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"CREATE DATABASE %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d '%DB_NAME%' < '%LINUX_DIR%/data/backups/%CHOIX%/database.sql'"
-if errorlevel 1 (
-    echo    ERREUR : la restauration a échoué.
-    pause
-    exit /b 1
-)
+wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c 'DROP DATABASE IF EXISTS %DB_NAME% WITH (FORCE);'"
+if errorlevel 1 goto :erreur_restauration
+wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c 'CREATE DATABASE %DB_NAME%;'"
+if errorlevel 1 goto :erreur_restauration
+REM Le dump est reinjecte via un pipe cote WSL : pas de redirection '<' a faire
+REM traverser cmd.exe, qui la lirait comme une redirection Windows.
+wsl -u root -d Ubuntu -e bash -c "cat '%LINUX_DIR%/data/backups/%CHOIX%/database.sql' | docker exec -i frida-db psql -U '%DB_USER%' -d '%DB_NAME%'"
+if errorlevel 1 goto :erreur_restauration
 echo    Base restaurée.
+goto :suite_documents
+
+:erreur_restauration
+echo    ERREUR : la restauration de la base a échoué.
+echo    Redémarrage de FRIDA pour ne pas laisser le backend arrêté...
+wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env up -d"
+pause
+exit /b 1
+
+:suite_documents
 
 echo [4/4] Restauration des documents...
 if exist "%SRC%\uploads" (
-    xcopy "%SRC%\uploads" "%FRIDA_DIR%\data\uploads\" /E /I /Q /Y >nul
+    xcopy "%SRC%\uploads" "%FRIDA_DIR%\data\uploads" /E /I /Q /Y >nul
     echo    Documents restaurés.
 ) else (
     echo    Aucun document dans cette sauvegarde.
