@@ -7,7 +7,7 @@ echo.
 echo ╔══════════════════════════════════════════════════╗
 echo ║        FRIDA — Restauration d'une sauvegarde     ║
 echo ╚══════════════════════════════════════════════════╝
-echo   version 2026-09-10c
+echo   version 2026-09-10d
 echo.
 
 set "FRIDA_DIR=%USERPROFILE%\Frida-Micros"
@@ -118,7 +118,7 @@ wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-c
 echo.
 echo ╔══════════════════════════════════════════════════╗
 echo ║   Restauration terminée.                         ║
-echo ║   Relancez "Demarrer-Frida" sur le Bureau.       ║
+echo ║   FRIDA a redémarré, rechargez votre navigateur. ║
 echo ╚══════════════════════════════════════════════════╝
 echo.
 pause
