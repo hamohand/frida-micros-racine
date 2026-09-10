@@ -255,7 +255,11 @@ function Get-Anchor {
 
 if (`$Action -eq "start") {
     if (-not (Get-Anchor)) {
-        Start-Process wsl -ArgumentList '-d','Ubuntu','-u','root','-e','sh','-c',"sleep infinity # `$marker" -WindowStyle Hidden
+        # PowerShell 5.1 ne quote pas les elements de -ArgumentList contenant des
+        # espaces : sans guillemets explicites, sh recevait "-c sleep" et l'ancre
+        # sortait aussitot. Marqueur ecrit en dur : entre apostrophes, une variable
+        # ne serait pas developpee et Get-Anchor ne retrouverait pas l'ancre.
+        Start-Process wsl -ArgumentList '-d','Ubuntu','-u','root','-e','sh','-c','"sleep infinity # frida-wsl-anchor"' -WindowStyle Hidden
         Start-Sleep -Seconds 3
     }
     wsl -u root -d Ubuntu -e bash -c "cd '`$linuxPath' && docker compose -f docker-compose.local.yml --env-file .env up -d"
@@ -329,7 +333,9 @@ Write-Host "Demarrage automatique installe (FRIDA-Demarrage.vbs)." -ForegroundCo
 
 # Pose l'ancre tout de suite : la stack vient d'etre demarree par la phase 4,
 # sans ancrage elle s'arreterait a la fin de ce script.
-Start-Process powershell -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',$servicePath,'-Action','start' -WindowStyle Hidden
+# Arguments en une seule chaine, chemin quote : un dossier profil contenant un
+# espace (ex. Jean Dupont) casserait sinon le -File.
+Start-Process powershell -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File `"$servicePath`" -Action start" -WindowStyle Hidden
 
 # ------------------------------------------------------------
 #  Fin
