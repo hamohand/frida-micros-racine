@@ -112,9 +112,10 @@ FridaEntity (succession record)
 4. Backend calcule les parts via le module interne `calculs/`
 
 ### Folder Naming Convention
-Uploaded folders follow `{code}_{documentType}`:
-- `1_en` = Defunt birth certificate, `2_cni` = Conjoint CNI, `3_en` = Enfant birth certificate
-- Person codes: 1=Défunt, 2=Conjoint, 3=Enfant, 4=Parent, 5=Fratrie, 11=Témoin
+Uploaded files land in `dossiers/<fiche>/{code}_{documentType}[_{entityName}]/<horodatage>_<nom>` (ex. `03_en_en_01`, `02_cni_cni_01`, verso dans `02_cni_cni_01_verso`).
+- Codes (`HeirCategory`) : 00=Témoin, 01=Défunt, 02=Conjoint, 03=Enfant, 04=Parent, 05=Fratrie, 06=Oncle paternel, 07=Cousin paternel, 08=Grand-père paternel, 09=Petit-fils, 10=Petite-fille, 11=Grand-mère paternelle. `3_en` et `03_en` désignent la même catégorie.
+- **Plusieurs personnes partagent un même sous-dossier** : les fenêtres « Fils » et « Filles » envoient toutes deux en `03`, et le sexe est lu dans le QR code. `DossierProcessingService.regrouperParPersonne` traite donc chaque recto comme une personne. Ne jamais regrouper les fichiers par code de catégorie (régression du 2026-07-02 : un seul enfant traité, aucune fille ; corrigée le 2026-09-10).
+- Verso de CNI : fichier suffixé `_verso`, nommé selon son recto par le frontend. Rattaché au recto de même nom de base, sinon au recto unique de la catégorie, sinon laissé non rattaché. Dump NFC (`nfc_dump_<numéro>.json`) : même règle, et traité comme une personne à part entière lorsque rien ne le rattache.
 
 ### Backend Package Layout (`backend/src/main/java/`)
 - `calculs/` — module de calcul islamique successoral (model, service, validator). Auto-porteur : aucune dépendance JPA/OCR, seul actif en profil `calc-only`.

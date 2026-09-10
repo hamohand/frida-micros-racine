@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Semaphore;
@@ -98,53 +99,25 @@ public class DossierProcessingService {
                 return null;
             }
 
-            // Regrouper les fichiers par héritier
-            class HeirFiles {
-                Path rectoFile;
-                Path versoFile;
-                Path nfcJsonFile;
-            }
-
-            Map<String, HeirFiles> filesByHeirCode = new HashMap<>();
-
-            for (Path file : files) {
-                String fileName = file.getFileName().toString().toLowerCase();
-                String parentFolder = file.getParent().getFileName().toString();
-                // Ex: "01" de "01_cni"
-                String heirCode = parentFolder.split("_")[0];
-
-                HeirFiles heirFiles = filesByHeirCode.computeIfAbsent(heirCode, k -> new HeirFiles());
-
-                if (fileName.endsWith(".json")) {
-                    heirFiles.nfcJsonFile = file;
-                    log.info("📱 Fichier NFC détecté pour héritier {} : {}", heirCode, file.getFileName());
-                } else if (fileName.contains("verso") || parentFolder.contains("verso")) {
-                    heirFiles.versoFile = file;
-                    log.info("📋 Fichier verso détecté pour héritier {} : {}", heirCode, file.getFileName());
-                } else {
-                    heirFiles.rectoFile = file;
-                }
-            }
+            // Un recto (ou un dump NFC sans recto) = une personne.
+            // Fils et filles d'une même catégorie partagent un seul sous-dossier
+            // ("03_en_en_01") : le sexe vient du QR code. Du 2026-07-02 (9654f25) à
+            // cette correction, les fichiers étaient regroupés par catégorie et
+            // s'écrasaient : un seul enfant était traité, et jamais les autres.
+            List<DocumentsPersonne> personnes = regrouperParPersonne(files);
 
             int processedCount = 0;
-            for (Map.Entry<String, HeirFiles> entry : filesByHeirCode.entrySet()) {
-                String heirCode = entry.getKey();
-                HeirFiles hf = entry.getValue();
-
+            for (DocumentsPersonne pers : personnes) {
                 try {
-                    // S'il y a au moins un fichier à traiter
-                    if (hf.rectoFile != null || hf.nfcJsonFile != null) {
-                        log.info("🔗 Traitement héritier {} : Recto={}, Verso={}, NFC={}", 
-                            heirCode, hf.rectoFile, hf.versoFile, hf.nfcJsonFile);
-                        
-                        boolean success = traiterFichier(ctx, hf.rectoFile, hf.versoFile, hf.nfcJsonFile, fileDocInfoMap,
-                                entityDefCache, mode, heirCode);
-                        if (success) {
-                            processedCount++;
-                        }
+                    log.info("Traitement héritier {} : Recto={}, Verso={}, NFC={}",
+                            pers.heirCode, pers.recto, pers.verso, pers.nfc);
+                    boolean success = traiterFichier(ctx, pers.recto, pers.verso, pers.nfc, fileDocInfoMap,
+                            entityDefCache, mode, pers.heirCode);
+                    if (success) {
+                        processedCount++;
                     }
                 } catch (Exception e) {
-                    log.error("Erreur traitement héritier {} : {}", heirCode, e.getMessage(), e);
+                    log.error("Erreur traitement héritier {} : {}", pers.heirCode, e.getMessage(), e);
                 }
             }
 
@@ -171,6 +144,124 @@ public class DossierProcessingService {
             maxConcurrentFoldersSemaphore.release();
             log.info("Fin traitement dossier (thread libéré). Dossier: {}", folderPath);
         }
+    }
+
+    // ======================= Regroupement par personne =======================
+
+    /** Documents rattachés à une même personne. */
+    private static final class DocumentsPersonne {
+        final String heirCode;
+        final Path recto;
+        Path verso;
+        Path nfc;
+
+        DocumentsPersonne(String heirCode, Path recto, Path nfc) {
+            this.heirCode = heirCode;
+            this.recto = recto;
+            this.nfc = nfc;
+        }
+    }
+
+    /**
+     * Regroupe les fichiers d'un dossier par personne.
+     * <p>
+     * Chaque recto est une personne. Un verso ou un dump NFC est rattaché au recto de
+     * même nom de base (le frontend nomme le verso d'après son recto) ; à défaut, au
+     * recto unique de sa catégorie s'il est lui-même le seul compagnon de ce type.
+     * Si l'appariement reste ambigu, rien n'est rattaché : mieux vaut perdre une
+     * lecture MRZ que lire la CNI d'une autre personne. Un dump NFC non rattaché est
+     * traité comme une personne à part entière.
+     */
+    private List<DocumentsPersonne> regrouperParPersonne(List<Path> files) {
+        List<DocumentsPersonne> personnes = new ArrayList<>();
+        Map<String, List<DocumentsPersonne>> rectosParCategorie = new LinkedHashMap<>();
+        List<Path> versos = new ArrayList<>();
+        List<Path> dumpsNfc = new ArrayList<>();
+        Map<String, Integer> versosParCategorie = new HashMap<>();
+        Map<String, Integer> nfcParCategorie = new HashMap<>();
+
+        for (Path file : files) {
+            String fileName = file.getFileName().toString().toLowerCase();
+            String parentFolder = file.getParent().getFileName().toString();
+            String code = codeHeritier(file);
+
+            if (fileName.endsWith(".json")) {
+                dumpsNfc.add(file);
+                nfcParCategorie.merge(code, 1, Integer::sum);
+            } else if (fileName.contains("verso") || parentFolder.contains("verso")) {
+                versos.add(file);
+                versosParCategorie.merge(code, 1, Integer::sum);
+            } else {
+                DocumentsPersonne pers = new DocumentsPersonne(code, file, null);
+                personnes.add(pers);
+                rectosParCategorie.computeIfAbsent(code, k -> new ArrayList<>()).add(pers);
+            }
+        }
+
+        for (Path verso : versos) {
+            DocumentsPersonne cible = trouverRecto(verso, rectosParCategorie, versosParCategorie);
+            if (cible != null && cible.verso == null) {
+                cible.verso = verso;
+            } else {
+                log.warn("Verso {} non rattaché : aucun recto correspondant sans ambiguïté", verso.getFileName());
+            }
+        }
+
+        for (Path dump : dumpsNfc) {
+            DocumentsPersonne cible = trouverRecto(dump, rectosParCategorie, nfcParCategorie);
+            if (cible != null && cible.nfc == null) {
+                cible.nfc = dump;
+            } else {
+                personnes.add(new DocumentsPersonne(codeHeritier(dump), null, dump));
+            }
+        }
+
+        return personnes;
+    }
+
+    /**
+     * Recto auquel rattacher un verso ou un dump NFC : même nom de base d'abord,
+     * sinon le recto unique de la catégorie quand le compagnon est lui aussi unique.
+     */
+    private DocumentsPersonne trouverRecto(Path compagnon,
+                                           Map<String, List<DocumentsPersonne>> rectosParCategorie,
+                                           Map<String, Integer> compagnonsParCategorie) {
+        String code = codeHeritier(compagnon);
+        List<DocumentsPersonne> rectos = rectosParCategorie.getOrDefault(code, List.of());
+
+        String base = nomDeBase(compagnon);
+        List<DocumentsPersonne> memeNom = rectos.stream()
+                .filter(r -> nomDeBase(r.recto).equals(base))
+                .toList();
+        if (memeNom.size() == 1) {
+            return memeNom.get(0);
+        }
+        if (rectos.size() == 1 && compagnonsParCategorie.getOrDefault(code, 0) == 1) {
+            return rectos.get(0);
+        }
+        return null;
+    }
+
+    /** Code de parenté sur deux chiffres ("3_en" et "03_en" donnent tous deux "03"). */
+    private static String codeHeritier(Path file) {
+        String code = file.getParent().getFileName().toString().split("_")[0];
+        try {
+            return String.format("%02d", Integer.parseInt(code));
+        } catch (NumberFormatException e) {
+            return code;
+        }
+    }
+
+    /**
+     * Nom de base d'un fichier stocké, sans l'horodatage ajouté au stockage, sans
+     * extension et sans le suffixe "_verso" : "303_cniA_verso.png" donne "cnia".
+     */
+    private static String nomDeBase(Path file) {
+        String nom = file.getFileName().toString();
+        nom = nom.replaceFirst("^\\d+_", "");
+        nom = nom.replaceFirst("\\.[^.]+$", "");
+        nom = nom.replaceFirst("(?i)_verso$", "");
+        return nom.toLowerCase();
     }
 
     // ======================= Traitement d'un fichier =======================
