@@ -437,7 +437,12 @@ export class FileUploadComponent implements OnInit {
         if (f.versoFile) {
           const versoKey = key + '_verso';
           // Renommer le fichier avec le suffixe _verso pour la détection côté backend
-          const renamedVerso = new File([f.versoFile], f.versoFile.name.replace(/(\.\w+)$/, '_verso$1'), { type: f.versoFile.type });
+          // Nom derive du RECTO, pas du verso : le backend apparie recto et verso par nom
+          // de base. C'est le seul lien fiable quand plusieurs personnes d'une meme
+          // categorie (ex. deux fils) fournissent chacune une CNI.
+          const rectoBase = f.file.name.replace(/\.\w+$/, '');
+          const versoExt = (f.versoFile.name.match(/\.\w+$/) || [''])[0];
+          const renamedVerso = new File([f.versoFile], rectoBase + '_verso' + versoExt, { type: f.versoFile.type });
           if (!groups.has(versoKey)) {
             groups.set(versoKey, {files: [], docType: f.docType, entityName: (f.entityName || '') + '_verso'});
           }
