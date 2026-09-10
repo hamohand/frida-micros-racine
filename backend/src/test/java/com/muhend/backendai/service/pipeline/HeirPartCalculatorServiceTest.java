@@ -1,6 +1,7 @@
 package com.muhend.backendai.service.pipeline;
 
 import com.muhend.backendai.calculs.enums.HeirType;
+import com.muhend.backendai.calculs.exception.InvalidFamilyCompositionException;
 import com.muhend.backendai.calculs.model.FamilyRequest;
 import com.muhend.backendai.calculs.model.Fraction;
 import com.muhend.backendai.calculs.model.Heritier;
@@ -29,6 +30,9 @@ class HeirPartCalculatorServiceTest {
 
     @Mock
     private CalculPartsService calculPartsService;
+
+    @Mock
+    private DoublonsHeritiersValidator doublonsValidator;
 
     @InjectMocks
     private HeirPartCalculatorService calculatorService;
@@ -131,5 +135,14 @@ class HeirPartCalculatorServiceTest {
     @Test
     void calculerCoefficient_WhenDenominatorIsZero_ShouldReturnZero() {
         assertEquals(0f, calculatorService.calculerCoefficient(5, 0));
+    }
+
+    @Test
+    void calculerParts_HeritierEnDouble_LeMoteurNestJamaisAppele() {
+        doThrow(new InvalidFamilyCompositionException("doublon"))
+                .when(doublonsValidator).verifier(any(FridaEntity.class));
+
+        assertThrows(InvalidFamilyCompositionException.class, () -> calculatorService.calculerParts(ctx));
+        verify(calculPartsService, never()).calculParts(any(FamilyRequest.class));
     }
 }

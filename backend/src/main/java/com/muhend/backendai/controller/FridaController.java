@@ -54,10 +54,13 @@ public class FridaController {
      */
     @PutMapping("/corrections/{numFrida}")
     @org.springframework.security.access.prepost.PreAuthorize("hasRole('MAITRE')")
-    public ResponseEntity<FridaEntity> corrigerFrida(@PathVariable String numFrida, @RequestBody FridaEntity corrections) {
+    public ResponseEntity<?> corrigerFrida(@PathVariable String numFrida, @RequestBody FridaEntity corrections) {
         try {
             FridaEntity updatedFrida = fridaService.corrigerEtRecalculerFrida(numFrida, corrections);
             return ResponseEntity.ok(updatedFrida);
+        } catch (com.muhend.backendai.calculs.exception.InvalidFamilyCompositionException e) {
+            // Erreur métier (ex. héritier en double) : message affichable au notaire
+            return ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }

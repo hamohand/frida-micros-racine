@@ -53,8 +53,14 @@ public class OcrProcessingController {
      * Appelée depuis l'interface de vérification de la Fiche.
      */
     @PostMapping("/lancer-calcul/{numFrida}")
-    public FridaEntity lancerCalcul(@PathVariable String numFrida) {
-        return dossierProcessingService.lancerCalcul(numFrida);
+    public org.springframework.http.ResponseEntity<?> lancerCalcul(@PathVariable String numFrida) {
+        try {
+            return org.springframework.http.ResponseEntity.ok(dossierProcessingService.lancerCalcul(numFrida));
+        } catch (com.muhend.backendai.calculs.exception.InvalidFamilyCompositionException e) {
+            // Erreur métier (ex. héritier en double) : message affichable au notaire
+            return org.springframework.http.ResponseEntity.badRequest()
+                    .body(java.util.Map.of("message", e.getMessage()));
+        }
     }
 
 }

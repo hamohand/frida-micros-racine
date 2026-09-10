@@ -109,7 +109,7 @@ FridaEntity (succession record)
 1. Frontend uploads documents → Backend (`FileController`, `OcrProcessingController`)
 2. Backend calls OCR API (Python) → receives structured JSON
 3. Backend maps OCR JSON to JPA entities → persists to PostgreSQL
-4. Backend calcule les parts via le module interne `calculs/`
+4. Backend calcule les parts via le module interne `calculs/`, après contrôle des doublons : `DoublonsHeritiersValidator`, appelé en tête de `HeirPartCalculatorService.executerCalcul` (point de passage de tous les calculs), refuse le calcul si un même NIN normalisé figure deux fois dans le dossier, défunt compris. Les NIN absents ou invalides sont ignorés. Réponse 400 avec message, validée aussi côté écran de revue.
 
 ### Folder Naming Convention
 Uploaded files land in `dossiers/<fiche>/{code}_{documentType}[_{entityName}]/<horodatage>_<nom>` (ex. `03_en_en_01`, `02_cni_cni_01`, verso dans `02_cni_cni_01_verso`).

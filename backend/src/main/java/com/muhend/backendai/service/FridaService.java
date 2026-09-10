@@ -108,6 +108,9 @@ public class FridaService {
                 nouveauCalcul.setId(existing.getCalcul().getId()); // prevent duplicate row Insert
             }
             corrections.setCalcul(nouveauCalcul);
+        } catch (com.muhend.backendai.calculs.exception.InvalidFamilyCompositionException e) {
+            // Erreur métier (ex. héritier en double) : son message doit atteindre l'écran
+            throw e;
         } catch (Exception e) {
             log.error("Failed to recalculate parts after correction", e);
             throw new RuntimeException("Erreur de recalcule des parts");

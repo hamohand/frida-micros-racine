@@ -23,9 +23,12 @@ import java.util.List;
 public class HeirPartCalculatorService {
 
     private final CalculPartsService calculPartsService;
+    private final DoublonsHeritiersValidator doublonsValidator;
 
-    public HeirPartCalculatorService(CalculPartsService calculPartsService) {
+    public HeirPartCalculatorService(CalculPartsService calculPartsService,
+                                     DoublonsHeritiersValidator doublonsValidator) {
         this.calculPartsService = calculPartsService;
+        this.doublonsValidator = doublonsValidator;
     }
 
     /**
@@ -51,6 +54,11 @@ public class HeirPartCalculatorService {
 
     private CalculEntity executerCalcul(TraitementContext ctx) {
         FridaEntity ficheFrida = ctx.getFicheFrida();
+
+        // Point de passage de tous les calculs (lancer-calcul et corrections) : un héritier
+        // en double fausserait la répartition sans aucun signal. Hors du try, pour que le
+        // message métier ne soit pas enveloppé dans "Erreur calcul interne".
+        doublonsValidator.verifier(ficheFrida);
 
         // Mapping du sexe du défunt
         String sexeArabe = ficheFrida.getDefunt().getIdentite().getSexe();
