@@ -59,10 +59,14 @@ class HeirPartCalculatorServiceTest {
         ctx.setNbFilles(1);
         // Pas de parents/fratrie pour simplifier ce test
 
-        // Configuration de la réponse mockée
-        Heritier conjoint = new Heritier(HeirType.SPOUSE, new Fraction(5, 40));
-        Heritier garcon = new Heritier(HeirType.SON, new Fraction(14, 40));
-        Heritier fille = new Heritier(HeirType.DAUGHTER, new Fraction(7, 40));
+        // Configuration de la réponse mockée.
+        // Le moteur renvoie ses parts au dénominateur commun, sans réduction
+        // (Fraction(n, d, true)). Le constructeur à deux arguments réduit :
+        // 5/40 devenait 1/8, et le test attendait un dénominateur que le vrai
+        // moteur ne produit jamais sous cette forme.
+        Heritier conjoint = new Heritier(HeirType.SPOUSE, new Fraction(5, 40, true));
+        Heritier garcon = new Heritier(HeirType.SON, new Fraction(14, 40, true));
+        Heritier fille = new Heritier(HeirType.DAUGHTER, new Fraction(7, 40, true));
 
         mockResponse = List.of(conjoint, garcon, fille);
     }
