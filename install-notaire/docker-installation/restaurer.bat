@@ -67,7 +67,12 @@ for /f "usebackq tokens=1,2 delims==" %%a in ("%FRIDA_DIR%\.env") do (
 )
 
 echo.
-echo [1/3] Démarrage de la base...
+echo [1/4] Arret du backend...
+REM PostgreSQL refuse DROP DATABASE tant qu une session est connectee :
+REM le backend doit lacher la base avant la restauration.
+wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env stop backend"
+
+echo [2/4] Démarrage de la base...
 wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env up -d db"
 if errorlevel 1 (
     echo    ERREUR : impossible de démarrer la base.
@@ -75,8 +80,8 @@ if errorlevel 1 (
     exit /b 1
 )
 
-echo [2/3] Restauration de la base de données...
-wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"DROP DATABASE IF EXISTS %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"CREATE DATABASE %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d '%DB_NAME%' < '%LINUX_DIR%/data/backups/%CHOIX%/database.sql'"
+echo [3/4] Restauration de la base de données...
+wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='%DB_NAME%' AND pid<>pg_backend_pid();\" && docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"DROP DATABASE IF EXISTS %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c \"CREATE DATABASE %DB_NAME%;\" && docker exec -i frida-db psql -U '%DB_USER%' -d '%DB_NAME%' < '%LINUX_DIR%/data/backups/%CHOIX%/database.sql'"
 if errorlevel 1 (
     echo    ERREUR : la restauration a échoué.
     pause
@@ -84,13 +89,17 @@ if errorlevel 1 (
 )
 echo    Base restaurée.
 
-echo [3/3] Restauration des documents...
+echo [4/4] Restauration des documents...
 if exist "%SRC%\uploads" (
     xcopy "%SRC%\uploads" "%FRIDA_DIR%\data\uploads\" /E /I /Q /Y >nul
     echo    Documents restaurés.
 ) else (
     echo    Aucun document dans cette sauvegarde.
 )
+
+echo.
+echo Redémarrage de FRIDA...
+wsl -u root -d Ubuntu -e bash -c "cd '%LINUX_DIR%' && docker compose -f docker-compose.local.yml --env-file .env up -d"
 
 echo.
 echo ╔══════════════════════════════════════════════════╗
