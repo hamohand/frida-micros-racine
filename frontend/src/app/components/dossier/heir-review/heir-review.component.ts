@@ -101,7 +101,7 @@ interface Personne {
 
         <!-- Liste des héritiers -->
         <div class="persons-list">
-          <div class="person-card" *ngFor="let h of heritiers; let i = index">
+          <div class="person-card" [class.en-double]="estEnDouble(h)" *ngFor="let h of heritiers; let i = index">
               <div class="info">
                 <span class="name"><span class="demo-blur">{{ h.nom }}</span> {{ h.prenom }}</span>
                 <span class="badge">{{ h.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
@@ -144,12 +144,20 @@ interface Personne {
           </div>
         </div>
 
+        <div class="doublons-alert" *ngIf="getDoublonsNin().length > 0">
+          <strong>⚠️ Une même personne figure plusieurs fois dans ce dossier.</strong>
+          <ul>
+            <li *ngFor="let d of getDoublonsNin()">NIN se terminant par {{ d.fin }} : <span class="demo-blur">{{ d.noms.join(', ') }}</span></li>
+          </ul>
+          <span>Corrigez le NIN ou retirez la personne en double : le calcul des parts reste bloqué tant qu'un doublon subsiste.</span>
+        </div>
+
         <div class="actions">
           <button class="btn btn-secondary" (click)="goBack()">Retourner au carrousel</button>
           <button class="btn btn-danger" (click)="annulerTout()">Tout annuler</button>
           <div class="validation-wrapper" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
             <button class="btn btn-primary" (click)="validateAndCalculate()" 
-                    [disabled]="isCalculating || isAddingHeir || editingIndex !== null || editingDefunt || !authService.isMaitre()">
+                    [disabled]="isCalculating || isAddingHeir || editingIndex !== null || editingDefunt || !authService.isMaitre() || getDoublonsNin().length > 0">
                <span *ngIf="!isCalculating">💾 Sauvegarder et Calculer les Parts</span>
                <span *ngIf="isCalculating"><span class="spinner"></span> Sauvegarde et calcul en cours...</span>
             </button>
@@ -173,6 +181,9 @@ interface Personne {
     
     .persons-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;}
     .person-card { display: flex; justify-content: space-between; align-items: center; padding: 1rem; border: 1px solid rgba(78, 204, 163, 0.2); border-radius: 8px; background: rgba(0, 0, 0, 0.2); }
+    .person-card.en-double { border-color: #ff6b6b; box-shadow: inset 0 0 0 1px #ff6b6b; }
+    .doublons-alert { margin: 1.5rem 0 0; padding: 1rem 1.25rem; border: 1px solid #ff6b6b; border-radius: 8px; background: rgba(255, 107, 107, 0.08); color: #ffb3b3; }
+    .doublons-alert ul { margin: 0.5rem 0; padding-left: 1.25rem; }
     .person-card.defunt { background: rgba(78, 204, 163, 0.1); border-color: var(--accent-color); }
     
     .info { display: flex; align-items: center; flex: 1; flex-wrap: wrap; gap: 10px; }
@@ -450,6 +461,42 @@ export class HeirReviewComponent implements OnInit {
     }
   }
 
+  /** NIN normalisé comme côté backend (NinValidationService), ou null s'il est invalide. */
+  private normaliserNin(nin?: string): string | null {
+    if (!nin) return null;
+    const n = nin.replace(/[\s\-_.]/g, '').toUpperCase()
+      .replace(/[OQ]/g, '0').replace(/[IL]/g, '1').replace(/S/g, '5').replace(/Z/g, '2').replace(/B/g, '8');
+    return /^\d{18}$/.test(n) ? n : null;
+  }
+
+  /** Personnes partageant un même NIN dans ce dossier, défunt compris. */
+  getDoublonsNin(): { fin: string; noms: string[] }[] {
+    const parNin = new Map<string, string[]>();
+    const ajouter = (p: Personne, libelle: string) => {
+      const nin = this.normaliserNin(p.nin);
+      if (!nin) return;
+      const nom = `${p.prenom || ''} ${p.nom || ''}`.trim();
+      parNin.set(nin, [...(parNin.get(nin) || []), nom ? `${libelle} ${nom}` : libelle]);
+    };
+    ajouter(this.defunt, 'le défunt');
+    this.heritiers.forEach(h => ajouter(h, this.getRoleLabel(h.numParente, h.sexe)));
+    return [...parNin.entries()]
+      .filter(([, noms]) => noms.length > 1)
+      .map(([nin, noms]) => ({ fin: nin.slice(-4), noms }));
+  }
+
+  estEnDouble(p: Personne): boolean {
+    const nin = this.normaliserNin(p.nin);
+    if (!nin) return false;
+    return [this.defunt, ...this.heritiers].some(x => x !== p && this.normaliserNin(x.nin) === nin);
+  }
+
+  /** Message métier renvoyé par le backend sur une erreur 400, sinon le message générique. */
+  private messageErreur(err: any, parDefaut: string): string {
+    const metier = err?.status === 400 ? err?.error?.message : null;
+    return metier || parDefaut;
+  }
+
   validateAndCalculate() {
     this.isCalculating = true;
 
@@ -483,14 +530,14 @@ export class HeirReviewComponent implements OnInit {
           error: (err) => {
              console.error("Erreur de calcul", err);
              this.isCalculating = false;
-             alert("Une erreur s'est produite lors du calcul des parts.");
+             alert(this.messageErreur(err, "Une erreur s'est produite lors du calcul des parts."));
           }
         });
       },
       error: (err) => {
         console.error("Erreur de sauvegarde", err);
         this.isCalculating = false;
-        alert("Impossible de sauvegarder la fiche modifiée.");
+        alert(this.messageErreur(err, "Impossible de sauvegarder la fiche modifiée."));
       }
     });
   }

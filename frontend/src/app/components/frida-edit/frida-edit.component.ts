@@ -50,9 +50,11 @@ export class FridaEditComponent implements OnInit {
       this.saving = false;
       // Rediriger vers l'archive avec succès
       this.router.navigate(['/list']);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      this.errorMsg = 'Erreur lors de la sauvegarde. Veuillez vérifier les données.';
+      // Erreur métier (ex. héritier en double) : le backend renvoie un message lisible
+      this.errorMsg = (err?.status === 400 && err?.error?.message)
+        || 'Erreur lors de la sauvegarde. Veuillez vérifier les données.';
       this.saving = false;
     }
   }
