@@ -7,6 +7,7 @@ echo.
 echo ╔══════════════════════════════════════════════════╗
 echo ║        FRIDA — Restauration d'une sauvegarde     ║
 echo ╚══════════════════════════════════════════════════╝
+echo   version 2026-09-10c
 echo.
 
 set "FRIDA_DIR=%USERPROFILE%\Frida-Micros"
@@ -85,8 +86,9 @@ wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d
 if errorlevel 1 goto :erreur_restauration
 wsl -u root -d Ubuntu -e bash -c "docker exec -i frida-db psql -U '%DB_USER%' -d postgres -c 'CREATE DATABASE %DB_NAME%;'"
 if errorlevel 1 goto :erreur_restauration
-REM Le dump est reinjecte via un pipe cote WSL : pas de redirection '<' a faire
-REM traverser cmd.exe, qui la lirait comme une redirection Windows.
+REM Le dump est reinjecte par un pipe cote WSL. Ne jamais faire traverser de
+REM redirection d entree a cmd.exe : il la consommerait comme une redirection
+REM Windows. Ne mettre aucun chevron dans ces commentaires, meme en REM.
 wsl -u root -d Ubuntu -e bash -c "cat '%LINUX_DIR%/data/backups/%CHOIX%/database.sql' | docker exec -i frida-db psql -U '%DB_USER%' -d '%DB_NAME%'"
 if errorlevel 1 goto :erreur_restauration
 echo    Base restaurée.
