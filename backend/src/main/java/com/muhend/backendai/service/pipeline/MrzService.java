@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.muhend.backendai.dto.MrzResult;
 import com.muhend.backendai.entities.IdentitesEntity;
+import com.muhend.backendai.service.ParametreService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -37,13 +38,15 @@ public class MrzService {
     private String ocrApiUrl;
 
     private final RestTemplate restTemplate;
+    private final ParametreService parametreService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // Poids pour le checksum MRZ (ICAO 9303)
     private static final int[] CHECK_WEIGHTS = {7, 3, 1};
 
-    public MrzService(RestTemplate restTemplate) {
+    public MrzService(RestTemplate restTemplate, ParametreService parametreService) {
         this.restTemplate = restTemplate;
+        this.parametreService = parametreService;
     }
 
     // =========================================================================
@@ -238,6 +241,10 @@ public class MrzService {
      */
     public PhoneticResult verifierTranslitteration(String arabe, String latin) {
         if (arabe == null || latin == null || arabe.isEmpty() || latin.isEmpty()) {
+            return PhoneticResult.indisponible();
+        }
+        if (!parametreService.isVerificationPhonetiqueActive()) {
+            // Option décochée dans la page Paramètres : aucun appel, aucune conclusion
             return PhoneticResult.indisponible();
         }
         try {

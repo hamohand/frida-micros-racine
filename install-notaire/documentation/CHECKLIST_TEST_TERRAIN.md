@@ -71,6 +71,8 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test de lecture du QR code
 - [ ] **Sans documents réels** : `python scripts/generer_extraits_test.py` produit des extraits fictifs lisibles par l OCR (NIN uniques, fils et filles) pour tester plusieurs enfants et les doublons
 - [ ] Le QR code est-il décodé (nom, prénom, date et lieu de naissance, sexe) ?
+- [ ] L'entité proposée par défaut pour un extrait de naissance est-elle `en_01_qrcode_01` ?
+- [ ] Compte Maître : la page **Paramètres** (menu du haut) s'ouvre-t-elle, avec « Vérification phonétique des noms » **décochée** ? La cocher, recharger la page : reste-t-elle cochée ? (la décocher ensuite ; cochée, les extraits fictifs du générateur sont signalés car leurs noms « arabes » sont en lettres latines)
 - [ ] Si le QR est absent, abîmé ou illisible : le message d'erreur est-il compréhensible pour le notaire ?
 
 > Rappel : l'OCR ne lit **que des QR codes**. Aucune extraction de texte d'image

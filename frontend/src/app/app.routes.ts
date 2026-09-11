@@ -23,6 +23,11 @@ export const routes: Routes = [
     canActivate: [maitreGuard],
     loadComponent: () => import('./components/admin/user-management/user-management.component').then(m => m.UserManagementComponent) 
   },
+  {
+    path: 'parametres',
+    canActivate: [maitreGuard],
+    loadComponent: () => import('./components/admin/parametres/parametres.component').then(m => m.ParametresComponent)
+  },
   { 
     path: 'create', 
     canActivate: [authGuard],

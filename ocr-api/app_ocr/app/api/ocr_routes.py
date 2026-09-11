@@ -669,3 +669,78 @@ def api_mrz_lire():
 
     return jsonify(result)
 
+
+# =============================================================================
+# TRANSLITTÉRATION (Arabe <-> Latin)
+# Reprise d'easytess_ocr_api. Appelée par le backend (MrzService.verifierTranslitteration)
+# uniquement si l'option « Vérification phonétique des noms » est cochée (page Paramètres).
+# =============================================================================
+
+def arabic_to_latin(text):
+    if not text: return ""
+    mapping = {
+        'ا': 'A', 'أ': 'A', 'إ': 'A', 'آ': 'A',
+        'ب': 'B', 'ت': 'T', 'ث': 'TH', 'ج': 'J',
+        'ح': 'H', 'خ': 'KH', 'د': 'D', 'ذ': 'DH',
+        'ر': 'R', 'ز': 'Z', 'س': 'S', 'ش': 'CH',
+        'ص': 'S', 'ض': 'D', 'ط': 'T', 'ظ': 'Z',
+        'ع': 'A', 'غ': 'GH', 'ف': 'F', 'ق': 'K',
+        'ك': 'K', 'ل': 'L', 'م': 'M', 'ن': 'N',
+        'ه': 'H', 'و': 'W', 'ي': 'Y', 'ة': 'A',
+        'ى': 'A', 'ئ': 'I', 'ؤ': 'OU'
+    }
+    res = []
+    for c in text:
+        if c in mapping:
+            res.append(mapping[c])
+    return "".join(res)
+
+def normalize_latin(text):
+    if not text: return ""
+    vowels = "AEIOUY"
+    res = []
+    text = text.upper()
+    for i, c in enumerate(text):
+        if c.isalpha():
+            # Garder la première lettre même si c'est une voyelle (ex: OMAR)
+            # ou si c'est une consonne
+            if i == 0 or c not in vowels:
+                res.append(c)
+    return "".join(res)
+
+@ocr_bp.route('/api/translitteration/verifier', methods=['POST'])
+def api_translitteration_verifier():
+    """
+    Vérifie phonétiquement si un nom arabe correspond à un nom latin (MRZ).
+    """
+    data = request.get_json()
+    if not data or 'arabe' not in data or 'latin' not in data:
+        return jsonify({"success": False, "error": "Paramètres 'arabe' et 'latin' requis"}), 400
+
+    arabe = str(data['arabe']).strip()
+    latin = str(data['latin']).strip()
+
+    arabe_translit = arabic_to_latin(arabe)
+    latin_norm = normalize_latin(latin)
+
+    if not arabe_translit or not latin_norm:
+        return jsonify({"success": True, "match": False, "score": 0.0})
+
+    try:
+        from rapidfuzz import fuzz
+        score = fuzz.ratio(arabe_translit, latin_norm)
+    except ImportError:
+        # rapidfuzz n'est pas installé dans l'image allégée : repli sur la bibliothèque standard
+        import difflib
+        score = difflib.SequenceMatcher(None, arabe_translit, latin_norm).ratio() * 100.0
+
+    # Un score > 60% est généralement bon pour cette translittération phonétique basique
+    match = score > 60.0
+
+    return jsonify({
+        "success": True,
+        "match": match,
+        "score": score,
+        "arabe_translit": arabe_translit,
+        "latin_norm": latin_norm
+    })

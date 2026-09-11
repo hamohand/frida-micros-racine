@@ -1,5 +1,6 @@
 package com.muhend.backendai.service.pipeline;
 
+import com.muhend.backendai.service.ParametreService;
 import com.muhend.backendai.service.pipeline.MrzService.PhoneticResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,9 +23,9 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
- * Une vérification phonétique impossible ne doit pas être prise pour une incohérence.
- * Constaté le 2026-09-11 : la route /api/translitteration/verifier n'existe pas dans
- * ocr-api, et chaque nom était signalé « Incohérence phonétique (0 %) ».
+ * Une vérification phonétique impossible ou désactivée ne doit pas être prise pour une incohérence.
+ * Constaté le 2026-09-11 : la route /api/translitteration/verifier manquait dans ocr-api, et
+ * chaque nom était signalé « Incohérence phonétique (0 %) ».
  */
 @ExtendWith(MockitoExtension.class)
 class MrzServiceTranslitterationTest {
@@ -32,18 +33,32 @@ class MrzServiceTranslitterationTest {
     @Mock
     private RestTemplate restTemplate;
 
+    @Mock
+    private ParametreService parametreService;
+
     private MrzService mrzService;
 
     @BeforeEach
     void setUp() {
-        mrzService = new MrzService(restTemplate);
+        mrzService = new MrzService(restTemplate, parametreService);
         ReflectionTestUtils.setField(mrzService, "ocrApiUrl", "http://ocr-api:8082");
+        lenient().when(parametreService.isVerificationPhonetiqueActive()).thenReturn(true);
     }
 
     @AfterEach
     void nettoyer() throws Exception {
         // verifierTranslitteration écrit un fichier de débogage dans le répertoire courant
         Files.deleteIfExists(Paths.get("phonetic_debug.txt"));
+    }
+
+    @Test
+    void optionDecochee_AucunAppelEtResultatIndisponible() {
+        when(parametreService.isVerificationPhonetiqueActive()).thenReturn(false);
+
+        PhoneticResult res = mrzService.verifierTranslitteration("أحمد", "AHMED");
+
+        assertFalse(res.disponible);
+        verifyNoInteractions(restTemplate);
     }
 
     @Test
