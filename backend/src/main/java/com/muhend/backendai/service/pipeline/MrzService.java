@@ -149,8 +149,8 @@ public class MrzService {
             ocrResult.setLatines(mrz.getSurname());
             // Validation croisée du nom arabe
             if (ocrResult.getNom() != null && !ocrResult.getNom().isEmpty()) {
-                resNom = verifierTranslitteration(ocrResult.getNom(), mrz.getSurname());
-                if (!resNom.match) {
+                resNom = PhoneticResult.siDisponible(verifierTranslitteration(ocrResult.getNom(), mrz.getSurname()));
+                if (resNom != null && !resNom.match) {
                     ocrResult.setRequiresCorrection(true);
                     nomMismatch = true;
                 }
@@ -160,8 +160,8 @@ public class MrzService {
             ocrResult.setPrenomLatines(mrz.getGivenNames());
             // Validation croisée du prénom arabe
             if (ocrResult.getPrenom() != null && !ocrResult.getPrenom().isEmpty()) {
-                resPrenom = verifierTranslitteration(ocrResult.getPrenom(), mrz.getGivenNames());
-                if (!resPrenom.match) {
+                resPrenom = PhoneticResult.siDisponible(verifierTranslitteration(ocrResult.getPrenom(), mrz.getGivenNames()));
+                if (resPrenom != null && !resPrenom.match) {
                     ocrResult.setRequiresCorrection(true);
                     prenomMismatch = true;
                 }
@@ -212,8 +212,24 @@ public class MrzService {
         public double score;
         public String translit;
         public String norm;
+        /**
+         * false quand la vérification n'a pas pu avoir lieu : service injoignable, route absente,
+         * réponse en échec ou nom vide. Un tel résultat ne prouve aucune incohérence.
+         */
+        public boolean disponible;
         public PhoneticResult(boolean match, double score, String translit, String norm) {
+            this(match, score, translit, norm, true);
+        }
+        public PhoneticResult(boolean match, double score, String translit, String norm, boolean disponible) {
             this.match = match; this.score = score; this.translit = translit; this.norm = norm;
+            this.disponible = disponible;
+        }
+        public static PhoneticResult indisponible() {
+            return new PhoneticResult(false, 0.0, "", "", false);
+        }
+        /** Le résultat s'il est exploitable, sinon null : l'appelant n'en tire alors aucune conclusion. */
+        public static PhoneticResult siDisponible(PhoneticResult resultat) {
+            return (resultat != null && resultat.disponible) ? resultat : null;
         }
     }
 
@@ -222,7 +238,7 @@ public class MrzService {
      */
     public PhoneticResult verifierTranslitteration(String arabe, String latin) {
         if (arabe == null || latin == null || arabe.isEmpty() || latin.isEmpty()) {
-            return new PhoneticResult(false, 0.0, "", "");
+            return PhoneticResult.indisponible();
         }
         try {
             String url = ocrApiUrl + "/api/translitteration/verifier";
@@ -278,7 +294,7 @@ public class MrzService {
                 );
             } catch (Exception ex) {}
         }
-        return new PhoneticResult(false, 0.0, "", "");
+        return PhoneticResult.indisponible();
     }
 
     // =========================================================================

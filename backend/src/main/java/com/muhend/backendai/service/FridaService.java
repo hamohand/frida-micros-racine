@@ -236,10 +236,14 @@ public class FridaService {
                 } else if (arabe != null && !arabe.isEmpty() && latin != null && !latin.isEmpty()) {
                     // Calcul à la volée pour les anciens dossiers
                     MrzService.PhoneticResult res = mrzService.verifierTranslitteration(arabe, latin);
-                    hasPhonetic = true;
-                    phoneticScore = res.score;
-                    translit = res.translit;
-                    phoneticMatch = res.match;
+                    // Si le service de translittération ne répond pas, on ne conclut rien :
+                    // une panne ne doit pas faire passer des noms corrects pour incohérents.
+                    if (res.disponible) {
+                        hasPhonetic = true;
+                        phoneticScore = res.score;
+                        translit = res.translit;
+                        phoneticMatch = res.match;
+                    }
                 }
                 
                 if (hasPhonetic) {

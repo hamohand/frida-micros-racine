@@ -167,15 +167,15 @@ public class OcrMappingService {
                         PhoneticResult resPrenom = null;
                         
                         if (mrz.getSurname() != null && !mrz.getSurname().isEmpty() && result.getNom() != null && !result.getNom().isEmpty()) {
-                            resNom = mrzService.verifierTranslitteration(result.getNom(), mrz.getSurname());
-                            if (!resNom.match) {
+                            resNom = PhoneticResult.siDisponible(mrzService.verifierTranslitteration(result.getNom(), mrz.getSurname()));
+                            if (resNom != null && !resNom.match) {
                                 nomMismatch = true;
                                 result.setRequiresCorrection(true);
                             }
                         }
                         if (mrz.getGivenNames() != null && !mrz.getGivenNames().isEmpty() && result.getPrenom() != null && !result.getPrenom().isEmpty()) {
-                            resPrenom = mrzService.verifierTranslitteration(result.getPrenom(), mrz.getGivenNames());
-                            if (!resPrenom.match) {
+                            resPrenom = PhoneticResult.siDisponible(mrzService.verifierTranslitteration(result.getPrenom(), mrz.getGivenNames()));
+                            if (resPrenom != null && !resPrenom.match) {
                                 prenomMismatch = true;
                                 result.setRequiresCorrection(true);
                             }
@@ -293,15 +293,15 @@ public class OcrMappingService {
         PhoneticResult resPrenom = null;
 
         if (ocrEntity.getNom() != null && !ocrEntity.getNom().isEmpty() && nfcEntity.getLatines() != null && !nfcEntity.getLatines().isEmpty()) {
-            resNom = mrzService.verifierTranslitteration(ocrEntity.getNom(), nfcEntity.getLatines());
-            if (!resNom.match) {
+            resNom = PhoneticResult.siDisponible(mrzService.verifierTranslitteration(ocrEntity.getNom(), nfcEntity.getLatines()));
+            if (resNom != null && !resNom.match) {
                 ocrEntity.setRequiresCorrection(true);
                 nomMismatch = true;
             }
         }
         if (ocrEntity.getPrenom() != null && !ocrEntity.getPrenom().isEmpty() && nfcEntity.getPrenomLatines() != null && !nfcEntity.getPrenomLatines().isEmpty()) {
-            resPrenom = mrzService.verifierTranslitteration(ocrEntity.getPrenom(), nfcEntity.getPrenomLatines());
-            if (!resPrenom.match) {
+            resPrenom = PhoneticResult.siDisponible(mrzService.verifierTranslitteration(ocrEntity.getPrenom(), nfcEntity.getPrenomLatines()));
+            if (resPrenom != null && !resPrenom.match) {
                 ocrEntity.setRequiresCorrection(true);
                 prenomMismatch = true;
             }
