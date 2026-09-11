@@ -57,7 +57,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
             </select>
             <select *ngIf="getEntitiesForDocType(file.docType).length > 0" [(ngModel)]="file.entityName" class="select-doc-type file-select">
               <option *ngFor="let ent of getEntitiesForDocType(file.docType)" [value]="ent">
-                {{ ent }} {{ ent === file.docType + '_01' ? '(par défaut)' : '' }}
+                {{ ent }} {{ ent === entiteDefaut(file.docType) ? '(par défaut)' : '' }}
               </option>
             </select>
           </div>
@@ -268,6 +268,15 @@ export class FileUploadComponent implements OnInit {
 
   showNfcModal: boolean = false;
 
+  /** Entité OCR proposée par défaut, par type de document (sinon {type}_01). */
+  private readonly entitesParDefaut: Record<string, string> = {
+    en: 'en_01_qrcode_01'
+  };
+
+  entiteDefaut(docType: string): string {
+    return this.entitesParDefaut[docType] || docType + '_01';
+  }
+
   availableEntities: Record<string, string[]> = {
     'cni': [],
     'en': [],
@@ -351,14 +360,14 @@ export class FileUploadComponent implements OnInit {
         id: uuidv4(),
         progress: 0,
         docType: docType,
-        entityName: docType + '_01'
+        entityName: this.entiteDefaut(docType)
       });
     });
     this.pendingFilesChanged.emit(this.uploadedFiles.length);
   }
 
   onDocTypeChange(file: UploadedFile) {
-    file.entityName = file.docType + '_01';
+    file.entityName = this.entiteDefaut(file.docType);
   }
 
   validateFile(file: File): boolean {

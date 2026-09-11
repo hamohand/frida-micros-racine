@@ -2,7 +2,7 @@
 """
 Génère des extraits d'acte de naissance FICTIFS pour tester FRIDA.
 
-Chaque page est une image A4 portant un QR code au format lu par l'OCR (entité en_01) :
+Chaque page est une image A4 portant un QR code au format lu par l'OCR (entité en_01_qrcode_01) :
 séquences séparées par « * », nom et prénom en positions 4 et 5, date en 6, sexe en 12,
 NIN = premiers 18 chiffres consécutifs. Le QR code est placé dans la zone que l'OCR
 découpe (bas gauche de la page). Toutes les identités sont inventées, les NIN commencent
@@ -20,7 +20,7 @@ import os
 import qrcode
 from PIL import Image, ImageDraw, ImageFont
 
-# Zone QR de l'entité en_01 (coordonnées relatives x1, y1, x2, y2)
+# Zone QR de l'entité en_01_qrcode_01 (coordonnées relatives x1, y1, x2, y2)
 ZONE_QR = (0.0761789600967352, 0.7360319270239453, 0.40870616686819833, 0.9729190421892816)
 LARGEUR, HAUTEUR = 1240, 1754  # A4 à 150 dpi
 MASCULIN, FEMININ = "ذكر", "أنثى"

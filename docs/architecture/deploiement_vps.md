@@ -2,7 +2,7 @@
 
 ## L'idée en résumé
 
-Déployer **tout sur le VPS** mais avec un service OCR **allégé** qui ne fait que la lecture QR code (entité `en_01`). Les CNI/passeports, plus rares et plus lourds, restent en option locale.
+Déployer **tout sur le VPS** mais avec un service OCR **allégé** qui ne fait que la lecture QR code (entité `en_01_qrcode_01`, par défaut depuis le 2026-09-11 ; `en_01` a la même zone). Les CNI/passeports, plus rares et plus lourds, restent en option locale.
 
 ```mermaid
 graph LR
@@ -25,7 +25,7 @@ graph LR
 
 ### 1. Le QR code de l'extrait de naissance contient déjà tout
 
-L'entité `en_01` définit **une seule zone** de type `"qrcode"`. Le QR code de l'extrait de naissance algérien contient les données structurées : nom, prénom, date de naissance, lieu, sexe, etc.
+L'entité `en_01_qrcode_01` (comme `en_01`) définit **une seule zone** de type `"qrcode"`. Le QR code de l'extrait de naissance algérien contient les données structurées : nom, prénom, date de naissance, lieu, sexe, etc.
 
 > [!TIP]
 > Pas besoin de Tesseract, EasyOCR ou PaddleOCR pour lire un QR code. **pyzbar + OpenCV** suffisent amplement.
