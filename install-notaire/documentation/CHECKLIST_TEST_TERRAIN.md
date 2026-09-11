@@ -33,6 +33,7 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] Regarder si `apt-get update` renvoie des erreurs (proxy, DNS)
 - [ ] Regarder si `curl -fsSL https://get.docker.com | sh` télécharge sans warning
 - [ ] Si échec : `wsl -d Ubuntu -e bash -c "curl -v https://get.docker.com"` pour capturer l'erreur exacte
+- [ ] En cas d'échec, lire `C:\Users\<nom>\Frida-Micros\install-docker.log` : le journal complet de l'installation de Docker, dont les 25 dernières lignes s'affichent aussi dans la console. `Network is unreachable` sur des adresses IPv6 signale le problème réseau connu (apt est forcé en IPv4)
 - [ ] Après install : vérifier `wsl -u root -d Ubuntu -e docker --version` → doit renvoyer une version
 
 ## Phase 3 — Extraction zip

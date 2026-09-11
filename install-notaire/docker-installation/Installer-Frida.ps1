@@ -170,6 +170,52 @@ $appUrl = if ($portWeb -eq "80") { "http://localhost" } else { "http://localhost
 # ------------------------------------------------------------
 #  Phase 3 : Installation de Docker dans WSL Ubuntu
 # ------------------------------------------------------------
+# Script d'installation de Docker execute dans WSL (voir installer-docker.sh)
+$contenuScriptDocker = @'
+#!/bin/bash
+# Installation de Docker dans WSL Ubuntu, lancee par Installer-Frida.ps1 (etape 3).
+# Le journal complet est ecrit a cote de ce script : install-docker.log
+set -u
+export DEBIAN_FRONTEND=noninteractive
+JOURNAL="$(dirname "$0")/install-docker.log"
+: > "$JOURNAL"
+
+# WSL n'a en general pas d'acces IPv6, alors que le DNS renvoie d'abord des adresses
+# IPv6 : apt echoue alors sur "Network is unreachable" (constate le 2026-09-11).
+echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99frida-force-ipv4
+# Precaution : au premier demarrage, systemd peut lancer une mise a jour apt en
+# arriere-plan ; attendre le verrou plutot qu'echouer.
+echo 'DPkg::Lock::Timeout "300";' > /etc/apt/apt.conf.d/99frida-lock-timeout
+
+essayer() {
+    local tentative
+    for tentative in 1 2 3; do
+        echo "--- $* (tentative $tentative) ---" >> "$JOURNAL"
+        if "$@" >> "$JOURNAL" 2>&1; then
+            return 0
+        fi
+        echo "  Tentative $tentative echouee, nouvel essai dans 15 secondes..."
+        sleep 15
+    done
+    return 1
+}
+
+echo "Mise a jour de la liste des paquets..."
+essayer apt-get update || { echo "ECHEC : mise a jour des paquets (apt-get update)"; exit 1; }
+
+echo "Installation de curl..."
+essayer apt-get install -y curl ca-certificates || { echo "ECHEC : installation de curl"; exit 1; }
+
+echo "Telechargement du script officiel Docker..."
+essayer curl -fsSL https://get.docker.com -o /tmp/get-docker.sh || { echo "ECHEC : telechargement de get.docker.com"; exit 1; }
+
+echo "Installation de Docker (3 a 5 minutes)..."
+essayer sh /tmp/get-docker.sh || { echo "ECHEC : installation de Docker"; exit 1; }
+
+command -v docker >/dev/null || { echo "ECHEC : docker introuvable apres installation"; exit 1; }
+echo "Docker installe : $(docker --version)"
+'@
+
 Write-Section "[3/5] Installation de Docker dans WSL Ubuntu"
 Write-Host "(Cette etape peut prendre 3 a 5 minutes la premiere fois.)"
 
@@ -178,13 +224,21 @@ if ($dockerCheck -match "installed") {
     Write-Host "Docker deja installe dans WSL." -ForegroundColor Green
 } else {
     Write-Host "Installation de Docker via le script officiel get.docker.com ..."
-    # Le script officiel installe docker-ce + le plugin compose v2
-    wsl -u root -d Ubuntu -e bash -c "apt-get update -qq && apt-get install -y -qq curl ca-certificates && curl -fsSL https://get.docker.com | sh" 2>&1 | Out-Host
+    # Script bash dedie, ecrit dans le dossier d'installation avec des fins de ligne Unix :
+    # evite les pieges de passage d'arguments entre PowerShell et wsl, et laisse un
+    # journal complet (install-docker.log) a cote des donnees.
+    $scriptDocker = Join-Path $targetPath "installer-docker.sh"
+    [System.IO.File]::WriteAllText($scriptDocker, $contenuScriptDocker.Replace("`r`n", "`n"))
+    wsl -u root -d Ubuntu -e bash "$linuxPath/installer-docker.sh" 2>&1 | Out-Host
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""
         Write-Host "ERREUR : L'installation de Docker a echoue." -ForegroundColor Red
-        Write-Host "Verifiez votre connexion Internet et relancez ce script."
+        Write-Host "Dernieres lignes du journal ($targetPath\install-docker.log) :" -ForegroundColor Yellow
+        wsl -u root -d Ubuntu -e tail -n 25 "$linuxPath/install-docker.log" 2>&1 | Out-Host
+        Write-Host ""
+        Write-Host "Verifiez la connexion Internet, puis relancez ce script."
+        Write-Host "Si l'echec persiste, envoyez le fichier install-docker.log au support."
         pause
         exit 1
     }
