@@ -68,6 +68,7 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] Écran d'accueil rendu correctement (police, styles, icônes Material)
 - [ ] Créer un nouveau dossier de test
 - [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test de lecture du QR code
+- [ ] **Sans documents réels** : `python scripts/generer_extraits_test.py` produit des extraits fictifs lisibles par l OCR (NIN uniques, fils et filles) pour tester plusieurs enfants et les doublons
 - [ ] Le QR code est-il décodé (nom, prénom, date et lieu de naissance, sexe) ?
 - [ ] Si le QR est absent, abîmé ou illisible : le message d'erreur est-il compréhensible pour le notaire ?
 
