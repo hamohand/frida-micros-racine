@@ -140,17 +140,34 @@ $linuxPath = $linuxPath.Trim()
 # Identifiants applicatifs : un mot de passe unique par poste, genere une seule
 # fois et conserve dans le .env. Aucun mot de passe par defaut n'est livre.
 $envContent = Get-Content $envInTarget -Raw
-if ($envContent -notmatch '(?m)^\s*ADMIN_PASSWORD\s*=\s*\S') {
+if ($envContent -notmatch '(?m)^[ \t]*ADMIN_PASSWORD[ \t]*=[ \t]*\S') {
     $bytes = New-Object byte[] 9
     [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
     $generated = [Convert]::ToBase64String($bytes).Replace('+','').Replace('/','').Replace('=','')
-    if ($envContent -match '(?m)^\s*ADMIN_PASSWORD\s*=') {
-        $envContent = $envContent -replace '(?m)^\s*ADMIN_PASSWORD\s*=.*$', "ADMIN_PASSWORD=$generated"
+    if ($envContent -match '(?m)^[ \t]*ADMIN_PASSWORD[ \t]*=') {
+        $envContent = $envContent -replace '(?m)^[ \t]*ADMIN_PASSWORD[ \t]*=.*$', "ADMIN_PASSWORD=$generated"
     } else {
         $envContent = $envContent.TrimEnd() + "`r`nADMIN_PASSWORD=$generated`r`n"
     }
     Set-Content -Path $envInTarget -Value $envContent -Encoding ASCII
     Write-Host "Mot de passe applicatif genere pour ce poste." -ForegroundColor Green
+}
+
+# Cle de signature des jetons de connexion : propre au poste, generee une seule fois.
+# Sans elle, toutes les installations signeraient avec la meme cle et un jeton Maitre
+# pourrait etre fabrique pour n'importe quel poste.
+$envContent = Get-Content $envInTarget -Raw
+if ($envContent -notmatch '(?m)^[ \t]*JWT_SECRET[ \t]*=[ \t]*\S') {
+    $bytes = New-Object byte[] 48
+    [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+    $jwtSecret = [Convert]::ToBase64String($bytes).Replace('+','-').Replace('/','_')
+    if ($envContent -match '(?m)^[ \t]*JWT_SECRET[ \t]*=') {
+        $envContent = $envContent -replace '(?m)^[ \t]*JWT_SECRET[ \t]*=.*$', "JWT_SECRET=$jwtSecret"
+    } else {
+        $envContent = $envContent.TrimEnd() + "`r`nJWT_SECRET=$jwtSecret`r`n"
+    }
+    Set-Content -Path $envInTarget -Value $envContent -Encoding ASCII
+    Write-Host "Cle de connexion generee pour ce poste." -ForegroundColor Green
 }
 
 # Relecture des identifiants effectifs

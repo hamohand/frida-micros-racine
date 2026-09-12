@@ -34,6 +34,7 @@ services:
       BACKEND_PORT: ${BACKEND_PORT}
       SPRING_PROFILES_ACTIVE: docker
       APP_DEMO_MODE: "true"
+      JWT_SECRET: ${JWT_SECRET:-}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json

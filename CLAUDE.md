@@ -147,6 +147,7 @@ Copy `.env.example` to `.env` and set values. Key variables:
 - `SAUVEGARDES_LECTURE_SEULE` — `true` sur la démo publique : sauvegardes et archives consultables, mais ni créées, ni restaurées, ni supprimées, ni téléchargées.
 - `BACKUP_PATH`, `BACKUP_AUTO_ENABLED`, `BACKUP_AUTO_KEEP`, `ARCHIVE_AUTO_ENABLED` — une sauvegarde est un dossier `<nom>/database.sql` + `<nom>/uploads`, le format de `sauvegarder.bat` / `restaurer.bat`. Sauvegarde automatique si la dernière a plus de 24 h ; archivage automatique désactivé par défaut. Restaurer, supprimer, télécharger et archiver sont réservés au rôle Maître ; le téléchargement passe par un lien à usage unique (`/api/telechargements/<jeton>`, 60 s).
 - Le backend tourne à l'heure `Europe/Paris` (`ENV TZ` dans `backend/Dockerfile`).
+- `JWT_SECRET` — clé de signature des jetons de connexion, 32 caractères minimum. Générée par poste par `Installer-Frida.ps1` dans le `.env` notaire. Absente : clé aléatoire à chaque démarrage (connexions perdues au redémarrage) ; l'ancienne valeur par défaut, publiée dans le dépôt, est refusée. Une requête sans jeton valide reçoit 401 (403 = droits insuffisants), et le frontend renvoie alors à la page de connexion.
 
 > **Note compose subdirectory**: les fichiers de `compose/` ne chargent PAS automatiquement le `.env` de la racine. Utiliser `docker compose --env-file .env -f compose/xxx.yml ...` si nécessaire.
 

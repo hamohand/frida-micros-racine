@@ -62,6 +62,7 @@ services:
       - APP_DEMO_MODE=false
       - ADMIN_USERNAME=${ADMIN_USERNAME:-maitre}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET:-}
       - ROOT_PATH=/app/uploads
       - BACKUP_AUTO_ENABLED=true
       # Sauvegardes au format de sauvegarder.bat, dans data\backups (monté ci-dessous)

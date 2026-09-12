@@ -47,6 +47,12 @@ il en génère un aléatoire et le journalise. L'installeur en génère un à la
 exécution, l'écrit dans le `.env` de l'installation, et le remet au notaire via une popup
 et le fichier `IDENTIFIANTS.txt`. Relancer l'installeur ne le régénère pas.
 
+Il génère de la même façon `JWT_SECRET`, la clé qui signe les jetons de connexion (48 octets
+aléatoires, 64 caractères), écrite dans le `.env` et jamais affichée. Jusqu'au 2026-09-12, le
+backend utilisait une valeur par défaut publiée dans le dépôt : tout le monde pouvait fabriquer un
+jeton Maître valable sur n'importe quel poste. Une installation existante reçoit sa clé à la
+prochaine exécution de l'installeur ; les utilisateurs doivent alors se reconnecter une fois.
+
 `sauvegarder.bat` et `desinstaller.bat` agissent sur l'installation (`%USERPROFILE%\Frida-Micros`),
 pas sur le dossier d'où ils sont lancés : l'installeur les y recopie en phase 2 pour que le notaire
 les trouve à côté de ses données. Ils pilotent Docker **via WSL** (`wsl -u root -d Ubuntu -e bash -c ...`),

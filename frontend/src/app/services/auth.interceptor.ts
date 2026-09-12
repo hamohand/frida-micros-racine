@@ -23,6 +23,12 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       if (error.status === 403 && error.error && error.error.code === 'LICENSE_REQUIRED') {
         router.navigate(['/license']);
       }
+      // Jeton refusé (expiré après 24 h, ou signé avec une autre clé) : retour à la connexion,
+      // plutôt que des écrans qui échouent en silence avec un jeton inutilisable.
+      if (error.status === 401 && token && !req.url.includes('/api/auth/login')) {
+        authService.logout();
+        router.navigate(['/login']);
+      }
       return throwError(() => error);
     })
   );

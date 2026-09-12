@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -14,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -64,6 +66,10 @@ public class WebSecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
+            // Sans jeton valide (absent, expiré, autre clé) : 401, et non 403 réservé aux droits
+            // insuffisants. Le frontend renvoie alors à la page de connexion.
+            .exceptionHandling(exceptions -> exceptions
+                    .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**", "/api/calculs/**").permitAll()
@@ -72,6 +78,8 @@ public class WebSecurityConfig {
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     // Liens de téléchargement à usage unique, créés par un compte Maître (TelechargementService)
                     .requestMatchers(HttpMethod.GET, "/api/telechargements/*").permitAll()
+                    // Page d'erreur interne : ne pas masquer une erreur par un 401
+                    .requestMatchers("/error").permitAll()
                     .anyRequest().authenticated()
             );
 

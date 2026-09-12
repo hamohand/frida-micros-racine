@@ -36,6 +36,7 @@ services:
       # Mode démo (connexion automatique en Maître) : désactivé par défaut dans le code
       # depuis le 2026-09-12, gardé actif sur le poste de développement.
       APP_DEMO_MODE: ${APP_DEMO_MODE:-true}
+      JWT_SECRET: ${JWT_SECRET:-}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json

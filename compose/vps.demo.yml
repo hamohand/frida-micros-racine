@@ -60,6 +60,7 @@ services:
       - APP_DEMO_MODE=true
       # Visiteurs anonymes en Maître : sauvegardes et archives en lecture seule
       - SAUVEGARDES_LECTURE_SEULE=true
+      - JWT_SECRET=${JWT_SECRET:-}
     volumes:
       - frida_uploads:/app/uploads
     depends_on:

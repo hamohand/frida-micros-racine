@@ -66,6 +66,9 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] Le fichier `C:\Users\<nom>\Frida-Micros\IDENTIFIANTS.txt` existe-t-il, avec le même mot de passe ?
 - [ ] La connexion avec ces identifiants fonctionne-t-elle ?
 - [ ] Relancer `Installer-Frida.bat` : le mot de passe reste-t-il le même (pas de régénération) ?
+- [ ] Le `.env` contient-il une ligne `JWT_SECRET=` non vide, inchangée après la relance de l'installeur ?
+- [ ] Connecté, faire `Arreter-Frida` puis `Demarrer-Frida` et recharger la page : est-on toujours connecté ? (sinon `JWT_SECRET` n'est pas lu)
+- [ ] Sur une installation antérieure mise à jour : la première page renvoie-t-elle proprement à la connexion (et non des écrans en erreur) ?
 - [ ] Écran d'accueil rendu correctement (police, styles, icônes Material)
 - [ ] Créer un nouveau dossier de test
 - [ ] **Uploader un vrai extrait de naissance algérien** (celui du notaire) — c'est **le** vrai test de lecture du QR code
