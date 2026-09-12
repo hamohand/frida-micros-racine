@@ -26,6 +26,14 @@
     <button class="alert-close" (click)="message = ''">✕</button>
   </div>
 
+  <!-- Restauration réussie : message en clair, annulation en un clic -->
+  <div *ngIf="derniereRestauration && activeTab === 'backups'" class="alert success">
+    <span class="alert-icon">✅</span>
+    <span>{{ derniereRestauration.message }}</span>
+    <button class="btn-secondary" (click)="annulerRestauration()" [disabled]="loading">↩️ Annuler cette restauration</button>
+    <button class="alert-close" (click)="derniereRestauration = null" title="Fermer">✕</button>
+  </div>
+
   <!-- Overlay de chargement -->
   <div class="loading-overlay" *ngIf="loading">
     <div class="spinner"></div>

@@ -263,6 +263,15 @@ public class BackupService {
         return dossier;
     }
 
+    /** Informations d'une sauvegarde existante (mêmes contrôles que {@link #localiser}). */
+    public BackupInfo informations(String nom) {
+        BackupInfo info = lireInfo(localiser(nom));
+        if (info == null) {
+            throw new NoSuchElementException("Sauvegarde illisible : " + nom);
+        }
+        return info;
+    }
+
     /** Écrit la sauvegarde en .zip dans le flux (téléchargement). */
     public void zipper(Path dossier, OutputStream sortie) throws IOException {
         ZipOutputStream zip = new ZipOutputStream(sortie);

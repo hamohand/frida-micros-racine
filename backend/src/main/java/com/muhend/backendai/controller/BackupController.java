@@ -12,7 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -24,6 +27,10 @@ import java.util.NoSuchElementException;
 public class BackupController {
 
     static final String MESSAGE_LECTURE_SEULE = "Action désactivée sur la démonstration en ligne.";
+
+    private static final DateTimeFormatter DATE_LISIBLE = DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm", Locale.FRANCE);
+    private static final DateTimeFormatter DATE_LISIBLE_SECONDES =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 'à' HH:mm:ss", Locale.FRANCE);
 
     private final BackupService backupService;
     private final TelechargementService telechargementService;
@@ -58,10 +65,15 @@ public class BackupController {
         }
         try {
             String securite = backupService.restoreBackup(fileName);
+            String[] dates = datesLisibles(fileName, securite);
+            String dateSauvegarde = dates[0];
+            String dateSecurite = dates[1];
             return ResponseEntity.ok(Map.of(
-                    "message", "Retour à l'état de la sauvegarde " + fileName + " effectué. L'état précédent a été "
-                            + "sauvegardé dans " + securite + " : restaurez-la pour annuler.",
-                    "sauvegardeDeSecurite", securite));
+                    "message", "FRIDA est revenu à l'état du " + dateSauvegarde + ". Ce que vous aviez fait depuis "
+                            + "a été mis de côté dans la sauvegarde du " + dateSecurite + ", marquée « Avant restauration ».",
+                    "sauvegardeDeSecurite", securite,
+                    "dateSauvegarde", dateSauvegarde,
+                    "dateSecurite", dateSecurite));
         } catch (IllegalArgumentException e) {
             return erreur(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoSuchElementException e) {
@@ -107,6 +119,30 @@ public class BackupController {
         }
         String jeton = telechargementService.creer(TelechargementService.Type.SAUVEGARDE, fileName);
         return ResponseEntity.ok(Map.of("url", "/api/telechargements/" + jeton));
+    }
+
+    /**
+     * Dates des deux sauvegardes telles que le notaire les lit (« 12/09/2026 à 15:40 »). Si elles tombent
+     * dans la même minute, par exemple une annulation juste après une restauration, les secondes les
+     * distinguent. Une date illisible est remplacée par le nom de la sauvegarde.
+     */
+    private String[] datesLisibles(String premiere, String seconde) {
+        OffsetDateTime datePremiere = dateDe(premiere);
+        OffsetDateTime dateSeconde = dateDe(seconde);
+        boolean memeMinute = datePremiere != null && dateSeconde != null
+                && datePremiere.format(DATE_LISIBLE).equals(dateSeconde.format(DATE_LISIBLE));
+        DateTimeFormatter format = memeMinute ? DATE_LISIBLE_SECONDES : DATE_LISIBLE;
+        return new String[]{
+                datePremiere != null ? datePremiere.format(format) : premiere,
+                dateSeconde != null ? dateSeconde.format(format) : seconde};
+    }
+
+    private OffsetDateTime dateDe(String nom) {
+        try {
+            return backupService.informations(nom).getCreatedAt();
+        } catch (RuntimeException e) {
+            return null;
+        }
     }
 
     static ResponseEntity<Map<String, String>> erreur(HttpStatus statut, String message) {

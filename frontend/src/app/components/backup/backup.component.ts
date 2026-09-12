@@ -32,6 +32,9 @@ export class BackupComponent implements OnInit {
   message = '';
   isError = false;
 
+  /** Dernière restauration réussie : son message reste affiché avec un bouton pour l'annuler. */
+  derniereRestauration: { message: string; securite: string; dateSecurite: string } | null = null;
+
   constructor(private backupService: BackupService, private authService: AuthService) {}
 
   /** Restaurer, supprimer, télécharger et archiver sont réservés au compte Maître (contrôlé aussi côté serveur). */
@@ -74,21 +77,41 @@ export class BackupComponent implements OnInit {
   restoreBackup(backup: BackupInfo): void {
     const date = this.formatDate(backup.createdAt);
     if (confirm('⚠️ Revenir à l\'état du ' + date + ' ?\n\n'
-      + 'La base de données et les documents redeviendront ceux de la sauvegarde « ' + backup.fileName + ' » : '
-      + 'les dossiers créés ou modifiés depuis cette date seront retirés.\n\n'
-      + 'L\'état actuel est d\'abord sauvegardé automatiquement : vous pourrez annuler en restaurant cette sauvegarde de sécurité.')) {
-      this.loading = true;
-      this.showMessage('Sauvegarde de l\'état actuel, puis restauration en cours...', false);
-      this.backupService.restoreBackup(backup.fileName).subscribe({
-        next: (res) => {
-          this.loadBackups();
-          // Message durable : il donne le nom de la sauvegarde qui permet d'annuler
-          this.message = (res.message || 'Restauration réussie.') + ' Rechargez la page pour voir les données restaurées.';
-          this.isError = false;
-        },
-        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la restauration.'), true); this.loading = false; }
-      });
+      + 'La base de données et les documents redeviendront ceux de cette sauvegarde : '
+      + 'les dossiers créés ou modifiés depuis seront retirés.\n\n'
+      + 'L\'état actuel est d\'abord mis de côté : vous pourrez annuler la restauration juste après.')) {
+      this.restaurer(backup.fileName);
     }
+  }
+
+  /** Annule la dernière restauration en restaurant l'état mis de côté juste avant. */
+  annulerRestauration(): void {
+    const annulation = this.derniereRestauration;
+    if (!annulation) return;
+    if (confirm('Annuler la restauration ?\n\n'
+      + 'FRIDA reviendra à l\'état du ' + annulation.dateSecurite + ', juste avant la restauration.\n\n'
+      + 'L\'état actuel sera à son tour mis de côté : vous pourrez encore changer d\'avis.')) {
+      this.restaurer(annulation.securite);
+    }
+  }
+
+  private restaurer(fileName: string): void {
+    this.loading = true;
+    this.derniereRestauration = null;
+    this.showMessage('Mise de côté de l\'état actuel, puis restauration en cours...', false);
+    this.backupService.restoreBackup(fileName).subscribe({
+      next: (res) => {
+        this.message = '';
+        // Message durable, avec le bouton d'annulation
+        this.derniereRestauration = {
+          message: res.message || 'Restauration réussie.',
+          securite: res.sauvegardeDeSecurite,
+          dateSecurite: res.dateSecurite
+        };
+        this.loadBackups();
+      },
+      error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la restauration.'), true); this.loading = false; }
+    });
   }
 
   deleteBackup(fileName: string): void {
