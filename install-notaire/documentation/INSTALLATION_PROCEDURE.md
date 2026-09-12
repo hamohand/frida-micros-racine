@@ -72,40 +72,42 @@ puisque Docker n'est pas installé côté Windows.
 - Le chemin WSL de l'installation est obtenu avec `wslpath` sur `$env:USERPROFILE`, et non reconstruit à partir de `$env:USERNAME` : le dossier de profil ne porte pas toujours le nom du compte (compte Microsoft, poste en domaine).
 - Le port web est relu depuis `.env` (`PORT_WEB`) pour que les raccourcis et l'ouverture du navigateur pointent au bon endroit.
 
-## Régénérer `frida-micros.zip` après une évolution du code
+## Construire le package à envoyer (`construire_package.ps1`)
 
-Depuis la racine du dépôt, en PowerShell :
+`construire_package.ps1`, dans ce dossier, fait tout en un passage : régénère
+`frida-micros.zip` depuis les sources actuelles du dépôt, contrôle que
+`ADMIN_PASSWORD` et `JWT_SECRET` sont vides dans `.env.local`, puis assemble les
+7 fichiers livrables dans `FRIDA-Installation.zip`.
+
+Depuis n'importe quel dossier (il retrouve seul la racine du dépôt) :
 
 ```powershell
-$stage = Join-Path $env:TEMP "frida-zip-stage"
-if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-New-Item -ItemType Directory -Path $stage -Force | Out-Null
-
-$proj = (Get-Location).Path
-
-robocopy "$proj\backend"  "$stage\backend"  /E /XD target uploads /NFL /NDL /NJH /NJS /NC /NS /NP | Out-Null
-robocopy "$proj\frontend" "$stage\frontend" /E /XD node_modules dist .angular /NFL /NDL /NJH /NJS /NC /NS /NP | Out-Null
-robocopy "$proj\ocr-api"  "$stage\ocr-api"  /E /NFL /NDL /NJH /NJS /NC /NS /NP | Out-Null
-Copy-Item "$proj\install-notaire\docker-installation\docker-compose.local.yml" $stage
-Copy-Item "$proj\install-notaire\docker-installation\.env.local" $stage
-
-$zip = "$proj\install-notaire\docker-installation\frida-micros.zip"
-if (Test-Path $zip) { Remove-Item $zip -Force }
-Compress-Archive -Path "$stage\*" -DestinationPath $zip -CompressionLevel Optimal
-Remove-Item $stage -Recurse -Force
+powershell -ExecutionPolicy Bypass -File install-notaire\documentation\construire_package.ps1
 ```
 
-Le zip fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
+Par défaut, `FRIDA-Installation.zip` est écrit sur le Bureau de l'utilisateur
+courant. Pour choisir un autre dossier :
+
+```powershell
+install-notaire\documentation\construire_package.ps1 -Destination C:\Livraisons
+```
+
+Le zip des sources fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
+
+### Ne pas compresser tout le dossier `docker-installation/`
+
+Ce dossier contient aussi `docker-compose.local.yml` et `.env.local`, qui ne
+vont **pas** dans le livrable : ils sont déjà recopiés à la racine de
+`frida-micros.zip` par le script ci-dessus. Les compresser en plus produirait
+un doublon inutile, que l'installeur ne lit jamais à cet endroit.
 
 ## Ce qu'il faut avant d'envoyer chez un client
 
-1. `git pull` puis régénérer le zip (le zip est daté et gèle un état du code).
-2. Vérifier que `.env.local` a des valeurs non compromises (le mot de passe DB dedans finira sur la machine du client).
-3. Livrer les 6 fichiers du dossier `install-notaire/docker-installation/`. `sauvegarder.bat` et `desinstaller.bat` ne sont **pas** dans `frida-micros.zip` : ils voyagent à côté et c'est l'installeur qui les recopie dans l'installation.
-4. Vérifier l'adresse de support en fin de `LISEZMOI.txt` (actuellement `mohhamroun@gmail.com`).
-   Ne pas pré-remplir `ADMIN_PASSWORD` dans `.env.local` : il doit rester vide pour que
-   chaque poste reçoive un mot de passe distinct.
-5. Tester l'installation complète sur une VM Windows 10/11 vierge **avant** l'envoi (voir `CHECKLIST_TEST_TERRAIN.md`).
+1. `git pull` puis lancer `construire_package.ps1` (le zip est daté et gèle un état du code).
+2. Le script signale si `.env.local` contient déjà un `ADMIN_PASSWORD` ou un
+   `JWT_SECRET` : ils doivent rester vides pour que chaque poste reçoive les siens.
+3. Vérifier l'adresse de support en fin de `LISEZMOI.txt` (actuellement `mohhamroun@gmail.com`).
+4. Tester l'installation complète sur une VM Windows 10/11 vierge **avant** l'envoi (voir `CHECKLIST_TEST_TERRAIN.md`).
 
 ## Prérequis chez le notaire
 

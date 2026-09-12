@@ -7,6 +7,7 @@ Tous les documents nécessaires à l'installation de FRIDA sur le poste d'un not
 | Document | Audience | Objet |
 |---|---|---|
 | [INSTALLATION_PROCEDURE.md](INSTALLATION_PROCEDURE.md) | Développeur | Préparation du package livrable (régénération du zip, prérequis, ce qu'il faut vérifier avant envoi) |
+| [construire_package.ps1](construire_package.ps1) | Développeur | Script : régénère `frida-micros.zip` et assemble `FRIDA-Installation.zip` en un passage |
 | [CHECKLIST_TEST_TERRAIN.md](CHECKLIST_TEST_TERRAIN.md) | Développeur sur place | Checklist à dérouler pendant l'installation chez le notaire (phases, timings, points de rupture connus, modèle de rapport) |
 | [activation_licence_notaire.md](activation_licence_notaire.md) | Développeur / client | Flux d'activation de licence (**actuellement suspendu** — voir l'avertissement en tête du fichier) |
 | [`../docker-installation/LISEZMOI.txt`](../docker-installation/LISEZMOI.txt) | Notaire | Notice pas-à-pas remise au notaire, incluse dans le livrable |
@@ -24,7 +25,7 @@ Contenu du dossier `install-notaire/docker-installation/` :
 └── sauvegarder.bat             ← maintenance
 ```
 
-Voir `INSTALLATION_PROCEDURE.md` pour régénérer le zip après une évolution du code.
+Construit par `construire_package.ps1` (voir `INSTALLATION_PROCEDURE.md`) après une évolution du code — ne pas compresser tout le dossier `docker-installation/` : `docker-compose.local.yml` et `.env.local` sont déjà repris à l'intérieur de `frida-micros.zip`.
 
 ## Contexte
 
