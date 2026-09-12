@@ -57,9 +57,11 @@ public class BackupController {
             return erreur(HttpStatus.FORBIDDEN, MESSAGE_LECTURE_SEULE);
         }
         try {
-            backupService.restoreBackup(fileName);
-            return ResponseEntity.ok(Map.of("message",
-                    "Sauvegarde " + fileName + " restaurée : base de données et documents."));
+            String securite = backupService.restoreBackup(fileName);
+            return ResponseEntity.ok(Map.of(
+                    "message", "Retour à l'état de la sauvegarde " + fileName + " effectué. L'état précédent a été "
+                            + "sauvegardé dans " + securite + " : restaurez-la pour annuler.",
+                    "sauvegardeDeSecurite", securite));
         } catch (IllegalArgumentException e) {
             return erreur(HttpStatus.BAD_REQUEST, e.getMessage());
         } catch (NoSuchElementException e) {

@@ -88,9 +88,15 @@ Deux raccourcis sont créés sur votre Bureau :
 
 • Pour RESTAURER une sauvegarde :
   Dans FRIDA, page « Sauvegardes », bouton 🔄 de la sauvegarde voulue.
-  Ou double-cliquez sur « restaurer.bat » (même dossier), puis indiquez
-  le nom du dossier de sauvegarde à remettre en place.
-  Les deux voient les mêmes sauvegardes.
+  FRIDA revient exactement à l'état de cette sauvegarde : les dossiers
+  créés ou modifiés depuis sont retirés. Mais avant, il sauvegarde
+  l'état actuel (« frida_avant_restauration_... ») : pour annuler,
+  restaurez simplement cette sauvegarde-là.
+
+  En cas de panne (FRIDA ne démarre plus), double-cliquez sur
+  « restaurer.bat » (même dossier), puis indiquez le nom du dossier
+  de sauvegarde à remettre en place. Attention : restaurer.bat ne
+  sauvegarde pas l'état actuel avant de restaurer.
 
 ⚠ « desinstaller.bat » SUPPRIME l'installation. Ne l'utilisez pas
   pour un arrêt quotidien : utilisez « Arreter-Frida ».

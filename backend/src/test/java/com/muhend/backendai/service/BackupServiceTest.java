@@ -31,7 +31,8 @@ class BackupServiceTest {
     private Path documents;
     private Path sauvegardes;
     private final List<List<String>> commandes = new ArrayList<>();
-    private int codeRetour;
+    private int codeRetourPgDump;
+    private int codeRetourPsql;
     private BackupService service;
 
     @BeforeEach
@@ -42,13 +43,15 @@ class BackupServiceTest {
             @Override
             int executer(List<String> commande, Path journal) throws IOException {
                 commandes.add(commande);
-                if (codeRetour != 0) {
+                boolean pgDump = commande.get(0).equals("pg_dump");
+                int code = pgDump ? codeRetourPgDump : codeRetourPsql;
+                if (code != 0) {
                     Files.writeString(journal, "erreur simulée de " + commande.get(0));
-                } else if (commande.get(0).equals("pg_dump")) {
+                } else if (pgDump) {
                     Files.writeString(Paths.get(commande.get(commande.indexOf("-f") + 1)),
                             "CREATE TABLE public.frida (\n    id bigint\n);\n");
                 }
-                return codeRetour;
+                return code;
             }
         };
         configurer(sauvegardes);
@@ -80,6 +83,10 @@ class BackupServiceTest {
         return service.listBackups().stream().map(BackupInfo::getFileName).toList();
     }
 
+    private List<String> commande(String programme) {
+        return commandes.stream().filter(c -> c.get(0).equals(programme)).findFirst().orElseThrow();
+    }
+
     @Test
     void creation_BaseEtDocuments_AuFormatDeSauvegarderBat() throws Exception {
         fichier(documents, "dossiers/fiche_1/01_en/acte.png", "image");
@@ -89,13 +96,23 @@ class BackupServiceTest {
         Path dossier = sauvegardes.resolve(info.getFileName());
         assertTrue(info.getFileName().startsWith("frida_backup_"), info.getFileName());
         assertFalse(info.isAutomatique());
+        assertFalse(info.isAvantRestauration());
         assertTrue(info.isDocumentsInclus());
         assertTrue(Files.isRegularFile(dossier.resolve("database.sql")));
         assertEquals("image", Files.readString(dossier.resolve("uploads/dossiers/fiche_1/01_en/acte.png")));
-        assertTrue(commandes.get(0).containsAll(List.of("pg_dump", "--clean", "--if-exists")));
+        assertTrue(commande("pg_dump").containsAll(List.of("--clean", "--if-exists")));
         try (Stream<Path> contenu = Files.list(sauvegardes)) {
             assertEquals(1, contenu.count(), "aucun dossier temporaire ne doit rester");
         }
+    }
+
+    @Test
+    void deuxSauvegardesDansLaMemeSeconde_NomsDistincts() throws Exception {
+        String premiere = service.createBackup(false).getFileName();
+        String seconde = service.createBackup(false).getFileName();
+
+        assertNotEquals(premiere, seconde);
+        assertEquals(2, noms().size());
     }
 
     @Test
@@ -119,7 +136,7 @@ class BackupServiceTest {
 
     @Test
     void echecDePgDump_AucuneSauvegardeLaissee() {
-        codeRetour = 1;
+        codeRetourPgDump = 1;
 
         Exception e = assertThrows(IllegalStateException.class, () -> service.createBackup(false));
 
@@ -157,12 +174,13 @@ class BackupServiceTest {
         sauvegardeExistante("frida_auto_20260903_080000", 20_000);
         sauvegardeExistante("frida_auto_20260904_080000", 10_000);
         sauvegardeExistante("frida_backup_20250101_0900", 90_000);
+        sauvegardeExistante("frida_avant_restauration_20250102_0900", 80_000);
 
         int supprimees = service.nettoyerSauvegardesAutomatiques(2);
 
         assertEquals(2, supprimees);
-        assertEquals(List.of("frida_auto_20260904_080000", "frida_auto_20260903_080000", "frida_backup_20250101_0900"),
-                noms());
+        assertEquals(List.of("frida_auto_20260904_080000", "frida_auto_20260903_080000",
+                "frida_avant_restauration_20250102_0900", "frida_backup_20250101_0900"), noms());
     }
 
     @Test
@@ -197,30 +215,96 @@ class BackupServiceTest {
     }
 
     @Test
-    void restauration_UneSeuleTransaction_PuisDocuments() throws Exception {
+    void restauration_EtatActuelSauvegardeAvant_PuisBaseEnUneTransaction() throws Exception {
+        sauvegardeExistante("frida_backup_20260911_1833", 60);
+        fichier(documents, "dossiers/fiche_1/acte.png", "image actuelle");
+
+        String securite = service.restoreBackup("frida_backup_20260911_1833");
+
+        assertTrue(securite.startsWith("frida_avant_restauration_"), securite);
+        assertEquals("image actuelle",
+                Files.readString(sauvegardes.resolve(securite).resolve("uploads/dossiers/fiche_1/acte.png")));
+        assertEquals("pg_dump", commandes.get(0).get(0), "l'état actuel est sauvegardé avant toute modification");
+        List<String> psql = commandes.get(1);
+        assertEquals("psql", psql.get(0));
+        assertTrue(psql.containsAll(List.of("--single-transaction", "ON_ERROR_STOP=1")), psql.toString());
+        assertTrue(service.listBackups().stream()
+                .anyMatch(b -> b.getFileName().equals(securite) && b.isAvantRestauration() && !b.isAutomatique()));
+    }
+
+    @Test
+    void restauration_DocumentsRemisALIdentique_AjoutsRetiresMaisConservesDansLaSecurite() throws Exception {
         Path dossier = sauvegardeExistante("frida_backup_20260911_1833", 60);
         fichier(dossier, "uploads/dossiers/fiche_1/acte.png", "image sauvegardée");
+        fichier(dossier, "uploads/dossiers/fiche_supprimee/acte.png", "fiche supprimée depuis");
+        fichier(documents, "dossiers/fiche_1/acte.png", "image modifiée depuis");
+        fichier(documents, "dossiers/fiche_1/ajout.png", "fichier ajouté depuis");
+        fichier(documents, "dossiers/fiche_ajoutee/acte.png", "fiche ajoutée depuis");
+
+        String securite = service.restoreBackup("frida_backup_20260911_1833");
+
+        assertEquals("image sauvegardée", Files.readString(documents.resolve("dossiers/fiche_1/acte.png")));
+        assertEquals("fiche supprimée depuis", Files.readString(documents.resolve("dossiers/fiche_supprimee/acte.png")));
+        assertFalse(Files.exists(documents.resolve("dossiers/fiche_1/ajout.png")));
+        assertFalse(Files.exists(documents.resolve("dossiers/fiche_ajoutee")));
+        Path copieSecurite = sauvegardes.resolve(securite).resolve("uploads");
+        assertEquals("fiche ajoutée depuis", Files.readString(copieSecurite.resolve("dossiers/fiche_ajoutee/acte.png")));
+        assertEquals("fichier ajouté depuis", Files.readString(copieSecurite.resolve("dossiers/fiche_1/ajout.png")));
+    }
+
+    @Test
+    void restauration_SauvegardeSansDocuments_DocumentsNonTouches() throws Exception {
+        sauvegardeExistante("frida_backup_20260911_1833", 60);
+        fichier(documents, "dossiers/fiche_1/acte.png", "image actuelle");
 
         service.restoreBackup("frida_backup_20260911_1833");
 
-        List<String> psql = commandes.get(0);
-        assertEquals("psql", psql.get(0));
-        assertTrue(psql.containsAll(List.of("--single-transaction", "ON_ERROR_STOP=1")), psql.toString());
-        assertEquals(dossier.resolve("database.sql").toString(), psql.get(psql.size() - 1));
+        assertEquals("image actuelle", Files.readString(documents.resolve("dossiers/fiche_1/acte.png")));
+    }
+
+    @Test
+    void restauration_SauvegardesRangeesDansLesDocuments_JamaisRetirees() throws Exception {
+        Path sousDocuments = documents.resolve("backups");
+        configurer(sousDocuments);
+        Path dossier = fichier(sousDocuments, "frida_backup_20260911_1833/database.sql", "CREATE TABLE public.frida (\n);\n").getParent();
+        fichier(dossier, "uploads/dossiers/fiche_1/acte.png", "image sauvegardée");
+        fichier(sousDocuments, "frida_backup_20260910_0900/database.sql", "autre sauvegarde");
+        fichier(documents, "db_backups/backup_ancien.dump", "ancien format");
+
+        service.restoreBackup("frida_backup_20260911_1833");
+
+        assertTrue(Files.exists(sousDocuments.resolve("frida_backup_20260910_0900/database.sql")));
+        assertTrue(Files.exists(documents.resolve("db_backups/backup_ancien.dump")));
         assertEquals("image sauvegardée", Files.readString(documents.resolve("dossiers/fiche_1/acte.png")));
     }
 
     @Test
-    void restauration_EchecDeLaBase_DocumentsIntacts() throws Exception {
+    void restauration_EchecDeLaBase_RienNeChange_NiSauvegardeDeSecuriteLaissee() throws Exception {
         Path dossier = sauvegardeExistante("frida_backup_20260911_1833", 60);
         fichier(dossier, "uploads/dossiers/fiche_1/acte.png", "image sauvegardée");
         fichier(documents, "dossiers/fiche_1/acte.png", "image actuelle");
-        codeRetour = 3;
+        fichier(documents, "dossiers/fiche_ajoutee/acte.png", "fiche ajoutée depuis");
+        codeRetourPsql = 3;
 
         Exception e = assertThrows(IllegalStateException.class,
                 () -> service.restoreBackup("frida_backup_20260911_1833"));
 
         assertTrue(e.getMessage().contains("rien n'a été modifié"), e.getMessage());
+        assertEquals("image actuelle", Files.readString(documents.resolve("dossiers/fiche_1/acte.png")));
+        assertTrue(Files.exists(documents.resolve("dossiers/fiche_ajoutee/acte.png")));
+        assertEquals(List.of("frida_backup_20260911_1833"), noms());
+    }
+
+    @Test
+    void restauration_EchecDeLaSauvegardeDeSecurite_RienNestTouche() throws Exception {
+        Path dossier = sauvegardeExistante("frida_backup_20260911_1833", 60);
+        fichier(dossier, "uploads/dossiers/fiche_1/acte.png", "image sauvegardée");
+        fichier(documents, "dossiers/fiche_1/acte.png", "image actuelle");
+        codeRetourPgDump = 1;
+
+        assertThrows(IllegalStateException.class, () -> service.restoreBackup("frida_backup_20260911_1833"));
+
+        assertTrue(commandes.stream().noneMatch(c -> c.get(0).equals("psql")), "la base n'est pas touchée");
         assertEquals("image actuelle", Files.readString(documents.resolve("dossiers/fiche_1/acte.png")));
     }
 

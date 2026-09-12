@@ -39,6 +39,11 @@ fait aussi une (`frida_auto_<date>`) quand la dernière a plus de 24 h, vérifi�
 après le démarrage puis toutes les heures, et garde les 7 dernières automatiques ; les
 sauvegardes manuelles ne sont jamais supprimées.
 
+Restaurer depuis l'écran met d'abord l'état actuel de côté (`frida_avant_restauration_<date>`),
+puis remet base et documents à l'identique de la sauvegarde : les dossiers créés depuis sont
+retirés, et restaurer la sauvegarde de sécurité annule l'opération. `restaurer.bat`, prévu pour
+une panne, ne fait pas cette sauvegarde de sécurité et ne retire pas les documents ajoutés.
+
 ### Identifiants applicatifs générés par poste
 
 Aucun mot de passe n'est codé en dur. `DataInitializer` lit `app.admin.username` /

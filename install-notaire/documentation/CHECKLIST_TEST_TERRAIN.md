@@ -90,7 +90,7 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] Page **Sauvegardes** (compte Maître) : « Nouvelle sauvegarde » crée-t-elle un dossier `data\backups\frida_backup_<date>` avec `database.sql` et `uploads\` ? L'heure affichée est-elle l'heure réelle ?
 - [ ] `restaurer.bat` propose-t-il aussi cette sauvegarde, et la page liste-t-elle celles de `sauvegarder.bat` ?
 - [ ] Bouton ⬇️ : un `.zip` se télécharge-t-il (et non une page d'erreur) ?
-- [ ] Bouton 🔄 : créer une fiche après une sauvegarde, restaurer cette sauvegarde depuis la page, recharger — la fiche a-t-elle disparu ?
+- [ ] Bouton 🔄 : créer une fiche après une sauvegarde, restaurer cette sauvegarde depuis la page, recharger — la fiche a-t-elle disparu, et une sauvegarde « Avant restauration » est-elle apparue ? La restaurer à son tour fait-elle revenir la fiche et ses documents ?
 - [ ] Environ 2 minutes après le démarrage, sans sauvegarde de moins de 24 h : une sauvegarde `frida_auto_<date>` apparaît-elle ?
 - [ ] `docker ps` : `frida-backend` est-il `healthy` ?
 - [ ] **Redémarrer le PC** complètement

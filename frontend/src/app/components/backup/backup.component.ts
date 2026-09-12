@@ -71,14 +71,20 @@ export class BackupComponent implements OnInit {
     });
   }
 
-  restoreBackup(fileName: string): void {
-    if (confirm('⚠️ Restaurer la sauvegarde "' + fileName + '" ?\nLa base de données sera remplacée par celle de la sauvegarde, et ses documents seront remis en place.')) {
+  restoreBackup(backup: BackupInfo): void {
+    const date = this.formatDate(backup.createdAt);
+    if (confirm('⚠️ Revenir à l\'état du ' + date + ' ?\n\n'
+      + 'La base de données et les documents redeviendront ceux de la sauvegarde « ' + backup.fileName + ' » : '
+      + 'les dossiers créés ou modifiés depuis cette date seront retirés.\n\n'
+      + 'L\'état actuel est d\'abord sauvegardé automatiquement : vous pourrez annuler en restaurant cette sauvegarde de sécurité.')) {
       this.loading = true;
-      this.showMessage('Restauration en cours...', false);
-      this.backupService.restoreBackup(fileName).subscribe({
+      this.showMessage('Sauvegarde de l\'état actuel, puis restauration en cours...', false);
+      this.backupService.restoreBackup(backup.fileName).subscribe({
         next: (res) => {
-          this.showMessage((res.message || 'Restauration réussie.') + ' Rechargez la page pour voir les données restaurées.', false);
-          this.loading = false;
+          this.loadBackups();
+          // Message durable : il donne le nom de la sauvegarde qui permet d'annuler
+          this.message = (res.message || 'Restauration réussie.') + ' Rechargez la page pour voir les données restaurées.';
+          this.isError = false;
         },
         error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la restauration.'), true); this.loading = false; }
       });

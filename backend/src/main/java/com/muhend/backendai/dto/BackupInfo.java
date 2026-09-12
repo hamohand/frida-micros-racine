@@ -19,6 +19,8 @@ public class BackupInfo {
     private OffsetDateTime createdAt;
     /** Créée par la sauvegarde automatique (frida_auto_...). */
     private boolean automatique;
+    /** État mis de côté juste avant une restauration (frida_avant_restauration_...) : la restaurer annule celle-ci. */
+    private boolean avantRestauration;
     /** Contient la copie des documents (uploads/). */
     private boolean documentsInclus;
 }

@@ -7,6 +7,8 @@ export interface BackupInfo {
   sizeBytes: number;
   createdAt: string;
   automatique: boolean;
+  /** État mis de côté juste avant une restauration : la restaurer annule celle-ci. */
+  avantRestauration: boolean;
   documentsInclus: boolean;
 }
 

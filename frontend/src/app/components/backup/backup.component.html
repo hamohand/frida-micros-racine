@@ -51,6 +51,7 @@
           <div class="card-title">
             {{ backup.fileName }}
             <span class="badge-frida" *ngIf="backup.automatique">Automatique</span>
+            <span class="badge-frida" *ngIf="backup.avantRestauration" title="État mis de côté avant une restauration : la restaurer annule celle-ci">Avant restauration</span>
           </div>
           <div class="card-meta">
             <span>{{ formatBytes(backup.sizeBytes) }}</span>
@@ -64,7 +65,7 @@
           <button class="action-btn download" (click)="downloadBackup(backup.fileName)" title="Télécharger (.zip)" [disabled]="loading">
             <span>⬇️</span>
           </button>
-          <button class="action-btn restore" (click)="restoreBackup(backup.fileName)" title="Restaurer la base et les documents depuis cette sauvegarde" [disabled]="loading">
+          <button class="action-btn restore" (click)="restoreBackup(backup)" title="Revenir à l'état de cette sauvegarde (l'état actuel est sauvegardé avant)" [disabled]="loading">
             <span>🔄</span>
           </button>
           <button class="action-btn delete" (click)="deleteBackup(backup.fileName)" title="Supprimer" [disabled]="loading">

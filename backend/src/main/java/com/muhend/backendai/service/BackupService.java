@@ -54,6 +54,7 @@ public class BackupService {
     static final String DOSSIER_DOCUMENTS = "uploads";
     static final String PREFIXE_MANUELLE = "frida_backup_";
     static final String PREFIXE_AUTOMATIQUE = "frida_auto_";
+    static final String PREFIXE_AVANT_RESTAURATION = "frida_avant_restauration_";
 
     /** Ancien dossier des sauvegardes .dump de l'écran (avant le 2026-09-12) : jamais recopié. */
     private static final String ANCIEN_DOSSIER_DUMPS = "db_backups";
@@ -123,14 +124,19 @@ public class BackupService {
     }
 
     public BackupInfo createBackup(boolean automatique) throws Exception {
+        return creer(automatique ? PREFIXE_AUTOMATIQUE : PREFIXE_MANUELLE);
+    }
+
+    private BackupInfo creer(String prefixe) throws Exception {
         synchronized (verrou) {
             Path racine = getBackupDir();
-            String nom = (automatique ? PREFIXE_AUTOMATIQUE : PREFIXE_MANUELLE)
-                    + LocalDateTime.now().format(HORODATAGE);
-            Path cible = racine.resolve(nom);
-            if (Files.exists(cible)) {
-                throw new IllegalStateException("Une sauvegarde porte déjà le nom " + nom + ", réessayez.");
+            String horodatage = LocalDateTime.now().format(HORODATAGE);
+            String nom = prefixe + horodatage;
+            // Deux sauvegardes dans la même seconde (ex. restauration juste après une autre)
+            for (int rang = 2; Files.exists(racine.resolve(nom)) || Files.exists(racine.resolve("." + nom + SUFFIXE_EN_COURS)); rang++) {
+                nom = prefixe + horodatage + "_" + rang;
             }
+            Path cible = racine.resolve(nom);
             // Écrite sous un nom masqué puis renommée : jamais listée à moitié faite
             Path enCours = racine.resolve("." + nom + SUFFIXE_EN_COURS);
             Files.createDirectories(enCours);
@@ -160,30 +166,53 @@ public class BackupService {
         }
     }
 
-    public void restoreBackup(String nom) throws Exception {
+    /**
+     * Revient à l'état de la sauvegarde : base et documents à l'identique. Les dossiers créés ou
+     * modifiés depuis sont donc retirés ; pour que rien ne soit perdu, l'état actuel est d'abord
+     * sauvegardé ({@code frida_avant_restauration_...}), et restaurer celle-ci annule l'opération.
+     *
+     * @return nom de la sauvegarde de sécurité
+     */
+    public String restoreBackup(String nom) throws Exception {
         synchronized (verrou) {
             Path dossier = localiser(nom);
             Path base = dossier.resolve(FICHIER_BASE);
+
+            // 1. État actuel mis de côté : si cela échoue, rien n'est modifié
+            String securite = creer(PREFIXE_AVANT_RESTAURATION).getFileName();
+
+            // 2. Base, en une seule transaction : à la moindre erreur, elle reste telle qu'avant
             Path prelude = Files.createTempFile("frida-restauration-", ".sql");
             Path journal = Files.createTempFile("frida-restauration-", ".log");
             try {
                 Files.writeString(prelude, construirePrelude(base), StandardCharsets.UTF_8);
-                // Une seule transaction : à la moindre erreur, la base reste telle qu'avant.
                 int code = executer(List.of("psql", "-X", "-q", "-h", dbHost, "-p", dbPort, "-U", dbUser,
                         "-d", dbName, "-v", "ON_ERROR_STOP=1", "--single-transaction",
                         "-f", prelude.toString(), "-f", base.toString()), journal);
                 if (code != 0) {
-                    throw new IllegalStateException(
-                            "Restauration de la base refusée, rien n'a été modifié : " + finJournal(journal));
+                    String cause = finJournal(journal);
+                    // Rien n'a changé : la sauvegarde de sécurité n'a pas lieu d'être
+                    supprimerDossier(getBackupDir().resolve(securite));
+                    throw new IllegalStateException("Restauration de la base refusée, rien n'a été modifié : " + cause);
                 }
             } finally {
                 Files.deleteIfExists(prelude);
                 Files.deleteIfExists(journal);
             }
-            // Comme restaurer.bat : les documents sauvegardés remplacent ceux du même nom, les autres restent
+
+            // 3. Documents à l'identique de la sauvegarde, si elle en contient
             Path documents = dossier.resolve(DOSSIER_DOCUMENTS);
-            copierDocuments(documents, Paths.get(rootPath), null);
-            log.info("Sauvegarde {} restaurée (base{})", nom, Files.isDirectory(documents) ? " et documents" : "");
+            if (Files.isDirectory(documents)) {
+                try {
+                    synchroniserDocuments(documents, Paths.get(rootPath), getBackupDir());
+                } catch (IOException e) {
+                    throw new IllegalStateException("Base restaurée, mais la remise en place des documents a échoué ("
+                            + e.getMessage() + "). L'état précédent est dans la sauvegarde " + securite + ".", e);
+                }
+            }
+            log.info("Sauvegarde {} restaurée (base{}), état précédent dans {}",
+                    nom, Files.isDirectory(documents) ? " et documents" : "", securite);
+            return securite;
         }
     }
 
@@ -301,6 +330,7 @@ public class BackupService {
                             Files.getLastModifiedTime(dossier.resolve(FICHIER_BASE)).toInstant(),
                             ZoneId.systemDefault()))
                     .automatique(nom.startsWith(PREFIXE_AUTOMATIQUE))
+                    .avantRestauration(nom.startsWith(PREFIXE_AVANT_RESTAURATION))
                     .documentsInclus(Files.isDirectory(dossier.resolve(DOSSIER_DOCUMENTS)))
                     .build();
         } catch (IOException e) {
@@ -338,6 +368,44 @@ public class BackupService {
             public FileVisitResult visitFile(Path fichier, BasicFileAttributes attributs) throws IOException {
                 Files.copy(fichier, destination.resolve(depart.relativize(fichier).toString()),
                         StandardCopyOption.REPLACE_EXISTING);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    /**
+     * Rend {@code destination} identique à {@code source} : copie, puis retrait de ce qui n'existe pas
+     * dans la source. Le dossier {@code exclu} (les sauvegardes, s'il est dans les documents) et
+     * l'ancien db_backups ne sont jamais retirés.
+     */
+    private static void synchroniserDocuments(Path source, Path destination, Path exclu) throws IOException {
+        copierDocuments(source, destination, null);
+        Path origine = source.toAbsolutePath().normalize();
+        Path cible = destination.toAbsolutePath().normalize();
+        Path dossierExclu = exclu.toAbsolutePath().normalize();
+        Files.walkFileTree(cible, new SimpleFileVisitor<>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dossier, BasicFileAttributes attributs) throws IOException {
+                if (dossier.equals(cible)) {
+                    return FileVisitResult.CONTINUE;
+                }
+                boolean ancienDossierDumps = cible.equals(dossier.getParent())
+                        && dossier.getFileName().toString().equals(ANCIEN_DOSSIER_DUMPS);
+                if (dossier.equals(dossierExclu) || ancienDossierDumps) {
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                if (!Files.isDirectory(origine.resolve(cible.relativize(dossier).toString()))) {
+                    supprimerDossier(dossier);
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path fichier, BasicFileAttributes attributs) throws IOException {
+                if (!Files.exists(origine.resolve(cible.relativize(fichier).toString()))) {
+                    Files.delete(fichier);
+                }
                 return FileVisitResult.CONTINUE;
             }
         });
