@@ -3,6 +3,7 @@ package com.muhend.backendai.config.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -67,6 +68,10 @@ public class WebSecurityConfig {
             .authorizeHttpRequests(auth -> 
                 auth.requestMatchers("/api/auth/**", "/api/calculs/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                    // Test de santé Docker (HEALTHCHECK du backend) : sans jeton, sinon 403 et conteneur « unhealthy »
+                    .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                    // Liens de téléchargement à usage unique, créés par un compte Maître (TelechargementService)
+                    .requestMatchers(HttpMethod.GET, "/api/telechargements/*").permitAll()
                     .anyRequest().authenticated()
             );
 

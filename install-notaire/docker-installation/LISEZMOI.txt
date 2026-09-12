@@ -71,18 +71,26 @@ Deux raccourcis sont créés sur votre Bureau :
   Vos données sont conservées. FRIDA repartira au prochain
   démarrage du PC.
 
-• Pour SAUVEGARDER vos données :
-  Double-cliquez sur « sauvegarder.bat », qui se trouve dans
-  C:\Users\<votre_nom>\Frida-Micros\
-  Un dossier daté est créé dans data\backups\.
-  → Copiez ce dossier sur une clé USB ou un disque externe.
+• Pour SAUVEGARDER vos données (fiches ET documents scannés) :
+  - Automatiquement : peu après le démarrage du PC, FRIDA fait une
+    sauvegarde si la dernière a plus de 24 heures. Les 7 dernières
+    sauvegardes automatiques sont gardées, les plus anciennes sont
+    effacées. Vos sauvegardes manuelles ne sont jamais effacées.
+  - À la main : dans FRIDA, page d'accueil, « Sauvegardes » puis
+    « Nouvelle sauvegarde » (compte Maître). Ou double-cliquez sur
+    « sauvegarder.bat », qui se trouve dans
+    C:\Users\<votre_nom>\Frida-Micros\
+  Chaque sauvegarde est un dossier daté dans data\backups\.
 
-  ⚠ FAITES-LE RÉGULIÈREMENT. La sauvegarde est le seul moyen de
-    récupérer vos fiches en cas de panne du PC.
+  ⚠ Une sauvegarde restée sur le PC ne protège pas d'une panne du
+    disque : copiez-la régulièrement sur une clé USB ou un disque
+    externe.
 
 • Pour RESTAURER une sauvegarde :
-  Double-cliquez sur « restaurer.bat » (même dossier), puis indiquez
+  Dans FRIDA, page « Sauvegardes », bouton 🔄 de la sauvegarde voulue.
+  Ou double-cliquez sur « restaurer.bat » (même dossier), puis indiquez
   le nom du dossier de sauvegarde à remettre en place.
+  Les deux voient les mêmes sauvegardes.
 
 ⚠ « desinstaller.bat » SUPPRIME l'installation. Ne l'utilisez pas
   pour un arrêt quotidien : utilisez « Arreter-Frida ».
@@ -100,8 +108,8 @@ La base de données (fiches, héritiers, calculs) est stockée à l'intérieur
 de Docker et n'apparaît pas dans l'explorateur Windows. C'est normal :
 PostgreSQL ne peut pas fonctionner depuis un dossier Windows.
 
-→ C'est pourquoi « sauvegarder.bat » est important : il extrait la base
-  vers data\backups\, où vous pouvez la copier sur une clé USB.
+→ C'est pourquoi les sauvegardes sont importantes : elles extraient la
+  base vers data\backups\, où vous pouvez la copier sur une clé USB.
 
 ⚠ IMPORTANT : Aucune donnée ne quitte votre ordinateur.
   Les documents d'identité et extraits de naissance restent

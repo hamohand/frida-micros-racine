@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Observable } from 'rxjs';
 import {
   BackupService,
   BackupInfo,
   ArchiveInfo,
-  FridaArchivable
+  FridaArchivable,
+  LienTelechargement
 } from '../../services/backup.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-backup',
@@ -29,7 +32,12 @@ export class BackupComponent implements OnInit {
   message = '';
   isError = false;
 
-  constructor(private backupService: BackupService) {}
+  constructor(private backupService: BackupService, private authService: AuthService) {}
+
+  /** Restaurer, supprimer, télécharger et archiver sont réservés au compte Maître (contrôlé aussi côté serveur). */
+  get estMaitre(): boolean {
+    return this.authService.isMaitre();
+  }
 
   ngOnInit(): void {
     this.loadBackups();
@@ -50,26 +58,29 @@ export class BackupComponent implements OnInit {
     this.loading = true;
     this.backupService.listBackups().subscribe({
       next: (data) => { this.backups = data; this.loading = false; },
-      error: () => { this.showMessage('Erreur lors du chargement des sauvegardes.', true); this.loading = false; }
+      error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors du chargement des sauvegardes.'), true); this.loading = false; }
     });
   }
 
   createBackup(): void {
     this.loading = true;
-    this.showMessage('Création de la sauvegarde en cours...', false);
+    this.showMessage('Création de la sauvegarde en cours (base de données et documents)...', false);
     this.backupService.createBackup().subscribe({
       next: (backup) => { this.showMessage('Sauvegarde créée : ' + backup.fileName, false); this.loadBackups(); },
-      error: () => { this.showMessage('Erreur lors de la création.', true); this.loading = false; }
+      error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la création.'), true); this.loading = false; }
     });
   }
 
   restoreBackup(fileName: string): void {
-    if (confirm('⚠️ Restaurer la sauvegarde "' + fileName + '" ?\nToutes les données actuelles seront remplacées par celles de cette sauvegarde.')) {
+    if (confirm('⚠️ Restaurer la sauvegarde "' + fileName + '" ?\nLa base de données sera remplacée par celle de la sauvegarde, et ses documents seront remis en place.')) {
       this.loading = true;
       this.showMessage('Restauration en cours...', false);
       this.backupService.restoreBackup(fileName).subscribe({
-        next: (res) => { this.showMessage(res.message || 'Restauration réussie.', false); this.loading = false; },
-        error: () => { this.showMessage('Erreur lors de la restauration.', true); this.loading = false; }
+        next: (res) => {
+          this.showMessage((res.message || 'Restauration réussie.') + ' Rechargez la page pour voir les données restaurées.', false);
+          this.loading = false;
+        },
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la restauration.'), true); this.loading = false; }
       });
     }
   }
@@ -79,13 +90,13 @@ export class BackupComponent implements OnInit {
       this.loading = true;
       this.backupService.deleteBackup(fileName).subscribe({
         next: () => { this.showMessage('Sauvegarde supprimée.', false); this.loadBackups(); },
-        error: () => { this.showMessage('Erreur lors de la suppression.', true); this.loading = false; }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la suppression.'), true); this.loading = false; }
       });
     }
   }
 
-  downloadBackupUrl(fileName: string): string {
-    return this.backupService.getDownloadUrl(fileName);
+  downloadBackup(fileName: string): void {
+    this.telecharger(this.backupService.lienTelechargementSauvegarde(fileName));
   }
 
   // ===== ARCHIVES =====
@@ -93,7 +104,7 @@ export class BackupComponent implements OnInit {
     this.loading = true;
     this.backupService.listArchives().subscribe({
       next: (data) => { this.archives = data; this.loading = false; },
-      error: () => { this.showMessage('Erreur lors du chargement des archives.', true); this.loading = false; }
+      error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors du chargement des archives.'), true); this.loading = false; }
     });
   }
 
@@ -103,7 +114,7 @@ export class BackupComponent implements OnInit {
       this.loading = true;
       this.backupService.getArchivableFridas().subscribe({
         next: (data) => { this.archivableFridas = data; this.loading = false; },
-        error: () => { this.showMessage('Erreur lors du chargement des dossiers archivables.', true); this.loading = false; }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors du chargement des dossiers archivables.'), true); this.loading = false; }
       });
     }
   }
@@ -118,18 +129,18 @@ export class BackupComponent implements OnInit {
           this.loadArchivableFridas();
           this.loadArchives();
         },
-        error: () => { this.showMessage('Erreur lors de l\'archivage.', true); this.loading = false; }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de l\'archivage.'), true); this.loading = false; }
       });
     }
   }
 
   autoArchive(): void {
-    if (confirm('Lancer l\'archivage automatique ?\n\nTous les dossiers de plus de 6 mois seront archivés.')) {
+    if (confirm('Archiver maintenant tous les dossiers éligibles ?\n\nTous les dossiers de plus de 6 mois seront retirés de la base active et conservés dans des fichiers archive.')) {
       this.loading = true;
-      this.showMessage('Archivage automatique en cours...', false);
+      this.showMessage('Archivage en cours...', false);
       this.backupService.autoArchive().subscribe({
         next: (res) => { this.showMessage(res.message, false); this.loadArchives(); },
-        error: () => { this.showMessage('Erreur lors de l\'archivage automatique.', true); this.loading = false; }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de l\'archivage.'), true); this.loading = false; }
       });
     }
   }
@@ -140,11 +151,7 @@ export class BackupComponent implements OnInit {
       this.showMessage('Restauration en cours...', false);
       this.backupService.restoreArchive(fileName).subscribe({
         next: (res) => { this.showMessage(res.message || 'Archive restaurée.', false); this.loading = false; },
-        error: (err) => {
-          const msg = err?.error?.message || 'Erreur lors de la restauration.';
-          this.showMessage(msg, true);
-          this.loading = false;
-        }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la restauration.'), true); this.loading = false; }
       });
     }
   }
@@ -154,16 +161,38 @@ export class BackupComponent implements OnInit {
       this.loading = true;
       this.backupService.deleteArchive(fileName).subscribe({
         next: () => { this.showMessage('Archive supprimée.', false); this.loadArchives(); },
-        error: () => { this.showMessage('Erreur lors de la suppression.', true); this.loading = false; }
+        error: (err) => { this.showMessage(this.messageErreur(err, 'Erreur lors de la suppression.'), true); this.loading = false; }
       });
     }
   }
 
-  downloadArchiveUrl(fileName: string): string {
-    return this.backupService.getArchiveDownloadUrl(fileName);
+  downloadArchive(fileName: string): void {
+    this.telecharger(this.backupService.lienTelechargementArchive(fileName));
   }
 
   // ===== UTILITAIRES =====
+
+  /**
+   * Obtient un lien à usage unique puis le fait suivre par le navigateur : le fichier, qui peut
+   * peser plusieurs Go avec les documents, est téléchargé en flux, sans passer par la mémoire de la page.
+   */
+  private telecharger(lien: Observable<LienTelechargement>): void {
+    lien.subscribe({
+      next: ({ url }) => {
+        const a = document.createElement('a');
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      },
+      error: (err) => this.showMessage(this.messageErreur(err, 'Erreur lors du téléchargement.'), true)
+    });
+  }
+
+  private messageErreur(err: any, defaut: string): string {
+    return err?.error?.message || defaut;
+  }
+
   formatBytes(bytes: number, decimals = 2): string {
     if (!+bytes) return '0 o';
     const k = 1024;

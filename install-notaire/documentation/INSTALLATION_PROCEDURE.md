@@ -32,6 +32,13 @@ Conséquence : la base n'est pas visible depuis l'explorateur Windows. `data/upl
 `data/backups` y restent, et `sauvegarder.bat` extrait la base vers `data/backups` — c'est
 la seule voie de récupération, d'où l'ajout de `restaurer.bat`.
 
+Depuis le 2026-09-12, l'écran « Sauvegardes » écrit au même format (`BackupService`,
+`BACKUP_PATH=/app/backups`, monté sur `data/backups`) : un dossier `<nom>/database.sql` +
+`<nom>/uploads`. L'écran et les scripts voient donc les mêmes sauvegardes. Le backend en
+fait aussi une (`frida_auto_<date>`) quand la dernière a plus de 24 h, vérifié 2 minutes
+après le démarrage puis toutes les heures, et garde les 7 dernières automatiques ; les
+sauvegardes manuelles ne sont jamais supprimées.
+
 ### Identifiants applicatifs générés par poste
 
 Aucun mot de passe n'est codé en dur. `DataInitializer` lit `app.admin.username` /

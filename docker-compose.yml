@@ -33,6 +33,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       BACKEND_PORT: ${BACKEND_PORT}
       SPRING_PROFILES_ACTIVE: docker
+      # Mode démo (connexion automatique en Maître) : désactivé par défaut dans le code
+      # depuis le 2026-09-12, gardé actif sur le poste de développement.
+      APP_DEMO_MODE: ${APP_DEMO_MODE:-true}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
       GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json

@@ -6,6 +6,8 @@ export interface BackupInfo {
   fileName: string;
   sizeBytes: number;
   createdAt: string;
+  automatique: boolean;
+  documentsInclus: boolean;
 }
 
 export interface ArchiveInfo {
@@ -28,6 +30,11 @@ export interface FridaArchivable {
   requiresCorrection: boolean;
 }
 
+/** Lien à usage unique (60 s) : le navigateur télécharge ensuite le fichier en flux. */
+export interface LienTelechargement {
+  url: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,15 +54,15 @@ export class BackupService {
   }
 
   restoreBackup(fileName: string): Observable<any> {
-    return this.http.post(`${this.backupUrl}/${fileName}/restore`, {});
+    return this.http.post(`${this.backupUrl}/${encodeURIComponent(fileName)}/restore`, {});
   }
 
   deleteBackup(fileName: string): Observable<any> {
-    return this.http.delete(`${this.backupUrl}/${fileName}`);
+    return this.http.delete(`${this.backupUrl}/${encodeURIComponent(fileName)}`);
   }
 
-  getDownloadUrl(fileName: string): string {
-    return `${this.backupUrl}/${fileName}/download`;
+  lienTelechargementSauvegarde(fileName: string): Observable<LienTelechargement> {
+    return this.http.post<LienTelechargement>(`${this.backupUrl}/${encodeURIComponent(fileName)}/lien-telechargement`, {});
   }
 
   // ===== ARCHIVES =====
@@ -68,19 +75,19 @@ export class BackupService {
   }
 
   archiveFrida(numFrida: string): Observable<ArchiveInfo> {
-    return this.http.post<ArchiveInfo>(`${this.archiveUrl}/${numFrida}`, {});
+    return this.http.post<ArchiveInfo>(`${this.archiveUrl}/${encodeURIComponent(numFrida)}`, {});
   }
 
   restoreArchive(fileName: string): Observable<any> {
-    return this.http.post(`${this.archiveUrl}/${fileName}/restore`, {});
+    return this.http.post(`${this.archiveUrl}/${encodeURIComponent(fileName)}/restore`, {});
   }
 
   deleteArchive(fileName: string): Observable<any> {
-    return this.http.delete(`${this.archiveUrl}/${fileName}`);
+    return this.http.delete(`${this.archiveUrl}/${encodeURIComponent(fileName)}`);
   }
 
-  getArchiveDownloadUrl(fileName: string): string {
-    return `${this.archiveUrl}/${fileName}/download`;
+  lienTelechargementArchive(fileName: string): Observable<LienTelechargement> {
+    return this.http.post<LienTelechargement>(`${this.archiveUrl}/${encodeURIComponent(fileName)}/lien-telechargement`, {});
   }
 
   autoArchive(): Observable<any> {

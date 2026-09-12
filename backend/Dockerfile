@@ -38,6 +38,9 @@ COPY --from=builder /app/target/backendAi-*.jar app.jar
 # Variables d'environnement par défaut (Spring les reconnaîtra automatiquement)
 ENV SERVER_PORT=8080
 
+# Heure de Paris : noms et dates des sauvegardes, horodatage des fiches
+ENV TZ=Europe/Paris
+
 EXPOSE ${SERVER_PORT}
 
 # Healthcheck corrigé pour utiliser la variable d'env

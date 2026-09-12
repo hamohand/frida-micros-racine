@@ -36,8 +36,8 @@
   <div class="tab-content" *ngIf="activeTab === 'backups'">
     <div class="section-header">
       <div class="section-info">
-        <h2>Sauvegardes de la base active</h2>
-        <p>Copies de sécurité de votre base de données (sans les fichiers images)</p>
+        <h2>Sauvegardes</h2>
+        <p>Chaque sauvegarde contient la base de données et les documents scannés</p>
       </div>
       <button class="btn-primary" (click)="createBackup()" [disabled]="loading">
         <span>➕</span> Nouvelle sauvegarde
@@ -48,18 +48,23 @@
       <div class="card" *ngFor="let backup of backups">
         <div class="card-icon">💾</div>
         <div class="card-body">
-          <div class="card-title">{{ backup.fileName }}</div>
+          <div class="card-title">
+            {{ backup.fileName }}
+            <span class="badge-frida" *ngIf="backup.automatique">Automatique</span>
+          </div>
           <div class="card-meta">
             <span>{{ formatBytes(backup.sizeBytes) }}</span>
             <span class="separator">•</span>
             <span>{{ formatDate(backup.createdAt) }}</span>
+            <span class="separator" *ngIf="backup.documentsInclus">•</span>
+            <span class="badge-files" *ngIf="backup.documentsInclus">📄 Documents inclus</span>
           </div>
         </div>
-        <div class="card-actions">
-          <a [href]="downloadBackupUrl(backup.fileName)" class="action-btn download" title="Télécharger">
+        <div class="card-actions" *ngIf="estMaitre">
+          <button class="action-btn download" (click)="downloadBackup(backup.fileName)" title="Télécharger (.zip)" [disabled]="loading">
             <span>⬇️</span>
-          </a>
-          <button class="action-btn restore" (click)="restoreBackup(backup.fileName)" title="Restaurer la base depuis cette sauvegarde" [disabled]="loading">
+          </button>
+          <button class="action-btn restore" (click)="restoreBackup(backup.fileName)" title="Restaurer la base et les documents depuis cette sauvegarde" [disabled]="loading">
             <span>🔄</span>
           </button>
           <button class="action-btn delete" (click)="deleteBackup(backup.fileName)" title="Supprimer" [disabled]="loading">
@@ -83,18 +88,18 @@
         <h2>Dossiers archivés</h2>
         <p>Dossiers Frida retirés de la base active, conservés avec leurs fichiers</p>
       </div>
-      <div class="btn-group">
+      <div class="btn-group" *ngIf="estMaitre">
         <button class="btn-secondary" (click)="loadArchivableFridas()" [disabled]="loading">
           <span>📋</span> {{ showArchivableList ? 'Masquer' : 'Archiver un dossier' }}
         </button>
         <button class="btn-accent" (click)="autoArchive()" [disabled]="loading">
-          <span>⚡</span> Archivage auto
+          <span>⚡</span> Archiver les dossiers éligibles
         </button>
       </div>
     </div>
 
     <!-- Liste des dossiers archivables -->
-    <div class="archivable-panel" *ngIf="showArchivableList">
+    <div class="archivable-panel" *ngIf="showArchivableList && estMaitre">
       <div class="panel-header">
         <h3>📋 Dossiers éligibles à l'archivage</h3>
         <p class="panel-subtitle">Ces dossiers ont plus de 6 mois et peuvent être archivés</p>
@@ -136,10 +141,10 @@
           </div>
           <div class="card-file">{{ archive.fileName }}</div>
         </div>
-        <div class="card-actions">
-          <a [href]="downloadArchiveUrl(archive.fileName)" class="action-btn download" title="Télécharger l'archive">
+        <div class="card-actions" *ngIf="estMaitre">
+          <button class="action-btn download" (click)="downloadArchive(archive.fileName)" title="Télécharger l'archive" [disabled]="loading">
             <span>⬇️</span>
-          </a>
+          </button>
           <button class="action-btn restore" (click)="restoreArchive(archive.fileName)" title="Restaurer dans la base active" [disabled]="loading">
             <span>🔄</span>
           </button>

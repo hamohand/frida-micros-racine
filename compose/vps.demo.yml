@@ -58,6 +58,8 @@ services:
       - SERVICES_OCR_URL=http://ocr-api:8082
       - CORS_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com,https://simul-frida.enclume-numerique.com
       - APP_DEMO_MODE=true
+      # Visiteurs anonymes en Maître : sauvegardes et archives en lecture seule
+      - SAUVEGARDES_LECTURE_SEULE=true
     volumes:
       - frida_uploads:/app/uploads
     depends_on:

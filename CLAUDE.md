@@ -143,6 +143,10 @@ Copy `.env.example` to `.env` and set values. Key variables:
 - `CORS_ALLOW_CREDENTIALS` — `true` par défaut ; forcer `false` en calc-only avec `CORS_ORIGINS=*`
 - `MAX_PARALLEL_FOLDERS` — OCR parallelism (default 2)
 - `ROOT_PATH` — host path mounted as `/frida-storage/` in containers
+- `APP_DEMO_MODE` — `false` par défaut : en mode démo, toute requête sans jeton est authentifiée en Maître. `docker-compose.yml` (dev), `compose/dev.demo.yml` et `compose/vps.demo.yml` le mettent à `true`.
+- `SAUVEGARDES_LECTURE_SEULE` — `true` sur la démo publique : sauvegardes et archives consultables, mais ni créées, ni restaurées, ni supprimées, ni téléchargées.
+- `BACKUP_PATH`, `BACKUP_AUTO_ENABLED`, `BACKUP_AUTO_KEEP`, `ARCHIVE_AUTO_ENABLED` — une sauvegarde est un dossier `<nom>/database.sql` + `<nom>/uploads`, le format de `sauvegarder.bat` / `restaurer.bat`. Sauvegarde automatique si la dernière a plus de 24 h ; archivage automatique désactivé par défaut. Restaurer, supprimer, télécharger et archiver sont réservés au rôle Maître ; le téléchargement passe par un lien à usage unique (`/api/telechargements/<jeton>`, 60 s).
+- Le backend tourne à l'heure `Europe/Paris` (`ENV TZ` dans `backend/Dockerfile`).
 
 > **Note compose subdirectory**: les fichiers de `compose/` ne chargent PAS automatiquement le `.env` de la racine. Utiliser `docker compose --env-file .env -f compose/xxx.yml ...` si nécessaire.
 
