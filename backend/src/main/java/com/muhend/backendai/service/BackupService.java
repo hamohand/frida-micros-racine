@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -59,6 +60,18 @@ public class BackupService {
     /** Ancien dossier des sauvegardes .dump de l'écran (avant le 2026-09-12) : jamais recopié. */
     private static final String ANCIEN_DOSSIER_DUMPS = "db_backups";
     private static final String SUFFIXE_EN_COURS = ".en-cours";
+
+    /**
+     * Cache des tailles, à la racine du dossier des sauvegardes (jamais dans une sauvegarde : ni
+     * zippée au téléchargement, ni copiée par {@code copierDocuments}, qui ne regarde que les
+     * sous-dossiers de {@code rootPath}, pas {@code getBackupDir()}).
+     *
+     * Sans lui, afficher la page Sauvegardes relisait la taille de chaque fichier de chaque
+     * sauvegarde à chaque ouverture : 10 s mesurées pour seulement 3 sauvegardes (226 fichiers) sur
+     * {@code ROOT_PATH} monté depuis Windows (protocole 9p, lent fichier par fichier) — le même mode
+     * de montage que chez le notaire (2026-09-13).
+     */
+    private static final String FICHIER_CACHE_TAILLES = ".tailles.properties";
 
     /** Ni séparateur ni point en tête : un nom ne peut pas sortir du dossier des sauvegardes. */
     private static final Pattern NOM_VALIDE = Pattern.compile("[A-Za-z0-9][A-Za-z0-9._-]{0,150}");
@@ -219,6 +232,7 @@ public class BackupService {
     public void deleteBackup(String nom) throws IOException {
         synchronized (verrou) {
             supprimerDossier(localiser(nom));
+            retirerDuCacheTailles(nom);
             log.info("Sauvegarde {} supprimée", nom);
         }
     }
@@ -334,7 +348,7 @@ public class BackupService {
         try {
             return BackupInfo.builder()
                     .fileName(nom)
-                    .sizeBytes(taille(dossier))
+                    .sizeBytes(tailleAvecCache(dossier, nom))
                     .createdAt(OffsetDateTime.ofInstant(
                             Files.getLastModifiedTime(dossier.resolve(FICHIER_BASE)).toInstant(),
                             ZoneId.systemDefault()))
@@ -348,9 +362,55 @@ public class BackupService {
         }
     }
 
-    private static long taille(Path dossier) throws IOException {
+    /** Taille d'une sauvegarde, mise en cache après le premier calcul (voir {@link #FICHIER_CACHE_TAILLES}). */
+    private long tailleAvecCache(Path dossier, String nom) throws IOException {
+        Properties cache = chargerCacheTailles();
+        String valeur = cache.getProperty(nom);
+        if (valeur != null) {
+            try {
+                return Long.parseLong(valeur);
+            } catch (NumberFormatException e) {
+                log.warn("Cache de taille illisible pour {}, recalcul", nom);
+            }
+        }
+        long taille = tailleReelle(dossier);
+        cache.setProperty(nom, Long.toString(taille));
+        enregistrerCacheTailles(cache);
+        return taille;
+    }
+
+    private static long tailleReelle(Path dossier) throws IOException {
         try (Stream<Path> fichiers = Files.walk(dossier)) {
             return fichiers.filter(Files::isRegularFile).mapToLong(f -> f.toFile().length()).sum();
+        }
+    }
+
+    private Properties chargerCacheTailles() {
+        Properties cache = new Properties();
+        Path fichier = getBackupDir().resolve(FICHIER_CACHE_TAILLES);
+        if (Files.isRegularFile(fichier)) {
+            try (var entree = Files.newInputStream(fichier)) {
+                cache.load(entree);
+            } catch (IOException e) {
+                log.warn("Cache de tailles illisible ({}), recalcul de tout", fichier, e);
+            }
+        }
+        return cache;
+    }
+
+    private void enregistrerCacheTailles(Properties cache) {
+        Path fichier = getBackupDir().resolve(FICHIER_CACHE_TAILLES);
+        try (var sortie = Files.newOutputStream(fichier)) {
+            cache.store(sortie, null);
+        } catch (IOException e) {
+            log.warn("Impossible d'écrire le cache de tailles {}", fichier, e);
+        }
+    }
+
+    private void retirerDuCacheTailles(String nom) {
+        Properties cache = chargerCacheTailles();
+        if (cache.remove(nom) != null) {
+            enregistrerCacheTailles(cache);
         }
     }
 

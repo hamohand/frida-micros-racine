@@ -15,6 +15,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Properties;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -102,7 +103,9 @@ class BackupServiceTest {
         assertEquals("image", Files.readString(dossier.resolve("uploads/dossiers/fiche_1/01_en/acte.png")));
         assertTrue(commande("pg_dump").containsAll(List.of("--clean", "--if-exists")));
         try (Stream<Path> contenu = Files.list(sauvegardes)) {
-            assertEquals(1, contenu.count(), "aucun dossier temporaire ne doit rester");
+            // Le cache de tailles (.tailles.properties, écrit par lireInfo ci-dessus) est attendu ;
+            // seul un dossier temporaire ".en-cours" oublié serait anormal.
+            assertEquals(1, contenu.filter(Files::isDirectory).count(), "aucun dossier temporaire ne doit rester");
         }
     }
 
@@ -157,6 +160,50 @@ class BackupServiceTest {
         assertEquals(List.of("frida_backup_20260911_1833"), liste.stream().map(BackupInfo::getFileName).toList());
         assertFalse(liste.get(0).isDocumentsInclus());
         assertFalse(liste.get(0).isAutomatique());
+    }
+
+    @Test
+    void liste_TailleMiseEnCache_NonRecalculeeAuDeuxiemeAppel() throws Exception {
+        // Constaté le 2026-09-13 : afficher la page recalculait la taille de chaque sauvegarde en
+        // relisant chaque fichier qu'elle contient (10 s pour 3 sauvegardes de 226 fichiers, sur un
+        // ROOT_PATH monté depuis Windows). Preuve que le deuxième appel utilise le cache, pas une
+        // nouvelle lecture : on ajoute un fichier après le premier appel ; s'il recalculait, la
+        // taille changerait.
+        fichier(documents, "dossiers/fiche_1/acte.png", "image");
+        service.createBackup(false);
+
+        List<BackupInfo> premiereLecture = service.listBackups();
+        long tailleInitiale = premiereLecture.get(0).getSizeBytes();
+        assertTrue(Files.isRegularFile(sauvegardes.resolve(".tailles.properties")), "cache écrit au premier appel");
+
+        fichier(sauvegardes.resolve(premiereLecture.get(0).getFileName()), "uploads/fichier_ajoute_apres_coup.bin", "xxxxxxxxxx");
+        long tailleApresAjout = service.listBackups().get(0).getSizeBytes();
+
+        assertEquals(tailleInitiale, tailleApresAjout, "la taille en cache ne doit pas changer");
+    }
+
+    @Test
+    void liste_CacheIllisibleOuIncomplet_RecalculeSansEchouer() throws IOException {
+        sauvegardeExistante("frida_backup_20260911_1833", 60);
+        Files.writeString(sauvegardes.resolve(".tailles.properties"), "ceci n'est pas une propriete valide\n\0binaire");
+
+        List<BackupInfo> liste = service.listBackups();
+
+        assertEquals(1, liste.size());
+        assertTrue(liste.get(0).getSizeBytes() >= 0);
+    }
+
+    @Test
+    void suppression_RetireLaTailleDuCache() throws Exception {
+        fichier(documents, "dossiers/fiche_1/acte.png", "image");
+        BackupInfo info = service.createBackup(false);
+        service.listBackups(); // écrit le cache
+
+        service.deleteBackup(info.getFileName());
+
+        Properties cache = new Properties();
+        try (var in = Files.newInputStream(sauvegardes.resolve(".tailles.properties"))) { cache.load(in); }
+        assertNull(cache.getProperty(info.getFileName()));
     }
 
     @Test
