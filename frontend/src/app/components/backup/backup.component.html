@@ -30,8 +30,21 @@
   <div *ngIf="derniereRestauration && activeTab === 'backups'" class="alert success">
     <span class="alert-icon">✅</span>
     <span>{{ derniereRestauration.message }}</span>
-    <button class="btn-secondary" (click)="annulerRestauration()" [disabled]="loading">↩️ Annuler cette restauration</button>
+    <button class="btn-secondary" (click)="demanderAnnulationRestauration()" [disabled]="loading">↩️ Annuler cette restauration</button>
     <button class="alert-close" (click)="derniereRestauration = null" title="Fermer">✕</button>
+  </div>
+
+  <!-- Confirmation « Annuler cette restauration ? » : Oui / Non, Non par défaut -->
+  <div class="modal-overlay" *ngIf="confirmationAnnulation" (click)="repondreAnnulationRestauration(false)">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <h3>Annuler cette restauration ?</h3>
+      <p>FRIDA reviendra à l'état du {{ confirmationAnnulation.dateSecurite }}, juste avant la restauration.</p>
+      <p>L'état actuel sera à son tour mis de côté : vous pourrez encore changer d'avis ensuite.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="repondreAnnulationRestauration(true)">Oui</button>
+        <button class="btn-primary" autofocus (click)="repondreAnnulationRestauration(false)">Non</button>
+      </div>
+    </div>
   </div>
 
   <!-- Overlay de chargement -->
@@ -65,8 +78,9 @@
             <span>{{ formatBytes(backup.sizeBytes) }}</span>
             <span class="separator">•</span>
             <span>{{ formatDate(backup.createdAt) }}</span>
-            <span class="separator" *ngIf="backup.documentsInclus">•</span>
-            <span class="badge-files" *ngIf="backup.documentsInclus">📄 Documents inclus</span>
+            <span class="separator">•</span>
+            <span class="badge-files" *ngIf="backup.documentsInclus" title="Les documents scannés sont dans cette sauvegarde : les restaurer les remet en place avec la base de données.">📄 Documents inclus</span>
+            <span class="badge-warning" *ngIf="!backup.documentsInclus" title="Cette sauvegarde ne contient que la base de données. La restaurer ne remettra pas en place les documents scannés (PDF, images) : les fiches pointeront vers des fichiers absents.">⚠️ Sans les documents</span>
           </div>
         </div>
         <div class="card-actions" *ngIf="estMaitre">
@@ -145,8 +159,9 @@
             <span>{{ formatBytes(archive.sizeBytes) }}</span>
             <span class="separator">•</span>
             <span>Archivé le {{ formatDate(archive.dateArchivage) }}</span>
-            <span class="separator" *ngIf="archive.includesFiles">•</span>
-            <span class="badge-files" *ngIf="archive.includesFiles">📄 Fichiers inclus</span>
+            <span class="separator">•</span>
+            <span class="badge-files" *ngIf="archive.includesFiles" title="Les documents scannés sont dans cette archive : les restaurer les remet en place avec le dossier.">📄 Fichiers inclus</span>
+            <span class="badge-warning" *ngIf="!archive.includesFiles" title="Cette archive ne contient que les données du dossier. La restaurer ne remettra pas en place les documents scannés (PDF, images).">⚠️ Sans les fichiers</span>
           </div>
           <div class="card-file">{{ archive.fileName }}</div>
         </div>

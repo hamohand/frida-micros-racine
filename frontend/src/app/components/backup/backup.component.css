@@ -296,6 +296,51 @@ button[disabled], a[disabled] {
   color: #38a169;
 }
 
+.badge-warning {
+  font-size: 0.8rem;
+  color: #c05621;
+}
+
+/* ===== Confirmation Oui/Non ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.modal-box h3 {
+  margin: 0 0 0.75rem;
+  color: #2d3748;
+}
+
+.modal-box p {
+  margin: 0 0 0.6rem;
+  color: #4a5568;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
 /* ===== Card Actions ===== */
 .card-actions {
   display: flex;

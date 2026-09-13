@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import {
@@ -34,6 +34,9 @@ export class BackupComponent implements OnInit {
 
   /** Dernière restauration réussie : son message reste affiché avec un bouton pour l'annuler. */
   derniereRestauration: { message: string; securite: string; dateSecurite: string } | null = null;
+
+  /** Non null pendant que la confirmation « Annuler cette restauration ? » est affichée. */
+  confirmationAnnulation: { message: string; securite: string; dateSecurite: string } | null = null;
 
   constructor(private backupService: BackupService, private authService: AuthService) {}
 
@@ -84,13 +87,26 @@ export class BackupComponent implements OnInit {
     }
   }
 
-  /** Annule la dernière restauration en restaurant l'état mis de côté juste avant. */
-  annulerRestauration(): void {
-    const annulation = this.derniereRestauration;
-    if (!annulation) return;
-    if (confirm('Annuler la restauration ?\n\n'
-      + 'FRIDA reviendra à l\'état du ' + annulation.dateSecurite + ', juste avant la restauration.\n\n'
-      + 'L\'état actuel sera à son tour mis de côté : vous pourrez encore changer d\'avis.')) {
+  /** Ouvre la confirmation « Annuler cette restauration ? » (boutons Oui/Non, Non par défaut). */
+  demanderAnnulationRestauration(): void {
+    if (this.derniereRestauration) {
+      this.confirmationAnnulation = this.derniereRestauration;
+    }
+  }
+
+  /** Échap referme la confirmation comme « Non » (réponse par défaut, sans conséquence). */
+  @HostListener('document:keydown.escape')
+  surEchap(): void {
+    if (this.confirmationAnnulation) {
+      this.repondreAnnulationRestauration(false);
+    }
+  }
+
+  /** Réponse à la confirmation d'annulation. */
+  repondreAnnulationRestauration(confirmer: boolean): void {
+    const annulation = this.confirmationAnnulation;
+    this.confirmationAnnulation = null;
+    if (confirmer && annulation) {
       this.restaurer(annulation.securite);
     }
   }
