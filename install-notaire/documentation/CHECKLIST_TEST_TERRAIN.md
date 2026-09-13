@@ -16,6 +16,13 @@ Cette checklist accompagne le déploiement de la Composante 1 (local notaire) ch
 - [ ] **Docker Desktop déjà installé ?** (`docker --version` en cmd Windows) — si oui, potentiel conflit avec Docker-in-WSL
 - [ ] **WSL déjà présent ?** : `wsl -l -v` — note le résultat exact
 - [ ] **Support de secours** : clé USB avec le zip + une VM portable si possible
+- [ ] **Machine déjà utilisée pour un test précédent ?** Supprimer `%USERPROFILE%\Frida-Micros` ne suffit PAS à repartir de zéro : la base PostgreSQL vit dans un volume Docker nommé (`frida-micros_frida_pgdata`), indépendant de ce dossier, et survit à sa suppression — `maitre` garde alors son ancien mot de passe alors qu'un nouveau vient d'être généré (« Compte 'maitre' déjà présent » dans les logs au lieu de « créé avec le mot de passe fourni »). Pour un vrai reset, **avant** de supprimer le dossier :
+
+  ```powershell
+  wsl -u root -d Ubuntu -e bash -c "cd /mnt/c/Users/<nom>/Frida-Micros && docker compose -f docker-compose.local.yml --env-file .env down -v"
+  ```
+
+  (ou lancer `desinstaller.bat` en répondant N à « Conserver vos données ? », qui fait ce `down -v` pour vous)
 
 ## Phase 1 — Lancement Installer-Frida.bat
 
@@ -122,6 +129,7 @@ Une fois tout démarré, note :
 - **Windows 10 < build 19041** : WSL 2 pas disponible. Vérifier au préalable.
 - **Notaire pressé** : ne pas se laisser embarquer dans « c'est plus vite comme ça », suivre le script.
 - **PostgreSQL** : le problème est **réglé** depuis le test du 2026-09-09 — la base est sur le volume Docker `frida_pgdata`, plus sur `./data/postgres`. Le bind mount échouait avec `chmod: /var/lib/postgresql/data: Operation not permitted` (DrvFs n'autorise pas `chmod 0700`). Vérifier quand même `docker logs frida-db` : on doit y lire `database system is ready to accept connections`.
+- **Volume Docker qui survit à une « réinstallation »** : constaté le 2026-09-13. Supprimer le dossier `Frida-Micros` sans `docker compose down -v` laisse le volume nommé intact ; le compte `maitre` garde son ancien mot de passe malgré un nouveau `.env`. Voir la case cochée dans « AVANT le test ».
 
 ---
 

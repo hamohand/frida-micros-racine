@@ -32,6 +32,21 @@ Conséquence : la base n'est pas visible depuis l'explorateur Windows. `data/upl
 `data/backups` y restent, et `sauvegarder.bat` extrait la base vers `data/backups` — c'est
 la seule voie de récupération, d'où l'ajout de `restaurer.bat`.
 
+**Piège pour un reset de test** : supprimer `%USERPROFILE%\Frida-Micros` ne supprime PAS ce
+volume — il est géré par Docker, nommé `frida-micros_frida_pgdata` (le nom du projet Compose
+vient du nom du dossier, toujours `Frida-Micros` sur une machine donnée). Une « réinstallation
+propre » par suppression du dossier repart donc avec une base ancienne : `DataInitializer` voit
+le compte `maitre` déjà présent et ne le recrée pas, alors que l'installeur vient de générer un
+nouveau mot de passe dans le `.env` — identifiants reçus ≠ identifiants en base. Constaté le
+2026-09-13 sur une machine de test réutilisée. Avant de supprimer le dossier :
+
+```powershell
+wsl -u root -d Ubuntu -e bash -c "cd <chemin> && docker compose -f docker-compose.local.yml --env-file .env down -v"
+```
+
+`desinstaller.bat` (réponse N à « Conserver vos données ? ») fait déjà ce `down -v` : le repartir
+à zéro via ce script plutôt qu'en supprimant le dossier à la main évite le piège.
+
 Depuis le 2026-09-12, l'écran « Sauvegardes » écrit au même format (`BackupService`,
 `BACKUP_PATH=/app/backups`, monté sur `data/backups`) : un dossier `<nom>/database.sql` +
 `<nom>/uploads`. L'écran et les scripts voient donc les mêmes sauvegardes. Le backend en
