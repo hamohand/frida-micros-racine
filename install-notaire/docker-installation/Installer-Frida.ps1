@@ -88,19 +88,27 @@ Write-Section "[2/5] Extraction des sources FRIDA"
 $zipPath = Join-Path -Path $PSScriptRoot -ChildPath "frida-micros.zip"
 $targetPath = Join-Path -Path $env:USERPROFILE -ChildPath "Frida-Micros"
 
-if (Test-Path (Join-Path $targetPath "docker-compose.local.yml")) {
-    Write-Host "Sources FRIDA deja presentes dans $targetPath (extraction ignoree)."
-} else {
-    if (-not (Test-Path $zipPath)) {
-        Write-Host "ERREUR : frida-micros.zip introuvable a cote du script." -ForegroundColor Red
-        Write-Host "Verifiez que le zip est dans le meme dossier que Installer-Frida.bat."
-        pause
-        exit 1
-    }
-    Write-Host "Decompression de $zipPath vers $targetPath ..."
-    Expand-Archive -Path $zipPath -DestinationPath $targetPath -Force
-    Write-Host "Extraction terminee." -ForegroundColor Green
+if (-not (Test-Path $zipPath)) {
+    Write-Host "ERREUR : frida-micros.zip introuvable a cote du script." -ForegroundColor Red
+    Write-Host "Verifiez que le zip est dans le meme dossier que Installer-Frida.bat."
+    pause
+    exit 1
 }
+
+# Toujours reextraire, y compris sur une installation existante : sinon une mise a jour
+# (nouveau frida-micros.zip) ou un desinstaller.bat qui a garde le dossier d'installation
+# laissaient l'ancien code backend/frontend/ocr-api en place, "docker compose build"
+# reconstruisait alors a l'identique, et rien ne changeait jamais apres reinstallation
+# (constate le 2026-09-13 : JwtUtils tournait encore le code d'avant le 11/09).
+# Les dossiers de code sont supprimes avant extraction pour ne garder aucun fichier
+# retire depuis ; .env, data\ et les scripts de maintenance ne sont jamais touches ici.
+Write-Host "Decompression de $zipPath vers $targetPath ..."
+foreach ($dossierCode in @("backend", "frontend", "ocr-api")) {
+    $chemin = Join-Path $targetPath $dossierCode
+    if (Test-Path $chemin) { Remove-Item $chemin -Recurse -Force }
+}
+Expand-Archive -Path $zipPath -DestinationPath $targetPath -Force
+Write-Host "Extraction terminee." -ForegroundColor Green
 
 # Verification : le compose et le .env doivent etre presents apres extraction
 $composeInTarget = Join-Path $targetPath "docker-compose.local.yml"
