@@ -17,6 +17,9 @@ public class ParametreService {
     /** Vérification phonétique nom arabe / nom latin. */
     public static final String VERIFICATION_PHONETIQUE = "ocr.verification-phonetique";
 
+    /** Année-mois (yyyy-MM) du dernier archivage automatique mensuel effectué avec succès. */
+    public static final String DERNIER_ARCHIVAGE_AUTO = "archive.dernier-passage-auto";
+
     private final ParametreRepo parametreRepo;
 
     public ParametreService(ParametreRepo parametreRepo) {
@@ -36,5 +39,14 @@ public class ParametreService {
     public void setVerificationPhonetiqueActive(boolean active) {
         parametreRepo.save(new ParametreEntity(VERIFICATION_PHONETIQUE, String.valueOf(active)));
         log.info("Vérification phonétique des noms {}", active ? "activée" : "désactivée");
+    }
+
+    /** Année-mois (yyyy-MM) du dernier archivage automatique réussi, absent si aucun n'a encore eu lieu. */
+    public java.util.Optional<String> getDernierArchivageAuto() {
+        return parametreRepo.findById(DERNIER_ARCHIVAGE_AUTO).map(ParametreEntity::getValeur);
+    }
+
+    public void setDernierArchivageAuto(String anneeMois) {
+        parametreRepo.save(new ParametreEntity(DERNIER_ARCHIVAGE_AUTO, anneeMois));
     }
 }

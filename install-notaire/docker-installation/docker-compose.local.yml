@@ -68,6 +68,8 @@ services:
       # Sauvegardes au format de sauvegarder.bat, dans data\backups (monté ci-dessous)
       - BACKUP_PATH=/app/backups
       - BACKUP_AUTO_KEEP=7
+      # Archivage automatique désactivé pour l'instant : seul l'archivage manuel (page
+      # Sauvegardes, un dossier ou "Archiver maintenant") est disponible chez le notaire.
     volumes:
       - ./data/uploads:/app/uploads
       - ./data/backups:/app/backups

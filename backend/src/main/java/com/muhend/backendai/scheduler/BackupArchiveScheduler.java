@@ -3,6 +3,7 @@ package com.muhend.backendai.scheduler;
 import com.muhend.backendai.dto.BackupInfo;
 import com.muhend.backendai.service.ArchiveService;
 import com.muhend.backendai.service.BackupService;
+import com.muhend.backendai.service.ParametreService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,10 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Profile("!calc-only")
@@ -19,8 +23,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BackupArchiveScheduler {
 
+    private static final DateTimeFormatter ANNEE_MOIS = DateTimeFormatter.ofPattern("yyyy-MM");
+
     private final BackupService backupService;
     private final ArchiveService archiveService;
+    private final ParametreService parametreService;
 
     @Value("${app.backup.auto-enabled:false}")
     private boolean autoBackupEnabled;
@@ -65,23 +72,43 @@ public class BackupArchiveScheduler {
     }
 
     /**
-     * Archivage automatique des dossiers anciens.
-     * Par défaut: le 1er de chaque mois à 3h du matin, s'il est activé (désactivé par défaut).
+     * Archivage automatique des dossiers de plus de {@code app.archive.threshold-months}, le
+     * premier jour ouvré de chaque mois (lundi-vendredi ; les jours fériés ne sont pas exclus).
+     * Vérifié comme la sauvegarde — peu après le démarrage puis toutes les heures, pas à une heure
+     * fixe — pour le même motif : un poste éteint la nuit et le week-end n'atteindrait jamais un
+     * cron fixé au 1er du mois à 3h. Le mois déjà traité est retenu dans la table {@code parametres}
+     * (survit à un redémarrage) ; un échec ne l'enregistre pas, pour retenter à la vérification
+     * suivante.
      */
-    @Scheduled(cron = "${app.archive.cron:0 0 3 1 * *}")
-    public void scheduledArchive() {
+    @Scheduled(initialDelayString = "${app.archive.auto-initial-delay-ms:180000}",
+            fixedDelayString = "${app.archive.auto-check-interval-ms:3600000}")
+    public void verifierArchivageAutomatique() {
         if (!autoArchiveEnabled) {
-            log.debug("Archivage automatique désactivé.");
             return;
         }
-
-        log.info("=== Début archivage automatique mensuel ===");
+        LocalDate aujourdhui = aujourdhui();
+        DayOfWeek jour = aujourdhui.getDayOfWeek();
+        if (jour == DayOfWeek.SATURDAY || jour == DayOfWeek.SUNDAY) {
+            log.debug("Archivage automatique : {} n'est pas un jour ouvré, on retente au prochain.", jour);
+            return;
+        }
+        String moisCourant = aujourdhui.format(ANNEE_MOIS);
+        if (parametreService.getDernierArchivageAuto().map(moisCourant::equals).orElse(false)) {
+            log.debug("Archivage automatique déjà effectué pour {}.", moisCourant);
+            return;
+        }
+        log.info("=== Archivage automatique du mois {} (premier jour ouvré) ===", moisCourant);
         try {
             int count = archiveService.autoArchive();
-            log.info("Archivage automatique terminé: {} dossier(s) archivé(s)", count);
+            parametreService.setDernierArchivageAuto(moisCourant);
+            log.info("Archivage automatique terminé : {} dossier(s) archivé(s)", count);
         } catch (Exception e) {
-            log.error("Échec de l'archivage automatique", e);
+            log.error("Échec de l'archivage automatique, nouvelle tentative à la prochaine vérification", e);
         }
-        log.info("=== Fin archivage automatique ===");
+    }
+
+    /** Point d'extension pour les tests (BackupArchiveSchedulerTest fixe un jour donné). */
+    protected LocalDate aujourdhui() {
+        return LocalDate.now();
     }
 }
