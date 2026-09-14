@@ -1,8 +1,9 @@
 import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { QRCodeModule } from 'angularx-qrcode';
-import { HttpClient } from '@angular/common/http';
 import { v4 as uuidv4 } from 'uuid';
+import { ParametresService } from '../../../services/parametres.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-nfc-scanner-modal',
@@ -16,13 +17,29 @@ import { v4 as uuidv4 } from 'uuid';
           <button class="close-btn" (click)="close()">✕</button>
         </div>
 
-        <div class="modal-body" *ngIf="!successData">
+        <!-- Adresse réseau locale non configurée : pas de QR code à générer -->
+        <div class="modal-body config-manquante" *ngIf="adresseNonConfiguree">
+          <span class="material-icons warning-icon">wifi_off</span>
+          <h3>Adresse réseau non configurée</h3>
+          <p>
+            Le téléphone ne peut pas joindre ce poste via « localhost », qui ne désigne que lui-même
+            une fois sur le réseau Wi-Fi. Il faut d'abord donner l'adresse de ce poste sur le réseau local.
+          </p>
+          <p *ngIf="estMaitre">
+            Page <b>Paramètres</b> → « Adresse réseau locale du poste » (trouvée avec <code>ipconfig</code>).
+          </p>
+          <p *ngIf="!estMaitre">
+            Demandez à un compte Maître de la renseigner, page <b>Paramètres</b>.
+          </p>
+        </div>
+
+        <div class="modal-body" *ngIf="!adresseNonConfiguree && !successData">
           <p class="instructions">
             <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
             <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
             <strong>3.</strong> Scannez ce QR Code.
           </p>
-          
+
           <div class="qr-container" *ngIf="qrData">
             <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
           </div>
@@ -97,7 +114,12 @@ import { v4 as uuidv4 } from 'uuid';
     .listening-state { color: #ffb84d; margin-top: 1rem; font-size: 0.9rem; }
     .success { text-align: center; padding: 2rem; }
     .success-icon { font-size: 4rem; color: #4ecca3; margin-bottom: 1rem; }
-    
+    .config-manquante { text-align: left; }
+    .warning-icon { font-size: 3rem; color: #ffb84d; display: block; text-align: center; margin-bottom: 0.5rem; }
+    .config-manquante h3 { text-align: center; margin: 0 0 1rem; }
+    .config-manquante p { line-height: 1.5; font-size: 0.95rem; }
+    .config-manquante code { background: rgba(255, 255, 255, 0.1); padding: 0.1rem 0.4rem; border-radius: 4px; }
+
     .spinner {
       display: inline-block;
       width: 16px; height: 16px;
@@ -118,21 +140,36 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   sessionId: string = '';
   qrData: string = '';
   successData: any = null;
+  adresseNonConfiguree = false;
+  estMaitre = false;
   private eventSource: EventSource | null = null;
 
-  constructor(private http: HttpClient) {}
+  constructor(private parametresService: ParametresService, private authService: AuthService) {}
 
   ngOnInit() {
     this.sessionId = uuidv4();
-    
-    // Configuration de l'IP du serveur pour le mobile (Réseau Wi-Fi)
-    const apiUrl = 'http://10.81.199.213:8080/api';
-    
-    // Le QR Code contient l'URL d'upload que le téléphone devra utiliser
-    const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
-    this.qrData = JSON.stringify({ action: 'nfc_upload', url: uploadUrl });
+    this.estMaitre = this.authService.isMaitre();
 
-    this.connectSse(apiUrl);
+    this.parametresService.lire().subscribe({
+      next: (p) => {
+        const adresse = (p.adresseReseauLocale || '').trim();
+        if (!adresse) {
+          this.adresseNonConfiguree = true;
+          return;
+        }
+        // Même schéma et port que ceux utilisés pour accéder à FRIDA depuis ce navigateur
+        // (nginx proxifie déjà /api/ vers le backend) : seul « localhost » doit être remplacé,
+        // car le téléphone ne le résoudrait qu'à lui-même sur le réseau Wi-Fi.
+        const port = window.location.port ? ':' + window.location.port : '';
+        const apiUrl = `${window.location.protocol}//${adresse}${port}/api`;
+        const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
+        this.qrData = JSON.stringify({ action: 'nfc_upload', url: uploadUrl });
+        this.connectSse(apiUrl);
+      },
+      error: () => {
+        this.adresseNonConfiguree = true;
+      }
+    });
   }
 
   connectSse(apiUrl: string) {
@@ -148,7 +185,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
       try {
         const data = JSON.parse(event.data);
         this.successData = data;
-        
+
         // Fermer la modale et propager les données après 2 secondes
         setTimeout(() => {
           this.nfcDataReceived.emit(data);

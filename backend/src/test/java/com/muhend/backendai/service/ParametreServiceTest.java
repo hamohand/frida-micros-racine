@@ -51,4 +51,26 @@ class ParametreServiceTest {
         assertEquals(ParametreService.VERIFICATION_PHONETIQUE, captor.getValue().getCle());
         assertEquals("true", captor.getValue().getValeur());
     }
+
+    @Test
+    void adresseReseauLocale_VideParDefaut() {
+        when(parametreRepo.findById(ParametreService.ADRESSE_RESEAU_LOCALE)).thenReturn(Optional.empty());
+
+        assertEquals("", parametreService.getAdresseReseauLocale());
+    }
+
+    @Test
+    void adresseReseauLocale_LitEtEnregistreLaValeur() {
+        when(parametreRepo.findById(ParametreService.ADRESSE_RESEAU_LOCALE))
+                .thenReturn(Optional.of(new ParametreEntity(ParametreService.ADRESSE_RESEAU_LOCALE, "192.168.1.50")));
+
+        assertEquals("192.168.1.50", parametreService.getAdresseReseauLocale());
+
+        parametreService.setAdresseReseauLocale("192.168.1.51");
+
+        ArgumentCaptor<ParametreEntity> captor = ArgumentCaptor.forClass(ParametreEntity.class);
+        verify(parametreRepo).save(captor.capture());
+        assertEquals(ParametreService.ADRESSE_RESEAU_LOCALE, captor.getValue().getCle());
+        assertEquals("192.168.1.51", captor.getValue().getValeur());
+    }
 }

@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 
 export interface Parametres {
   verificationPhonetique: boolean;
+  /** IP ou nom d'hôte du poste sur le réseau local (sans schéma ni port), vide si non configurée. */
+  adresseReseauLocale: string;
 }
 
 @Injectable({
@@ -18,7 +20,8 @@ export class ParametresService {
     return this.http.get<Parametres>(this.url);
   }
 
-  modifier(parametres: Parametres): Observable<Parametres> {
+  /** Un seul champ à la fois suffit : les autres ne sont pas modifiés. */
+  modifier(parametres: Partial<Parametres>): Observable<Parametres> {
     return this.http.put<Parametres>(this.url, parametres);
   }
 }

@@ -20,6 +20,14 @@ public class ParametreService {
     /** Année-mois (yyyy-MM) du dernier archivage automatique mensuel effectué avec succès. */
     public static final String DERNIER_ARCHIVAGE_AUTO = "archive.dernier-passage-auto";
 
+    /**
+     * Adresse (IP ou nom d'hôte, sans schéma ni port) à laquelle le poste répond sur le réseau
+     * local du cabinet — saisie par le Maître, trouvée avec « ipconfig ». Sert à construire l'URL
+     * que le QR code du scan NFC par smartphone donne au téléphone : celui-ci ne peut pas joindre
+     * ce PC via « localhost », qui ne désigne que lui-même une fois sur le réseau Wi-Fi.
+     */
+    public static final String ADRESSE_RESEAU_LOCALE = "reseau.adresse-locale";
+
     private final ParametreRepo parametreRepo;
 
     public ParametreService(ParametreRepo parametreRepo) {
@@ -48,5 +56,15 @@ public class ParametreService {
 
     public void setDernierArchivageAuto(String anneeMois) {
         parametreRepo.save(new ParametreEntity(DERNIER_ARCHIVAGE_AUTO, anneeMois));
+    }
+
+    /** Vide si le Maître ne l'a pas encore saisie. */
+    public String getAdresseReseauLocale() {
+        return parametreRepo.findById(ADRESSE_RESEAU_LOCALE).map(ParametreEntity::getValeur).orElse("");
+    }
+
+    public void setAdresseReseauLocale(String adresse) {
+        parametreRepo.save(new ParametreEntity(ADRESSE_RESEAU_LOCALE, adresse));
+        log.info("Adresse réseau locale enregistrée : {}", adresse);
     }
 }
