@@ -4,6 +4,8 @@ import { QRCodeModule } from 'angularx-qrcode';
 import { v4 as uuidv4 } from 'uuid';
 import { ParametresService } from '../../../services/parametres.service';
 import { AuthService } from '../../../services/auth.service';
+import { NfcService, NfcData } from '../../../services/nfc.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-nfc-scanner-modal',
@@ -13,7 +15,7 @@ import { AuthService } from '../../../services/auth.service';
     <div class="modal-overlay" (click)="close()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
-          <h2>📲 Scanner NFC depuis le Mobile</h2>
+          <h2>📲 Scanner NFC</h2>
           <button class="close-btn" (click)="close()">✕</button>
         </div>
 
@@ -22,34 +24,37 @@ import { AuthService } from '../../../services/auth.service';
           <span class="material-icons warning-icon">wifi_off</span>
           <h3>Adresse réseau non configurée</h3>
           <p>
-            Le téléphone ne peut pas joindre ce poste via « localhost », qui ne désigne que lui-même
-            une fois sur le réseau Wi-Fi. Il faut d'abord donner l'adresse de ce poste sur le réseau local.
+            Le téléphone ne peut pas joindre ce poste. Il faut d'abord configurer l'adresse de ce poste sur le réseau local.
           </p>
           <p *ngIf="estMaitre">
-            Page <b>Paramètres</b> → « Adresse réseau locale du poste » (trouvée avec <code>ipconfig</code>).
-          </p>
-          <p *ngIf="!estMaitre">
-            Demandez à un compte Maître de la renseigner, page <b>Paramètres</b>.
+            Page <b>Paramètres</b> → « Adresse réseau locale du poste ».
           </p>
         </div>
 
         <div class="modal-body" *ngIf="!adresseNonConfiguree && !successData">
-          <p class="instructions">
-            <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
-            <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
-            <strong>3.</strong> Scannez ce QR Code.
-          </p>
-
-          <div class="qr-container" *ngIf="qrData">
-            <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+          <div *ngIf="isUsbAvailable">
+            <span class="material-icons usb-icon" style="font-size: 4rem; color: #4ecca3;">usb</span>
+            <h3>Lecteur USB Détecté</h3>
+            <p class="instructions">Veuillez poser la pièce d'identité sur le lecteur de carte connecté à votre ordinateur.</p>
+            <div class="listening-state">
+              <span class="spinner"></span> <i>Lecture en cours...</i>
+            </div>
           </div>
 
-          <div class="loading-state" *ngIf="!qrData">
-            <span class="spinner"></span> Génération de la session...
-          </div>
+          <div *ngIf="!isUsbAvailable">
+            <p class="instructions">
+              <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
+              <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
+              <strong>3.</strong> Scannez ce QR Code.
+            </p>
 
-          <div class="listening-state" *ngIf="qrData">
-            <span class="spinner"></span> <i>En attente des données du mobile...</i>
+            <div class="qr-container" *ngIf="qrData">
+              <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
+            </div>
+
+            <div class="listening-state" *ngIf="qrData">
+              <span class="spinner"></span> <i>En attente des données du mobile...</i>
+            </div>
           </div>
         </div>
 
@@ -135,21 +140,43 @@ import { AuthService } from '../../../services/auth.service';
 })
 export class NfcScannerModalComponent implements OnInit, OnDestroy {
   @Output() closeModal = new EventEmitter<void>();
-  @Output() nfcDataReceived = new EventEmitter<any>();
+  @Output() nfcDataReceived = new EventEmitter<NfcData>();
 
   sessionId: string = '';
   qrData: string = '';
-  successData: any = null;
+  successData: NfcData | null = null;
   adresseNonConfiguree = false;
   estMaitre = false;
-  private eventSource: EventSource | null = null;
+  isUsbAvailable = false;
+  
+  private nfcSubscription?: Subscription;
 
-  constructor(private parametresService: ParametresService, private authService: AuthService) {}
+  constructor(
+    private parametresService: ParametresService, 
+    private authService: AuthService,
+    private nfcService: NfcService
+  ) {}
 
   ngOnInit() {
     this.sessionId = uuidv4();
     this.estMaitre = this.authService.isMaitre();
 
+    // 1. On vérifie d'abord si un lecteur USB est branché et si l'Agent Local répond
+    this.nfcService.checkUsbAgentAvailable().subscribe(isUsb => {
+      this.isUsbAvailable = isUsb;
+      
+      if (this.isUsbAvailable) {
+        // Mode USB : On pourrait lancer readViaUsb ici si on passait les clés MRZ en Input au composant.
+        // Pour l'instant, c'est juste prêt pour la Phase 2.
+        console.log("Lecteur USB détecté. En attente de développement Phase 2.");
+      } else {
+        // Mode Mobile : On génère le QR code
+        this.setupMobileNfc();
+      }
+    });
+  }
+
+  private setupMobileNfc() {
     this.parametresService.lire().subscribe({
       next: (p) => {
         const adresse = (p.adresseReseauLocale || '').trim();
@@ -157,14 +184,18 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
           this.adresseNonConfiguree = true;
           return;
         }
-        // Même schéma et port que ceux utilisés pour accéder à FRIDA depuis ce navigateur
-        // (nginx proxifie déjà /api/ vers le backend) : seul « localhost » doit être remplacé,
-        // car le téléphone ne le résoudrait qu'à lui-même sur le réseau Wi-Fi.
+        
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = `${window.location.protocol}//${adresse}${port}/api`;
         const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
+        
         this.qrData = JSON.stringify({ action: 'nfc_upload', url: uploadUrl });
-        this.connectSse(apiUrl);
+        
+        // Utilisation du nouveau NfcService
+        this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
+          next: (data) => this.handleSuccess(data),
+          error: (err) => console.error('Erreur NFC Mobile', err)
+        });
       },
       error: () => {
         this.adresseNonConfiguree = true;
@@ -172,34 +203,12 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  connectSse(apiUrl: string) {
-    const streamUrl = `${apiUrl}/nfc-session/${this.sessionId}/stream`;
-    this.eventSource = new EventSource(streamUrl);
-
-    this.eventSource.addEventListener('INIT', (event) => {
-      console.log('SSE Connecté:', event);
-    });
-
-    this.eventSource.addEventListener('NFC_DATA', (event: MessageEvent) => {
-      console.log('Données NFC reçues du mobile !');
-      try {
-        const data = JSON.parse(event.data);
-        this.successData = data;
-
-        // Fermer la modale et propager les données après 2 secondes
-        setTimeout(() => {
-          this.nfcDataReceived.emit(data);
-          this.close();
-        }, 1500);
-      } catch (e) {
-        console.error('Erreur parsing JSON NFC', e);
-      }
-    });
-
-    this.eventSource.onerror = (error) => {
-      console.error('Erreur EventSource', error);
-      // Optionnel : this.close()
-    };
+  private handleSuccess(data: NfcData) {
+    this.successData = data;
+    setTimeout(() => {
+      this.nfcDataReceived.emit(data);
+      this.close();
+    }, 1500);
   }
 
   close() {
@@ -207,8 +216,8 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.eventSource) {
-      this.eventSource.close();
+    if (this.nfcSubscription) {
+      this.nfcSubscription.unsubscribe();
     }
   }
 }

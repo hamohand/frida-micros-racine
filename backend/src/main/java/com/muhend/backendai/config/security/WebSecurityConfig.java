@@ -76,6 +76,8 @@ public class WebSecurityConfig {
                     .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     // Test de santé Docker (HEALTHCHECK du backend) : sans jeton, sinon 403 et conteneur « unhealthy »
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
+                    // Sessions NFC : ouvertes au Mobile (upload) et au SSE (EventSource ne supportant pas le header Authorization)
+                    .requestMatchers("/api/nfc-session/**").permitAll()
                     // Liens de téléchargement à usage unique, créés par un compte Maître (TelechargementService)
                     .requestMatchers(HttpMethod.GET, "/api/telechargements/*").permitAll()
                     // Page d'erreur interne : ne pas masquer une erreur par un 401
