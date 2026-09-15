@@ -307,6 +307,18 @@ if ($LASTEXITCODE -ne 0) {
 }
 Write-Host "FRIDA est en cours d'execution." -ForegroundColor Green
 
+Write-Host ""
+Write-Host "Configuration du pare-feu Windows pour l'application Mobile NFC..."
+$ruleName = "FRIDA - Acces Mobile NFC (Port $portWeb)"
+$ruleCheck = Get-NetFirewallRule -DisplayName $ruleName -ErrorAction SilentlyContinue
+
+if (-not $ruleCheck) {
+    New-NetFirewallRule -DisplayName $ruleName -Direction Inbound -LocalPort $portWeb -Protocol TCP -Action Allow -Profile Any | Out-Null
+    Write-Host "Regle de pare-feu ajoutee (Port $portWeb)." -ForegroundColor Green
+} else {
+    Write-Host "La regle de pare-feu existe deja." -ForegroundColor Green
+}
+
 # ------------------------------------------------------------
 #  Phase 5 : Creation du raccourci Demarrer-Frida sur le Bureau
 # ------------------------------------------------------------
