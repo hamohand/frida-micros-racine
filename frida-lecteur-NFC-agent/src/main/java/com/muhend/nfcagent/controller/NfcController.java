@@ -17,11 +17,23 @@ public class NfcController {
 
     @GetMapping("/status")
     public ResponseEntity<Map<String, Object>> getStatus() {
-        boolean readerPresent = smartCardService.isReaderPresent();
+        String debug = "None";
+        boolean readerPresent = false;
+        try {
+            javax.smartcardio.TerminalFactory factory = javax.smartcardio.TerminalFactory.getDefault();
+            debug = "Factory: " + factory.getType();
+            java.util.List<javax.smartcardio.CardTerminal> terminals = factory.terminals().list();
+            debug += " | Terminals: " + terminals.size();
+            readerPresent = !terminals.isEmpty();
+        } catch (Exception e) {
+            debug = "Error: " + e.getMessage();
+        }
+        
         return ResponseEntity.ok(Map.of(
             "agent_version", "1.0.0",
             "reader_present", readerPresent,
-            "status", "OK"
+            "status", "OK",
+            "debug", debug
         ));
     }
 

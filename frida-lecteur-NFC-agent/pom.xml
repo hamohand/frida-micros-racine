@@ -44,7 +44,7 @@
         <dependency>
             <groupId>net.sf.scuba</groupId>
             <artifactId>scuba-sc-j2se</artifactId>
-            <version>0.0.26</version>
+            <version>0.0.20</version>
         </dependency>
 
         <!-- Bouncy Castle (Cryptographie nécessaire pour le BAC/EAC) -->

@@ -6,11 +6,22 @@ import 'package:http/http.dart' as http;
 import 'mrz_scanner_screen.dart';
 
 class NfcReaderScreen extends StatefulWidget {
-  final String mrzText;
+  final String? mrzText;
+  final String? docNumber;
+  final String? dob;
+  final String? exp;
   final List<CameraDescription> cameras;
   final String uploadUrl;
 
-  const NfcReaderScreen({Key? key, required this.mrzText, required this.cameras, required this.uploadUrl}) : super(key: key);
+  const NfcReaderScreen({
+    Key? key, 
+    this.mrzText, 
+    this.docNumber,
+    this.dob,
+    this.exp,
+    required this.cameras, 
+    required this.uploadUrl
+  }) : super(key: key);
 
   @override
   _NfcReaderScreenState createState() => _NfcReaderScreenState();
@@ -28,7 +39,20 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
   @override
   void initState() {
     super.initState();
-    _parseMrzForBac(widget.mrzText);
+    if (widget.docNumber != null && widget.dob != null && widget.exp != null) {
+       _documentNumber = widget.docNumber!;
+       _dateOfBirth = widget.dob!;
+       _dateOfExpiry = widget.exp!;
+       setState(() {
+          _status = "Prêt. Clés reçues du QR Code.";
+       });
+    } else if (widget.mrzText != null) {
+       _parseMrzForBac(widget.mrzText!);
+    } else {
+       setState(() {
+          _status = "Erreur: Aucune donnée MRZ fournie.";
+       });
+    }
   }
 
   void _parseMrzForBac(String mrz) {

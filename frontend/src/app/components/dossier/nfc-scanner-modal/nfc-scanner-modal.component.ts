@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
 import { v4 as uuidv4 } from 'uuid';
 import { ParametresService } from '../../../services/parametres.service';
@@ -10,7 +11,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-nfc-scanner-modal',
   standalone: true,
-  imports: [CommonModule, QRCodeModule],
+  imports: [CommonModule, FormsModule, QRCodeModule],
   template: `
     <div class="modal-overlay" (click)="close()">
       <div class="modal-content" (click)="$event.stopPropagation()">
@@ -35,20 +36,52 @@ import { Subscription } from 'rxjs';
           <div *ngIf="isUsbAvailable">
             <span class="material-icons usb-icon" style="font-size: 4rem; color: #4ecca3;">usb</span>
             <h3>Lecteur USB Détecté</h3>
-            <p class="instructions">Veuillez poser la pièce d'identité sur le lecteur de carte connecté à votre ordinateur.</p>
-            <div class="listening-state">
-              <span class="spinner"></span> <i>Lecture en cours...</i>
+            <p class="instructions">Veuillez saisir les clés MRZ pour déverrouiller la puce (indispensable), posez la carte sur le lecteur, puis cliquez sur Lire.</p>
+            
+            <div class="mrz-form" style="display:flex; flex-direction:column; gap:10px; margin-bottom: 1rem; text-align: left;">
+              <input type="text" [(ngModel)]="mrzDoc" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding:8px; border-radius:4px; border:1px solid #4ecca3; background: #1e293b; color: white;">
+              <input type="text" [(ngModel)]="mrzDob" placeholder="Date naissance (AAMMJJ)" class="form-control" style="padding:8px; border-radius:4px; border:1px solid #4ecca3; background: #1e293b; color: white;">
+              <input type="text" [(ngModel)]="mrzExp" placeholder="Date expiration (AAMMJJ)" class="form-control" style="padding:8px; border-radius:4px; border:1px solid #4ecca3; background: #1e293b; color: white;">
+              <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:10px;">
+                <span class="spinner" *ngIf="isReadingUsb"></span> {{ isReadingUsb ? 'Lecture en cours...' : 'Lire la puce' }}
+              </button>
+            </div>
+            
+            <div class="listening-state" *ngIf="usbError">
+              <span class="material-icons" style="color:#D16D6A; vertical-align:middle;">error</span> <i style="color:#D16D6A;">{{ usbError }}</i>
             </div>
           </div>
 
           <div *ngIf="!isUsbAvailable">
             <p class="instructions">
+              <strong>Astuce :</strong> Vous pouvez utiliser la webcam de l'ordinateur pour scanner la MRZ et éviter de le faire sur le mobile !
+            </p>
+            
+            <div *ngIf="isWebcamActive" class="webcam-container">
+              <video #webcamVideo autoplay playsinline style="width:100%; max-height:250px; object-fit:cover; border-radius:8px;"></video>
+              <button class="btn btn-primary" (click)="captureMrz()" [disabled]="isScanningMrz" style="margin-top:10px; width:100%;">
+                <span class="spinner" *ngIf="isScanningMrz"></span> {{ isScanningMrz ? 'Analyse OCR en cours...' : 'Prendre la photo' }}
+              </button>
+              <button class="btn btn-secondary" (click)="stopWebcam()" style="margin-top:5px; width:100%;">Annuler</button>
+            </div>
+            
+            <div *ngIf="!isWebcamActive && mrzDoc" class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3;">
+              <span class="material-icons" style="vertical-align:middle;">check_circle</span> MRZ scannée avec succès ! Le QR code est prêt.
+            </div>
+
+            <div *ngIf="!isWebcamActive" style="margin-bottom: 15px;">
+              <button class="btn btn-secondary" (click)="startWebcam()" *ngIf="!mrzDoc" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
+                <span class="material-icons">photo_camera</span> Scanner la MRZ (Webcam)
+              </button>
+            </div>
+
+            <p class="instructions" *ngIf="!isWebcamActive">
               <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
               <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
               <strong>3.</strong> Scannez ce QR Code.
             </p>
 
-            <div class="qr-container" *ngIf="qrData">
+            <div class="qr-container" *ngIf="qrData && !isWebcamActive">
               <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
             </div>
 
@@ -85,6 +118,8 @@ import { Subscription } from 'rxjs';
       max-width: 90vw;
       box-shadow: 0 10px 25px rgba(0,0,0,0.5);
       color: white;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .modal-header {
       display: flex;
@@ -149,6 +184,16 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   estMaitre = false;
   isUsbAvailable = false;
   
+  mrzDoc: string = '';
+  mrzDob: string = '';
+  mrzExp: string = '';
+  isReadingUsb = false;
+  usbError: string = '';
+  
+  // Webcam variables
+  isWebcamActive = false;
+  isScanningMrz = false;
+  private videoStream: MediaStream | null = null;
   private nfcSubscription?: Subscription;
 
   constructor(
@@ -165,13 +210,31 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     this.nfcService.checkUsbAgentAvailable().subscribe(isUsb => {
       this.isUsbAvailable = isUsb;
       
-      if (this.isUsbAvailable) {
-        // Mode USB : On pourrait lancer readViaUsb ici si on passait les clés MRZ en Input au composant.
-        // Pour l'instant, c'est juste prêt pour la Phase 2.
-        console.log("Lecteur USB détecté. En attente de développement Phase 2.");
-      } else {
+      if (!this.isUsbAvailable) {
         // Mode Mobile : On génère le QR code
         this.setupMobileNfc();
+      }
+    });
+  }
+
+  lireUsb() {
+    this.usbError = '';
+    
+    if (!this.mrzDoc || !this.mrzDob || !this.mrzExp) {
+      this.usbError = "Veuillez remplir tous les champs MRZ";
+      return;
+    }
+
+    this.isReadingUsb = true;
+    this.nfcService.readViaUsb(this.mrzDoc, this.mrzDob, this.mrzExp).subscribe({
+      next: (data) => {
+        this.isReadingUsb = false;
+        this.handleSuccess(data);
+      },
+      error: (err) => {
+        this.isReadingUsb = false;
+        console.error("Erreur USB", err);
+        this.usbError = err.error?.error || "Erreur de lecture (Vérifiez les clés MRZ et le placement de la carte).";
       }
     });
   }
@@ -187,9 +250,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = `${window.location.protocol}//${adresse}${port}/api`;
-        const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
-        
-        this.qrData = JSON.stringify({ action: 'nfc_upload', url: uploadUrl });
+        this.updateQrData();
         
         // Utilisation du nouveau NfcService
         this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
@@ -212,12 +273,108 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   }
 
   close() {
+    this.stopWebcam();
     this.closeModal.emit();
   }
 
   ngOnDestroy() {
+    this.stopWebcam();
     if (this.nfcSubscription) {
       this.nfcSubscription.unsubscribe();
     }
+  }
+
+  async startWebcam() {
+    this.isWebcamActive = true;
+    try {
+      this.videoStream = await navigator.mediaDevices.getUserMedia({ 
+        video: { 
+          facingMode: 'environment',
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        } 
+      });
+      setTimeout(() => {
+        const videoElement = document.querySelector('video') as HTMLVideoElement;
+        if (videoElement) {
+          videoElement.srcObject = this.videoStream;
+        }
+      }, 100);
+    } catch (e) {
+      console.error("Impossible d'accéder à la webcam", e);
+      this.isWebcamActive = false;
+    }
+  }
+
+  stopWebcam() {
+    if (this.videoStream) {
+      this.videoStream.getTracks().forEach(track => track.stop());
+      this.videoStream = null;
+    }
+    this.isWebcamActive = false;
+  }
+
+  async captureMrz() {
+    const video = document.querySelector('video') as HTMLVideoElement;
+    if (!video) return;
+
+    this.isScanningMrz = true;
+    
+    // Créer un canvas pour capturer l'image
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+    try {
+      // Appel à l'API Spring Boot
+      const response = await fetch('/api/pdfs/mrz-webcam', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: base64Image })
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.message || "Erreur OCR côté serveur");
+      }
+      
+      const data = await response.json();
+      this.mrzDoc = data.documentNumber;
+      this.mrzDob = data.dateOfBirth;
+      this.mrzExp = data.dateOfExpiry;
+      
+      this.stopWebcam();
+      this.updateQrData();
+      
+    } catch (e: any) {
+      console.error(e);
+      alert("Impossible de lire la MRZ : " + (e.message || "Veuillez reprendre la photo. Assurez-vous que l'image est nette, sans reflet, et que la zone MRZ est bien visible."));
+    } finally {
+      this.isScanningMrz = false;
+    }
+  }
+
+  private updateQrData() {
+    this.parametresService.lire().subscribe(p => {
+      const adresse = (p.adresseReseauLocale || '').trim();
+      if (!adresse) return;
+      
+      const port = window.location.port ? ':' + window.location.port : '';
+      const apiUrl = `${window.location.protocol}//${adresse}${port}/api`;
+      const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
+      
+      const payload: any = { action: 'nfc_upload', url: uploadUrl };
+      
+      if (this.mrzDoc && this.mrzDob && this.mrzExp) {
+        payload.mrz = { doc: this.mrzDoc, dob: this.mrzDob, exp: this.mrzExp };
+      }
+      
+      this.qrData = JSON.stringify(payload);
+    });
   }
 }

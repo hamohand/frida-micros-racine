@@ -23,6 +23,12 @@ public class OcrProcessingController {
     @Autowired
     private DossierProcessingService dossierProcessingService;
     private final com.muhend.backendai.config.util.PathResolver pathResolver;
+    
+    @Autowired
+    private com.muhend.backendai.client.ocr.OcrApiClient ocrApiClient;
+    
+    @Autowired
+    private com.muhend.backendai.service.pipeline.MrzService mrzService;
 
     /**
      * Extrait tous les pdf du dossier de base 'cheminDossierBase',
@@ -57,10 +63,44 @@ public class OcrProcessingController {
         try {
             return org.springframework.http.ResponseEntity.ok(dossierProcessingService.lancerCalcul(numFrida));
         } catch (com.muhend.backendai.calculs.exception.InvalidFamilyCompositionException e) {
-            // Erreur métier (ex. héritier en double) : message affichable au notaire
-            return org.springframework.http.ResponseEntity.badRequest()
-                    .body(java.util.Map.of("message", e.getMessage()));
+            return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
     }
-
+    /**
+     * Reçoit une image webcam en Base64, extrait la MRZ et renvoie les infos.
+     */
+    @PostMapping("/mrz-webcam")
+    public org.springframework.http.ResponseEntity<?> extraireMrzWebcam(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, String> payload) {
+        try {
+            String base64Image = payload.get("image");
+            if (base64Image == null || base64Image.isEmpty()) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Image manquante");
+            }
+            // Enlever l'en-tête data:image/jpeg;base64, si présent
+            if (base64Image.contains(",")) {
+                base64Image = base64Image.split(",")[1];
+            }
+            
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
+            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("webcam_mrz_", ".jpg");
+            java.nio.file.Files.write(tempFile, imageBytes);
+            
+            // 1. Upload au service OCR Python
+            com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(tempFile);
+            
+            // 2. Extraire la MRZ
+            com.muhend.backendai.dto.MrzResult mrzResult = mrzService.extractAndParse(uploadResponse.getFilename());
+            
+            // Nettoyage
+            java.nio.file.Files.deleteIfExists(tempFile);
+            
+            if (mrzResult != null && mrzResult.isValid()) {
+                return org.springframework.http.ResponseEntity.ok(mrzResult);
+            } else {
+                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", "MRZ introuvable ou invalide sur l'image fournie."));
+            }
+        } catch (Exception e) {
+            return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("message", "Erreur lors de l'extraction MRZ : " + e.getMessage()));
+        }
+    }
 }

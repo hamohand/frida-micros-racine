@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:camera/camera.dart';
 import 'mrz_scanner_screen.dart';
+import 'nfc_reader_screen.dart';
 
 class QRScannerScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -32,15 +33,33 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
           if (data['action'] == 'nfc_upload' && data['url'] != null) {
             _isProcessing = true;
             controller.stop();
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MrzScannerScreen(
-                  cameras: widget.cameras,
-                  uploadUrl: data['url'],
+            
+            // Si le Web/Desktop a déjà lu la MRZ avec la webcam, il la passe dans le QR code !
+            if (data['mrz'] != null && data['mrz']['doc'] != null) {
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => NfcReaderScreen(
+                    docNumber: data['mrz']['doc'],
+                    dob: data['mrz']['dob'],
+                    exp: data['mrz']['exp'],
+                    cameras: widget.cameras,
+                    uploadUrl: data['url'],
+                  ),
                 ),
-              ),
-            );
+              );
+            } else {
+              // Mode autonome classique : le mobile doit lui-même lire la MRZ avec sa caméra
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MrzScannerScreen(
+                    cameras: widget.cameras,
+                    uploadUrl: data['url'],
+                  ),
+                ),
+              );
+            }
           }
         } catch (e) {
           // Ce n'est pas notre QR Code

@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(awk ' *)",
+      "Bash(mv /tmp/WebSecurityConfig.java backend/src/main/java/com/muhend/backendai/config/security/WebSecurityConfig.java)",
+      "Bash(mvn compile *)",
+      "PowerShell(Get-Command *)",
+      "Read(//c/Users/hamoh/.m2/wrapper//**)",
+      "Read(//c/Users/hamoh/.m2/wrapper/**)",
+      "Bash(export PATH=\"/c/Users/hamoh/.m2/wrapper/dists/apache-maven-3.9.11/03d7e36a140982eea48e22c1dcac01d8862b2550b2939e09a0809bbc5182a5bc/bin:$PATH\")",
+      "Bash(export JAVA_HOME=\"/c/Users/hamoh/jdk/corretto21/jdk21.0.9_10\")",
+      "Bash(mvn clean *)",
+      "Bash(docker compose *)",
+      "Bash(echo \"Exit: $?\")",
+      "PowerShell(Get-Process *)",
+      "PowerShell(Test-Path *)",
+      "Bash(wsl *)",
+      "Bash(git push *)",
+      "Bash(unzip -l install-notaire/wsl-installation/frida-micros.zip)",
+      "Bash(unzip -l install-notaire/docker-installation/frida-micros.zip)",
+      "Bash(awk '/^\\\\s+[0-9]/{print}')",
+      "Bash(awk '{print $NF}')"
+    ]
+  }
+}

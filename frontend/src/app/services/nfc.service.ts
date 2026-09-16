@@ -16,7 +16,7 @@ export interface NfcData {
 })
 export class NfcService {
   // L'adresse de l'agent local (lecteur USB)
-  private readonly USB_AGENT_URL = 'http://localhost:8088';
+  private readonly USB_AGENT_URL = 'http://localhost:8088/api/nfc';
 
   constructor(private http: HttpClient) {}
 
@@ -25,9 +25,12 @@ export class NfcService {
    * Très rapide, permet de décider s'il faut afficher le QR Code ou non.
    */
   public checkUsbAgentAvailable(): Observable<boolean> {
-    return this.http.get(`${this.USB_AGENT_URL}/status`, { responseType: 'text' }).pipe(
-      map(() => true),
-      catchError(() => of(false)) // Si l'agent n'est pas lancé, on passe silencieusement à false
+    return this.http.get<any>(`${this.USB_AGENT_URL}/status`).pipe(
+      map(res => {
+        console.log("Agent Local Status:", res);
+        return true; // Forcer à true pour tester l'UI
+      }),
+      catchError(() => of(false)) // Si l'agent n'est pas lancé ou erreur, on passe silencieusement à false
     );
   }
 
@@ -37,7 +40,7 @@ export class NfcService {
    */
   public readViaUsb(documentNumber: string, dateOfBirth: string, dateOfExpiry: string): Observable<NfcData> {
     const payload = { documentNumber, dateOfBirth, dateOfExpiry };
-    return this.http.post<NfcData>(`${this.USB_AGENT_URL}/api/read-nfc`, payload);
+    return this.http.post<NfcData>(`${this.USB_AGENT_URL}/read`, payload);
   }
 
   /**
