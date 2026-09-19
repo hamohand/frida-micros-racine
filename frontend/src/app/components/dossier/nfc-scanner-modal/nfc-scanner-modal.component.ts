@@ -54,34 +54,12 @@ import { Subscription } from 'rxjs';
 
           <div *ngIf="!isUsbAvailable">
             <p class="instructions">
-              <strong>Astuce :</strong> Vous pouvez utiliser la webcam de l'ordinateur pour scanner la MRZ et éviter de le faire sur le mobile !
-            </p>
-            
-            <div *ngIf="isWebcamActive" class="webcam-container">
-              <video #webcamVideo autoplay playsinline style="width:100%; max-height:250px; object-fit:cover; border-radius:8px;"></video>
-              <button class="btn btn-primary" (click)="captureMrz()" [disabled]="isScanningMrz" style="margin-top:10px; width:100%;">
-                <span class="spinner" *ngIf="isScanningMrz"></span> {{ isScanningMrz ? 'Analyse OCR en cours...' : 'Prendre la photo' }}
-              </button>
-              <button class="btn btn-secondary" (click)="stopWebcam()" style="margin-top:5px; width:100%;">Annuler</button>
-            </div>
-            
-            <div *ngIf="!isWebcamActive && mrzDoc" class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3;">
-              <span class="material-icons" style="vertical-align:middle;">check_circle</span> MRZ scannée avec succès ! Le QR code est prêt.
-            </div>
-
-            <div *ngIf="!isWebcamActive" style="margin-bottom: 15px;">
-              <button class="btn btn-secondary" (click)="startWebcam()" *ngIf="!mrzDoc" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px;">
-                <span class="material-icons">photo_camera</span> Scanner la MRZ (Webcam)
-              </button>
-            </div>
-
-            <p class="instructions" *ngIf="!isWebcamActive">
               <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
               <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
               <strong>3.</strong> Scannez ce QR Code.
             </p>
 
-            <div class="qr-container" *ngIf="qrData && !isWebcamActive">
+            <div class="qr-container" *ngIf="qrData">
               <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
             </div>
 
@@ -193,10 +171,6 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   isReadingUsb = false;
   usbError: string = '';
   
-  // Webcam variables
-  isWebcamActive = false;
-  isScanningMrz = false;
-  private videoStream: MediaStream | null = null;
   private nfcSubscription?: Subscription;
 
   constructor(
@@ -276,91 +250,15 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   }
 
   close() {
-    this.stopWebcam();
     this.closeModal.emit();
   }
 
   ngOnDestroy() {
-    this.stopWebcam();
     if (this.nfcSubscription) {
       this.nfcSubscription.unsubscribe();
     }
   }
 
-  async startWebcam() {
-    this.isWebcamActive = true;
-    try {
-      this.videoStream = await navigator.mediaDevices.getUserMedia({ 
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1920 },
-          height: { ideal: 1080 }
-        } 
-      });
-      setTimeout(() => {
-        const videoElement = document.querySelector('video') as HTMLVideoElement;
-        if (videoElement) {
-          videoElement.srcObject = this.videoStream;
-        }
-      }, 100);
-    } catch (e) {
-      console.error("Impossible d'accéder à la webcam", e);
-      this.isWebcamActive = false;
-    }
-  }
-
-  stopWebcam() {
-    if (this.videoStream) {
-      this.videoStream.getTracks().forEach(track => track.stop());
-      this.videoStream = null;
-    }
-    this.isWebcamActive = false;
-  }
-
-  async captureMrz() {
-    const video = document.querySelector('video') as HTMLVideoElement;
-    if (!video) return;
-
-    this.isScanningMrz = true;
-    
-    // Créer un canvas pour capturer l'image
-    const canvas = document.createElement('canvas');
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-
-    try {
-      // Appel à l'API Spring Boot
-      const response = await fetch('/api/pdfs/mrz-webcam', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ image: base64Image })
-      });
-      
-      if (!response.ok) {
-        const errData = await response.json().catch(() => ({}));
-        throw new Error(errData.message || "Erreur OCR côté serveur");
-      }
-      
-      const data = await response.json();
-      this.mrzDoc = data.documentNumber;
-      this.mrzDob = data.dateOfBirth;
-      this.mrzExp = data.dateOfExpiry;
-      
-      this.stopWebcam();
-      this.updateQrData();
-      
-    } catch (e: any) {
-      console.error(e);
-      alert("Impossible de lire la MRZ : " + (e.message || "Veuillez reprendre la photo. Assurez-vous que l'image est nette, sans reflet, et que la zone MRZ est bien visible."));
-    } finally {
-      this.isScanningMrz = false;
-    }
-  }
 
   private updateQrData() {
     this.parametresService.lire().subscribe(p => {

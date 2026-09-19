@@ -405,9 +405,7 @@ import { forkJoin, Observable, of } from 'rxjs';
       <!-- Message d'information global -->
       <div class="global-info-message" style="margin: var(--spacing-md) auto 0 auto; max-width: 800px; padding: var(--spacing-sm); background: rgba(78, 204, 163, 0.05); border: 1px solid var(--accent-color); border-radius: var(--border-radius); font-size: 0.9rem; text-align: center; color: var(--text-secondary);">
         <span class="material-icons" style="font-size: 1.2rem; vertical-align: middle; color: #ffb84d; margin-right: 5px;">info</span>
-        Utiliser uniquement les actes de naissance et de décès numériques, à demander aux adresses respectives :<br/>
-        <a href="https://etatcivil.interieur.gov.dz/ActeNaissance/" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">https://etatcivil.interieur.gov.dz/ActeNaissance/</a> et 
-        <a href="https://etatcivil.interieur.gov.dz/ActeDeces/" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: bold;">https://etatcivil.interieur.gov.dz/ActeDeces/</a>
+        Utiliser uniquement les actes de naissance et de décès numériques, à demander sur le site : <a href="https://dzds.dz" target="_blank" style="color:#4ecca3;">dzds.dz</a>
       </div>
     </div> <!-- End Windows Container -->
   `,
@@ -466,7 +464,7 @@ import { forkJoin, Observable, of } from 'rxjs';
       overflow-y: auto;   /* Allow vertical scrolling if the content is too tall */
       width: 100%;
       height: auto;
-      max-height: 85vh;   /* Prevent the component from exceeding the screen height and being clipped by central flexbox */
+      max-height: 90vh;
       padding-top: 20px;
       padding-bottom: 20px;
     }

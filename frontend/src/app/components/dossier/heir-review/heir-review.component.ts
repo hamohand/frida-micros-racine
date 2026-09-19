@@ -15,6 +15,9 @@ interface Personne {
   sexe: string;
   numParente: string;
   nin?: string;
+  mrzValid?: boolean | null;
+  latines?: string;
+  prenomLatines?: string;
 }
 
 @Component({
@@ -40,6 +43,14 @@ interface Personne {
             <span class="name"><span class="demo-blur">{{ defunt.nom }}</span> {{ defunt.prenom }}</span>
             <span class="badge">{{ defunt.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
             <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ defunt.nin || '-' }}</span></span>
+            <div *ngIf="frida?.defunt?.identite?.mrzValid !== null && frida?.defunt?.identite?.mrzValid !== undefined" style="margin: 5px 0; direction: ltr;">
+              <span style="padding: 3px 10px; border-radius: 12px; font-size: 0.85rem;" [style.background]="frida?.defunt?.identite?.mrzValid ? 'rgba(78,204,163,0.15)' : 'rgba(255,184,77,0.15)'" [style.border]="frida?.defunt?.identite?.mrzValid ? '1px solid #4ecca3' : '1px solid #ffb84d'" [style.color]="frida?.defunt?.identite?.mrzValid ? '#4ecca3' : '#ffb84d'">
+                {{ frida?.defunt?.identite?.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
+              </span>
+              <span *ngIf="frida?.defunt?.identite?.latines || frida?.defunt?.identite?.prenomLatines" style="font-style: italic; color: #4ecca3; margin-left: 8px;">
+                ({{ frida?.defunt?.identite?.latines }} {{ frida?.defunt?.identite?.prenomLatines }})
+              </span>
+            </div>
           </div>
           <button class="btn-icon" (click)="editDefunt()" title="Modifier">✏️</button>
         </div>
@@ -107,6 +118,14 @@ interface Personne {
                 <span class="badge">{{ h.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
                 <span class="badge role">{{ getRoleLabel(h.numParente, h.sexe) }}</span>
                 <span class="details">Né(e) le {{ h.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ h.nin || '-' }}</span></span>
+                <div *ngIf="h.mrzValid !== null && h.mrzValid !== undefined" style="margin: 5px 0; direction: ltr;">
+                  <span style="padding: 3px 10px; border-radius: 12px; font-size: 0.85rem;" [style.background]="h.mrzValid ? 'rgba(78,204,163,0.15)' : 'rgba(255,184,77,0.15)'" [style.border]="h.mrzValid ? '1px solid #4ecca3' : '1px solid #ffb84d'" [style.color]="h.mrzValid ? '#4ecca3' : '#ffb84d'">
+                    {{ h.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
+                  </span>
+                  <span *ngIf="h.latines || h.prenomLatines" style="font-style: italic; color: #4ecca3; margin-left: 8px;">
+                    ({{ h.latines }} {{ h.prenomLatines }})
+                  </span>
+                </div>
               </div>
              <div class="card-actions">
                <button class="btn-icon" (click)="editHeir(i)" title="Modifier">✏️</button>
@@ -328,7 +347,10 @@ export class HeirReviewComponent implements OnInit {
                 dateNaissance: h.identite?.dateNaissance || '',
                 sexe: isFemale ? 'F' : 'M',
                 numParente: h.numParente || '03',
-                nin: h.identite?.nin || ''
+                nin: h.identite?.nin || '',
+                mrzValid: h.identite?.mrzValid ?? null,
+                latines: h.identite?.latines || '',
+                prenomLatines: h.identite?.prenomLatines || ''
               };
            });
            
