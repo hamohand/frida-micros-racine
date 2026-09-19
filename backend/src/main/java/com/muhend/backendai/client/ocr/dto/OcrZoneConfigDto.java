@@ -31,4 +31,10 @@ public class OcrZoneConfigDto {
     // Valeurs attendues pour correction OCR
     @JsonProperty("valeurs_attendues")
     private List<String> valeurs_attendues;
+    // Texte ancre pour extraction clé-valeur (ex: "اللقب")
+    @JsonProperty("anchor_text")
+    private String anchor_text;
+    // Direction de la valeur par rapport à l'ancre (gauche, droite, bas, haut)
+    @JsonProperty("anchor_direction")
+    private String anchor_direction;
 }

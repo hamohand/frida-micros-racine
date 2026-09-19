@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'nfc_reader_screen.dart';
+import 'id_front_scanner_screen.dart';
 
 class MrzScannerScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -116,13 +117,26 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
     _controller.stopImageStream();
     
     // Simuler le passage à l'étape NFC
+    TextEditingController mrzController = TextEditingController(text: _mrzResult);
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("MRZ Capturée avec succès"),
-          content: Text("Résultat :\n\n$_mrzResult\n\n(Ces données serviront de clé BAC pour déverrouiller la puce NFC)"),
+          title: const Text("Vérifiez le MRZ"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Corrigez manuellement (ex: 0 au lieu de O) si l'appareil photo s'est trompé. Une seule erreur bloquera le NFC !"),
+              const SizedBox(height: 10),
+              TextField(
+                controller: mrzController,
+                maxLines: 3,
+                style: const TextStyle(fontFamily: 'monospace'),
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+              ),
+            ],
+          ),
           actions: [
             TextButton(
               child: const Text("Refaire le scan"),
@@ -139,12 +153,18 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
               child: const Text("Passer au lecteur NFC"),
               onPressed: () {
                 Navigator.of(context).pop();
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => NfcReaderScreen(mrzText: _mrzResult, cameras: widget.cameras, uploadUrl: widget.uploadUrl),
-                  ),
-                );
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return IdFrontScannerScreen(
+                          mrzText: _mrzResult, 
+                          cameras: widget.cameras, 
+                          uploadUrl: widget.uploadUrl
+                        );
+                      }
+                    ),
+                  );
               },
             )
           ],
@@ -201,3 +221,4 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
     );
   }
 }
+

@@ -66,10 +66,68 @@ public class OcrProcessingController {
             return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", e.getMessage()));
         }
     }
+
     /**
-     * Reçoit une image webcam en Base64, extrait la MRZ et renvoie les infos.
+     * Reçoit une image de carte d'identité (recto) du mobile, lance l'OCR,
+     * et STOCKE les noms arabes côté serveur (pas de retour au mobile).
+     * Les noms seront fusionnés avec les données NFC lors de l'upload.
      */
-    @PostMapping("/mrz-webcam")
+    @PostMapping("/ocr-cni-front")
+    public org.springframework.http.ResponseEntity<?> extraireNomsArabes(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, String> payload) {
+        try {
+            String base64Image = payload.get("image");
+            String sessionId = payload.get("sessionId");
+            if (base64Image == null || base64Image.isEmpty()) {
+                return org.springframework.http.ResponseEntity.badRequest().body("Image manquante");
+            }
+            if (base64Image.contains(",")) {
+                base64Image = base64Image.split(",")[1];
+            }
+            
+            byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
+            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("cni_front_", ".jpg");
+            java.nio.file.Files.write(tempFile, imageBytes);
+            
+            // 1. Upload de l'image vers l'API OCR Python
+            com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(tempFile);
+            java.nio.file.Files.deleteIfExists(tempFile);
+            
+            // 2. Appel PaddleOCR par mots-clés (cherche اللقب et الاسم)
+            String ocrApiUrl = ocrApiClient.getOcrApiUrl();
+            String filename = uploadResponse.getSaved_filename() != null ? uploadResponse.getSaved_filename() : uploadResponse.getFilename();
+            
+            org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
+            java.util.Map<String, String> body = java.util.Map.of("filename", filename);
+            
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> ocrResult = rt.postForObject(
+                ocrApiUrl + "/api/ocr-noms-arabes", body, java.util.Map.class);
+            
+            if (ocrResult == null || !Boolean.TRUE.equals(ocrResult.get("success"))) {
+                return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "OCR: aucun nom détecté"));
+            }
+            
+            java.util.Map<String, String> noms = new java.util.HashMap<>();
+            noms.put("nom", (String) ocrResult.getOrDefault("nom", ""));
+            noms.put("prenom", (String) ocrResult.getOrDefault("prenom", ""));
+            
+            // 3. Stocker côté serveur pour fusion avec NFC (si sessionId fourni)
+            if (sessionId != null && !sessionId.isEmpty()) {
+                NfcSessionController.storeOcrResults(sessionId, noms);
+                System.out.println("📝 OCR stocké pour session " + sessionId + " : " + noms);
+            }
+            
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                "success", true,
+                "nom", noms.get("nom"),
+                "prenom", noms.get("prenom")
+            ));
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("message", "Erreur OCR : " + e.getMessage()));
+        }
+    }
     public org.springframework.http.ResponseEntity<?> extraireMrzWebcam(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, String> payload) {
         try {
             String base64Image = payload.get("image");

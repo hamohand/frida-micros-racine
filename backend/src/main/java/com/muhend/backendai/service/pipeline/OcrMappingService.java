@@ -239,6 +239,13 @@ public class OcrMappingService {
 
             entity.setLatines(nom);
             entity.setPrenomLatines(prenom);
+            
+            // Add Arabic names if present (support both camelCase and snake_case)
+            String nomArabe = rootNode.path("nomArabe").asText(rootNode.path("nom_arabe").asText(""));
+            String prenomArabe = rootNode.path("prenomArabe").asText(rootNode.path("prenom_arabe").asText(""));
+            if (!nomArabe.isEmpty()) entity.setNom(nomArabe);
+            if (!prenomArabe.isEmpty()) entity.setPrenom(prenomArabe);
+            
             entity.setNin(nin);
             entity.setSexe(rootNode.path("gender").asText("").startsWith("M") ? "M" : "F");
             entity.setNumeroPiece(rootNode.path("documentNumber").asText(""));

@@ -23,6 +23,10 @@ public class OcrApiClient {
     @Value("${services.ocr.url}")
     private String ocrApiUrl;
 
+    public String getOcrApiUrl() {
+        return ocrApiUrl;
+    }
+
     private final RestTemplate restTemplate;
 
     public OcrApiClient(RestTemplate restTemplate) {

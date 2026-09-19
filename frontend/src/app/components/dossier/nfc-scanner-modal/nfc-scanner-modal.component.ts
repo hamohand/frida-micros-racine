@@ -95,6 +95,9 @@ import { Subscription } from 'rxjs';
           <span class="material-icons success-icon">check_circle</span>
           <h3>Lecture Réussie !</h3>
           <p>{{ successData.nom }} {{ successData.prenom }}</p>
+          <p *ngIf="successData.nomArabe || successData.prenomArabe" style="font-size: 1.2rem; color: #4ecca3; font-weight: bold; font-family: 'Amiri', 'Arial', sans-serif;" dir="rtl">
+            {{ successData.nomArabe }} {{ successData.prenomArabe }}
+          </p>
         </div>
       </div>
     </div>

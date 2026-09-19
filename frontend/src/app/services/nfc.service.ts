@@ -5,6 +5,8 @@ import { Observable, catchError, map, of, Subscriber } from 'rxjs';
 export interface NfcData {
   nom?: string;
   prenom?: string;
+  nomArabe?: string;
+  prenomArabe?: string;
   dateNaissance?: string;
   nin?: string;
   photoBase64?: string;
@@ -61,7 +63,14 @@ export class NfcService {
 
       eventSource.addEventListener('NFC_DATA', (event: MessageEvent) => {
         try {
-          const data = JSON.parse(event.data) as NfcData;
+          const rawData = JSON.parse(event.data);
+          const data: NfcData = {
+            ...rawData,
+            nom: rawData.nom || rawData.primaryIdentifier,
+            prenom: rawData.prenom || rawData.secondaryIdentifier,
+            nomArabe: rawData.nomArabe || rawData.nom_arabe,
+            prenomArabe: rawData.prenomArabe || rawData.prenom_arabe
+          };
           // Dès qu'on reçoit la donnée, on l'émet et on coupe la connexion
           subscriber.next(data);
           subscriber.complete();

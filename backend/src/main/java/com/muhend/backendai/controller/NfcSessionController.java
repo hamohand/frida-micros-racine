@@ -19,6 +19,14 @@ public class NfcSessionController {
 
     // Stockage en mémoire des sessions SSE actives
     private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    
+    // Stockage des résultats OCR (nom/prénom arabes) en attente de fusion avec NFC
+    private static final Map<String, Map<String, String>> ocrResults = new ConcurrentHashMap<>();
+
+    /** Appelé par OcrProcessingController pour stocker les noms arabes OCR */
+    public static void storeOcrResults(String sessionId, Map<String, String> noms) {
+        ocrResults.put(sessionId, noms);
+    }
 
     /**
      * Frontend : Le navigateur ouvre une connexion SSE pour écouter les données NFC
@@ -28,7 +36,6 @@ public class NfcSessionController {
     public SseEmitter streamSseMvc(@PathVariable String sessionId) {
         log.info("📡 Nouvelle connexion SSE pour la session NFC : {}", sessionId);
         
-        // Timeout de 5 minutes (300 000 ms)
         SseEmitter emitter = new SseEmitter(300_000L);
         
         emitters.put(sessionId, emitter);
@@ -36,18 +43,20 @@ public class NfcSessionController {
         emitter.onCompletion(() -> {
             log.info("🔌 Connexion SSE terminée pour : {}", sessionId);
             emitters.remove(sessionId);
+            ocrResults.remove(sessionId);
         });
         emitter.onTimeout(() -> {
             log.warn("⏱️ Timeout SSE pour : {}", sessionId);
             emitters.remove(sessionId);
+            ocrResults.remove(sessionId);
         });
         emitter.onError((e) -> {
             log.error("❌ Erreur SSE pour : {}", sessionId, e);
             emitters.remove(sessionId);
+            ocrResults.remove(sessionId);
         });
 
         try {
-            // Envoi d'un événement d'initialisation pour forcer l'ouverture de la connexion
             emitter.send(SseEmitter.event().name("INIT").data("Connected"));
         } catch (IOException e) {
             emitters.remove(sessionId);
@@ -58,6 +67,7 @@ public class NfcSessionController {
 
     /**
      * Mobile : L'application Flutter envoie les données lues depuis la CNI.
+     * Le serveur fusionne automatiquement les noms arabes OCR (stockés précédemment).
      */
     @PostMapping("/{sessionId}/upload")
     public ResponseEntity<String> uploadNfcData(@PathVariable String sessionId, org.springframework.http.HttpEntity<String> httpEntity) {
@@ -69,13 +79,30 @@ public class NfcSessionController {
             return ResponseEntity.badRequest().body("Le corps de la requête est vide.");
         }
 
+        // Fusionner les résultats OCR (noms arabes) dans le JSON NFC
+        Map<String, String> storedOcr = ocrResults.remove(sessionId);
+        if (storedOcr != null && !storedOcr.isEmpty()) {
+            try {
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                @SuppressWarnings("unchecked")
+                Map<String, Object> nfcMap = mapper.readValue(nfcJsonData, Map.class);
+                
+                if (storedOcr.containsKey("nom")) nfcMap.put("nomArabe", storedOcr.get("nom"));
+                if (storedOcr.containsKey("prenom")) nfcMap.put("prenomArabe", storedOcr.get("prenom"));
+                
+                nfcJsonData = mapper.writeValueAsString(nfcMap);
+                log.info("✨ Noms arabes OCR fusionnés : nom='{}', prenom='{}'", storedOcr.get("nom"), storedOcr.get("prenom"));
+            } catch (Exception e) {
+                log.warn("⚠️ Impossible de fusionner les noms OCR : {}", e.getMessage());
+            }
+        } else {
+            log.info("ℹ️ Pas de résultats OCR stockés pour cette session");
+        }
+
         SseEmitter emitter = emitters.get(sessionId);
         if (emitter != null) {
             try {
-                // On pousse le JSON brut directement au navigateur connecté
                 emitter.send(SseEmitter.event().name("NFC_DATA").data(nfcJsonData));
-                
-                // On ferme la connexion proprement
                 emitter.complete();
                 emitters.remove(sessionId);
                 
@@ -84,7 +111,7 @@ public class NfcSessionController {
             } catch (Exception e) {
                 log.error("❌ Erreur lors de l'envoi des données au navigateur", e);
                 emitters.remove(sessionId);
-                return ResponseEntity.internalServerError().body("Erreur interne lors de la transmission: " + e.getMessage());
+                return ResponseEntity.internalServerError().body("Erreur interne : " + e.getMessage());
             }
         } else {
             log.warn("Aucun navigateur n'écoute sur la session : {}", sessionId);

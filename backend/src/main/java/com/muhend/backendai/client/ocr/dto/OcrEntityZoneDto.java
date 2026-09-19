@@ -24,4 +24,8 @@ public class OcrEntityZoneDto {
     private Integer margin;
     @JsonProperty("valeurs_attendues")
     private List<String> valeurs_attendues;
+    @JsonProperty("anchor_text")
+    private String anchor_text;
+    @JsonProperty("anchor_direction")
+    private String anchor_direction;
 }

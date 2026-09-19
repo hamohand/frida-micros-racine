@@ -10,6 +10,8 @@ class NfcReaderScreen extends StatefulWidget {
   final String? docNumber;
   final String? dob;
   final String? exp;
+  final String? nomArabe;
+  final String? prenomArabe;
   final List<CameraDescription> cameras;
   final String uploadUrl;
 
@@ -19,6 +21,8 @@ class NfcReaderScreen extends StatefulWidget {
     this.docNumber,
     this.dob,
     this.exp,
+    this.nomArabe,
+    this.prenomArabe,
     required this.cameras, 
     required this.uploadUrl
   }) : super(key: key);
@@ -86,8 +90,18 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
         throw Exception("Le scan a expiré (15 secondes sans détection).");
       });
 
-      // Format the JSON result to make it pretty
+      // Format the JSON result to make it pretty for display (and add Arabic names if present)
       final decoded = jsonDecode(resultJson);
+      
+      // Inject Arabic names if provided
+      if (widget.nomArabe != null && widget.nomArabe!.isNotEmpty) {
+        decoded['nom_arabe'] = widget.nomArabe;
+      }
+      if (widget.prenomArabe != null && widget.prenomArabe!.isNotEmpty) {
+        decoded['prenom_arabe'] = widget.prenomArabe;
+      }
+      
+      final finalJsonStr = jsonEncode(decoded);
       final prettyJson = const JsonEncoder.withIndent('  ').convert(decoded);
 
       setState(() {
@@ -99,7 +113,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
         final response = await http.post(
           Uri.parse(widget.uploadUrl),
           headers: {'Content-Type': 'application/json'},
-          body: resultJson,
+          body: finalJsonStr,
         );
 
         if (response.statusCode == 200) {
@@ -110,7 +124,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
         } else {
           setState(() {
             _isReading = false;
-            _status = "⚠️ Lecture réussie mais échec de l'envoi (HTTP \${response.statusCode})\n\n$prettyJson";
+            _status = "⚠️ Lecture réussie mais échec de l'envoi (HTTP \$statusCode)\n\n$prettyJson";
           });
         }
       } catch (e) {
@@ -123,7 +137,7 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
     } on PlatformException catch (e) {
       setState(() {
         _isReading = false;
-        _status = "❌ Erreur de lecture NFC native :\n\${e.message}\n\n(Vérifiez que la carte est bien plaquée).";
+        _status = "❌ Erreur de lecture NFC native :\n\$e\n\n(Vérifiez que la carte est bien plaquée).";
       });
     } catch (e) {
       setState(() {
@@ -214,3 +228,6 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
     );
   }
 }
+
+
+

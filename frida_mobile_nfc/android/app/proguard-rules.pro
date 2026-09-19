@@ -1,0 +1,13 @@
+# ML Kit rules
+-dontwarn com.google.mlkit.vision.text.chinese.**
+-dontwarn com.google.mlkit.vision.text.devanagari.**
+-dontwarn com.google.mlkit.vision.text.japanese.**
+-dontwarn com.google.mlkit.vision.text.korean.**
+-keep class org.jmrtd.** { *; }
+-keep class net.sf.scuba.** { *; }
+-keep class org.bouncycastle.** { *; }
+-keep class org.spongycastle.** { *; }
+-dontwarn org.jmrtd.**
+-dontwarn net.sf.scuba.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.spongycastle.**

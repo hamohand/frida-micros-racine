@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:camera/camera.dart';
+import 'id_front_scanner_screen.dart';
 import 'mrz_scanner_screen.dart';
 import 'nfc_reader_screen.dart';
 
@@ -39,7 +40,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => NfcReaderScreen(
+                  builder: (context) => IdFrontScannerScreen(
                     docNumber: data['mrz']['doc'],
                     dob: data['mrz']['dob'],
                     exp: data['mrz']['exp'],

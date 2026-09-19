@@ -38,6 +38,7 @@ dependencies:
   google_mlkit_text_recognition: ^0.15.1
   mobile_scanner: ^7.2.0
   http: ^1.6.0
+  image: ^4.10.1
 
 dev_dependencies:
   flutter_test:

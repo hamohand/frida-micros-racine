@@ -78,6 +78,8 @@ public class WebSecurityConfig {
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                     // Sessions NFC : ouvertes au Mobile (upload) et au SSE (EventSource ne supportant pas le header Authorization)
                     .requestMatchers("/api/nfc-session/**").permitAll()
+                    // OCR CNI recto : appelé par le mobile sans token
+                    .requestMatchers("/api/pdfs/ocr-cni-front").permitAll()
                     // Liens de téléchargement à usage unique, créés par un compte Maître (TelechargementService)
                     .requestMatchers(HttpMethod.GET, "/api/telechargements/*").permitAll()
                     // Page d'erreur interne : ne pas masquer une erreur par un 401
