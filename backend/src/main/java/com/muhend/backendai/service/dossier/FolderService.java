@@ -108,13 +108,6 @@ public class FolderService {
     @Getter
     public static Path folderPath;
 
-    /**
-     * Sous-dossiers créés automatiquement : chaque catégorie × chaque type de
-     * document
-     */
-    private static final String[] CATEGORY_CODES = { "1", "2", "3", "4", "5", "6", "7", "8", "11" };
-    private static final String[] DOC_TYPE_SUFFIXES = { "en", "cni", "pp" };
-
     public FolderResponse createFolder(CreateFolderRequest request) {
         String baseFolderName = generateBaseFolderName(request);
         folderPath = findAvailablePath(baseFolderName);
@@ -123,9 +116,6 @@ public class FolderService {
             Files.createDirectories(folderPath);
             log.info("Dossier créé avec succès folderPath: {}", folderPath);
 
-            // Création automatique des sous-dossiers pour chaque catégorie × type
-            createSubFolders(folderPath);
-
             return FolderResponse.builder()
                     .folderName(folderPath.getFileName().toString())
                     .fullPath(folderPath.toString())
@@ -133,22 +123,6 @@ public class FolderService {
         } catch (IOException e) {
             log.error("Erreur lors de la création du dossier: {}", e.getMessage());
             throw new FolderCreationException("Impossible de créer le dossier: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Crée les sous-dossiers pour chaque catégorie × type de document.
-     * Exemple: 1_en, 1_cni, 1_pp, 2_en, 2_cni, 2_pp, ...
-     */
-    private void createSubFolders(Path parentFolder) throws IOException {
-        for (String category : CATEGORY_CODES) {
-            for (String docType : DOC_TYPE_SUFFIXES) {
-                Path subPath = parentFolder.resolve(category + "_" + docType);
-                if (!Files.exists(subPath)) {
-                    Files.createDirectories(subPath);
-                    log.info("Sous-dossier créé: {}", subPath);
-                }
-            }
         }
     }
 
