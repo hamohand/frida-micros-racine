@@ -176,9 +176,14 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
     
     .drop-zone.disabled-zone {
       opacity: 0.6;
-      pointer-events: none;
+      cursor: default;
       background: rgba(0, 0, 0, 0.2);
       border-color: rgba(255, 255, 255, 0.1);
+    }
+    .drop-zone.disabled-zone .btn {
+      pointer-events: auto;
+      opacity: 1;
+      cursor: pointer;
     }
     
     .file-list {
