@@ -33,8 +33,14 @@ public class FileController {
     @Operation(summary = "Téléverser des fichiers", description = "Téléverse un ou plusieurs fichiers dans un sous-dossier spécifique")
     public ResponseEntity<FileUploadResponse> uploadFiles(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam("path") String path) {
-        List<String> savedFiles = fileStorageService.storeFiles(files, path);
+            @RequestParam("path") String path,
+            @RequestParam(required = false) String folderName) {
+        List<String> savedFiles;
+        if (folderName != null && !folderName.isEmpty()) {
+            savedFiles = fileStorageService.storeFiles(files, path, folderName);
+        } else {
+            savedFiles = fileStorageService.storeFiles(files, path);
+        }
         return ResponseEntity.ok(new FileUploadResponse(savedFiles));
     }
 

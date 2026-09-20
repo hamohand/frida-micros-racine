@@ -5,11 +5,12 @@ import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
 import { UploadConfig, DocTypeOption, UploadedFile } from '../file-upload/file-upload.interface';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { OcrPipelineService } from "../../../services/ocr-pipeline.service";
 import { ConstitutionService } from '../../../services/constitution.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { forkJoin, Observable, of } from 'rxjs';
+import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon.service';
 
 @Component({
   selector: 'app-upload-windows',
@@ -20,9 +21,12 @@ import { forkJoin, Observable, of } from 'rxjs';
 
 
       <!-- Action Globale pour sauter aux témoins -->
-      <div class="global-skip-action" *ngIf="isHeirWindowActive()">
-        <button class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; display: flex; align-items: center; gap: 6px;" (click)="skipToTemoins()">
+      <div class="global-actions" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 15px; padding: 0 20px;">
+        <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; display: flex; align-items: center; gap: 6px;" (click)="skipToTemoins()">
           <span class="material-icons" style="font-size: 1.2rem;">skip_next</span> Il n'y a plus d'héritiers (Aller aux témoins)
+        </button>
+        <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; display: flex; align-items: center; gap: 6px;" (click)="sauvegarderBrouillon()">
+          <span class="material-icons" style="font-size: 1.2rem;">save</span> Sauvegarder brouillon ✓
         </button>
       </div>
 
@@ -569,6 +573,10 @@ export class UploadWindowsComponent implements OnInit {
   numFrida: String = "";
   ocrMode: 'rapide' | 'approfondi' | 'batch' = 'rapide';
 
+  brouillonId: number | null = null;
+  brouillonFolderName: string | null = null;
+  existingFiles: { [key: string]: string[] } = {};
+
   getActiveWindowKeys(): string[] {
     const fiche = this.constitutionService.currentFiche;
     const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_tombes_declare'];
@@ -626,9 +634,18 @@ export class UploadWindowsComponent implements OnInit {
 
   constructor(private fileUploadService: FileUploadService, private router: Router,
     private ocrPipelineService: OcrPipelineService, private constitutionService: ConstitutionService,
-    private uploadStateService: UploadStateService) { }
+    private uploadStateService: UploadStateService, private route: ActivatedRoute,
+    private brouillonService: BrouillonService) { }
 
   ngOnInit() {
+    this.route.queryParams.subscribe(params => {
+      if (params['brouillon']) {
+        this.brouillonId = +params['brouillon'];
+        this.brouillonFolderName = params['folderName'] || null;
+        this.loadBrouillonFiles();
+      }
+    });
+
     const saved = this.uploadStateService.getState();
     if (saved.windows) {
       this.windows = saved.windows;
@@ -641,6 +658,14 @@ export class UploadWindowsComponent implements OnInit {
         }
       });
     }
+  }
+
+  loadBrouillonFiles() {
+    if (!this.brouillonId) return;
+    this.brouillonService.getFichiers(this.brouillonId).subscribe(data => {
+      this.existingFiles = data.subfolders || {};
+      console.log('Fichiers existants du brouillon:', this.existingFiles);
+    });
   }
 
   getFiche() {
@@ -816,6 +841,24 @@ export class UploadWindowsComponent implements OnInit {
       this.isUploadingFiles = false;
       this.launchOcrAndReview();
     }
+  }
+
+  sauvegarderBrouillon() {
+    const activeKey = this.getActiveWindowKeys().find(key => this.windows[key].isVisible);
+    if (activeKey) {
+      const currentWin = this.windows[activeKey];
+      if (currentWin && currentWin.groupedFiles && currentWin.groupedFiles.length > 0) {
+        currentWin.groupedFiles.forEach(group => {
+          let uploadPath = currentWin.path + '_' + group.docType;
+          if (group.entityName && group.entityName.trim() !== '') {
+            uploadPath += '_' + group.entityName;
+          }
+          this.fileUploadService.uploadFiles(group.files, uploadPath).subscribe();
+        });
+      }
+    }
+    alert('Brouillon sauvegardé ✅');
+    this.router.navigate(['/search']);
   }
 
   private launchOcrAndReview() {

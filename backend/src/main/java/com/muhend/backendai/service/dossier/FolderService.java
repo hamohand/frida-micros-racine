@@ -103,6 +103,7 @@ public class FolderService {
     private String rootPathString;
     
     private final PathResolver pathResolver;
+    private final com.muhend.backendai.repository.BrouillonRepo brouillonRepository;
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     @Getter
@@ -115,6 +116,16 @@ public class FolderService {
         try {
             Files.createDirectories(folderPath);
             log.info("Dossier créé avec succès folderPath: {}", folderPath);
+
+            com.muhend.backendai.entities.BrouillonEntity brouillon = new com.muhend.backendai.entities.BrouillonEntity();
+            brouillon.setFolderName(folderPath.getFileName().toString());
+            brouillon.setFolderPath(folderPath.toString());
+            brouillon.setNomDefunt(request.getNom());
+            brouillon.setPrenomDefunt(request.getPrenom());
+            brouillon.setDateCreation(LocalDate.now());
+            brouillon.setStatut("EN_COURS");
+            brouillonRepository.save(brouillon);
+            log.info("Brouillon créé en BD: {}", brouillon.getFolderName());
 
             return FolderResponse.builder()
                     .folderName(folderPath.getFileName().toString())

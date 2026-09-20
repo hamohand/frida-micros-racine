@@ -30,6 +30,9 @@ public class OcrProcessingController {
     @Autowired
     private com.muhend.backendai.service.pipeline.MrzService mrzService;
 
+    @Autowired
+    private com.muhend.backendai.repository.BrouillonRepo brouillonRepository;
+
     /**
      * Extrait tous les pdf du dossier de base 'cheminDossierBase',
      * Lecture des pdf Par l'AI
@@ -43,7 +46,15 @@ public class OcrProcessingController {
         }
         String cheminDossierBase = path.toString();
         System.out.println("cheminDossierBase : " + cheminDossierBase + "");
-        return dossierProcessingService.traiterExtraitsNaissance(cheminDossierBase, mode);
+        FridaEntity result = dossierProcessingService.traiterExtraitsNaissance(cheminDossierBase, mode);
+        try {
+            String folderName = pathResolver.getLatestFolder().getFileName().toString();
+            brouillonRepository.findByFolderName(folderName)
+                .ifPresent(b -> { b.setStatut("TRAITE"); brouillonRepository.save(b); });
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(OcrProcessingController.class).warn("Impossible de mettre à jour le brouillon: {}", e.getMessage());
+        }
+        return result;
     }
 
     /**

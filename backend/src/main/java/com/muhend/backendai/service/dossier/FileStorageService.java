@@ -43,6 +43,24 @@ public class FileStorageService {
         return savedFiles;
     }
 
+    public List<String> storeFiles(MultipartFile[] files, String subFolder, String folderName) {
+        List<String> savedFiles = new ArrayList<>();
+        for (MultipartFile file : files) {
+            try {
+                fileValidator.validateFile(file);
+                Path targetLocation = pathResolver.resolveTargetPathForFolder(folderName, subFolder);
+                Path filePath = targetLocation.resolve(generateSafeFileName(file));
+                Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+                log.info("Fichier sauvegardé (brouillon): {}", filePath);
+                savedFiles.add(filePath.toString());
+            } catch (IOException e) {
+                log.error("Erreur lors de la sauvegarde du fichier {}: {}", file.getOriginalFilename(), e.getMessage());
+                throw new FileStorageException("Erreur lors de la sauvegarde du fichier " + file.getOriginalFilename(), e);
+            }
+        }
+        return savedFiles;
+    }
+
     private String storeFile(MultipartFile file, String subFolder) throws IOException {
         fileValidator.validateFile(file);
         

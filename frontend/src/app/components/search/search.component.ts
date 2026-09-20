@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FridaService } from '../../services/frida.service';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { BrouillonService, Brouillon } from '../../services/brouillon.service';
 
 @Component({
   selector: 'app-search',
@@ -10,73 +11,115 @@ import { Router } from '@angular/router';
   template: `
     <div class="list-wrapper">
       <div class="glass-panel">
-        <div class="header-section">
-          <h2>Rechercher</h2>
-          <div class="search-box">
-            <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
-            <input type="text" placeholder="Rechercher par nom, numéro ou date..." (input)="onSearch($event)" />
-          </div>
-        </div>
-
-        <div class="stats-bar" *ngIf="fridaList.length > 0" style="display: flex; gap: 1rem; align-items: center;">
-          <span class="stat-chip">{{ filteredList.length }} dossier{{ filteredList.length > 1 ? 's' : '' }}</span>
-          <button *ngIf="testCount > 0" class="btn-delete-tests" (click)="deleteAllTests()">
-            <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-            Supprimer les {{ testCount }} Tests
+        <div style="display: flex; gap: 0; margin-bottom: 1rem;">
+          <button (click)="activeTab = 'fridas'" 
+            [style.background]="activeTab === 'fridas' ? '#4ecca3' : 'transparent'"
+            [style.color]="activeTab === 'fridas' ? '#1e293b' : '#a0aec0'"
+            style="padding: 8px 20px; border: 1px solid #4ecca3; border-radius: 8px 0 0 8px; cursor: pointer; font-weight: 600;">
+            Fridas validées
+          </button>
+          <button (click)="activeTab = 'brouillons'" 
+            [style.background]="activeTab === 'brouillons' ? '#4ecca3' : 'transparent'"
+            [style.color]="activeTab === 'brouillons' ? '#1e293b' : '#a0aec0'"
+            style="padding: 8px 20px; border: 1px solid #4ecca3; border-radius: 0 8px 8px 0; cursor: pointer; font-weight: 600;">
+            Brouillons ({{ brouillons.length }})
           </button>
         </div>
 
-        <div class="table-container">
-          <table class="table">
+        <div *ngIf="activeTab === 'fridas'">
+          <div class="header-section">
+            <h2>Rechercher</h2>
+            <div class="search-box">
+              <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+              <input type="text" placeholder="Rechercher par nom, numéro ou date..." (input)="onSearch($event)" />
+            </div>
+          </div>
+
+          <div class="stats-bar" *ngIf="fridaList.length > 0" style="display: flex; gap: 1rem; align-items: center;">
+            <span class="stat-chip">{{ filteredList.length }} dossier{{ filteredList.length > 1 ? 's' : '' }}</span>
+            <button *ngIf="testCount > 0" class="btn-delete-tests" (click)="deleteAllTests()">
+              <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+              Supprimer les {{ testCount }} Tests
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th (click)="sort('numFrida')" class="sortable">
+                    Numéro de Dossier
+                    <span class="sort-icon">{{ getSortIcon('numFrida') }}</span>
+                  </th>
+                  <th (click)="sort('nom')" class="sortable">
+                    Défunt (Nom Prénom)
+                    <span class="sort-icon">{{ getSortIcon('nom') }}</span>
+                  </th>
+                  <th (click)="sort('dateCreation')" class="sortable">
+                    Date de Création
+                    <span class="sort-icon">{{ getSortIcon('dateCreation') }}</span>
+                  </th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let frida of filteredList" [class.row-test]="isTest(frida)">
+                  <td class="font-mono">
+                    <strong>{{ frida?.numFrida }}</strong>
+                    <span *ngIf="isTest(frida)" class="badge-test" style="margin-left: 8px;">🛠️ Test Auto</span>
+                    <span *ngIf="frida?.requiresCorrection && frida?.statut === 'EN_ATTENTE_REVISION'" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
+                    <span *ngIf="frida?.requiresCorrection && frida?.statut === 'BROUILLON'" class="badge-warning" style="margin-left: 8px; background: rgba(236, 201, 75, 0.15); color: #ecc94b; border-color: rgba(236, 201, 75, 0.3);">⏳ En attente</span>
+                  </td>
+                  <td><span class="demo-blur">{{ frida?.nom }}</span> {{ frida?.prenom }}</td>
+                  <td><span class="badge">{{ frida?.dateCreation }}</span></td>
+                  <td>
+                    <div class="actions-container">
+                      <button class="btn-action" 
+                              (click)="voirFrida(frida.numFrida, frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" 
+                              [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
+                        <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
+                        <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+                        <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
+                      </button>
+                      <button class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
+                        <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr *ngIf="filteredList.length === 0">
+                  <td colspan="4" class="empty-state">
+                    Aucun document trouvé pour cette recherche.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div *ngIf="activeTab === 'brouillons'">
+          <table *ngIf="brouillons.length > 0" style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr>
-                <th (click)="sort('numFrida')" class="sortable">
-                  Numéro de Dossier
-                  <span class="sort-icon">{{ getSortIcon('numFrida') }}</span>
-                </th>
-                <th (click)="sort('nom')" class="sortable">
-                  Défunt (Nom Prénom)
-                  <span class="sort-icon">{{ getSortIcon('nom') }}</span>
-                </th>
-                <th (click)="sort('dateCreation')" class="sortable">
-                  Date de Création
-                  <span class="sort-icon">{{ getSortIcon('dateCreation') }}</span>
-                </th>
-                <th>Action</th>
+              <tr style="border-bottom: 2px solid rgba(78,204,163,0.3);">
+                <th style="padding: 10px; text-align: left; color: #4ecca3;">Nom</th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;">Prénom</th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;">Date création</th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;">Actions</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let frida of filteredList" [class.row-test]="isTest(frida)">
-                <td class="font-mono">
-                  <strong>{{ frida?.numFrida }}</strong>
-                  <span *ngIf="isTest(frida)" class="badge-test" style="margin-left: 8px;">🛠️ Test Auto</span>
-                  <span *ngIf="frida?.requiresCorrection && frida?.statut === 'EN_ATTENTE_REVISION'" class="badge-warning" style="margin-left: 8px;">⚠️ À corriger</span>
-                  <span *ngIf="frida?.requiresCorrection && frida?.statut === 'BROUILLON'" class="badge-warning" style="margin-left: 8px; background: rgba(236, 201, 75, 0.15); color: #ecc94b; border-color: rgba(236, 201, 75, 0.3);">⏳ En attente</span>
-                </td>
-                <td><span class="demo-blur">{{ frida?.nom }}</span> {{ frida?.prenom }}</td>
-                <td><span class="badge">{{ frida?.dateCreation }}</span></td>
-                <td>
-                  <div class="actions-container">
-                    <button class="btn-action" 
-                            (click)="voirFrida(frida.numFrida, frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" 
-                            [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
-                      <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
-                      <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                      <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
-                    </button>
-                    <button class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
-                      <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-              <tr *ngIf="filteredList.length === 0">
-                <td colspan="4" class="empty-state">
-                  Aucun document trouvé pour cette recherche.
+              <tr *ngFor="let b of brouillons" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 10px;">{{ b.nomDefunt }}</td>
+                <td style="padding: 10px;">{{ b.prenomDefunt }}</td>
+                <td style="padding: 10px;">{{ b.dateCreation }}</td>
+                <td style="padding: 10px;">
+                  <button (click)="reprendreBrouillon(b)" style="padding: 5px 15px; background: #4ecca3; color: #1e293b; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 8px;">Reprendre</button>
+                  <button (click)="supprimerBrouillon(b)" style="padding: 5px 15px; background: transparent; color: #D16D6A; border: 1px solid #D16D6A; border-radius: 6px; cursor: pointer;">Supprimer</button>
                 </td>
               </tr>
             </tbody>
           </table>
+          <p *ngIf="brouillons.length === 0" style="text-align: center; color: #a0aec0; padding: 2rem;">Aucun brouillon en cours</p>
         </div>
       </div>
     </div>
@@ -337,11 +380,13 @@ import { Router } from '@angular/router';
 export class SearchComponent implements OnInit {
   fridaList: any[] = [];
   filteredList: any[] = [];
+  brouillons: Brouillon[] = [];
+  activeTab: 'fridas' | 'brouillons' = 'fridas';
 
   sortColumn: string = 'dateCreation';
   sortDirection: 'asc' | 'desc' = 'desc';
 
-  constructor(private fridaService: FridaService, private router: Router) { }
+  constructor(private fridaService: FridaService, private brouillonService: BrouillonService, private router: Router) { }
 
   ngOnInit(): void {
     this.fridaService.lancerApi('/api/frida/fridas').subscribe({
@@ -352,6 +397,25 @@ export class SearchComponent implements OnInit {
         }
       }
     });
+    this.loadBrouillons();
+  }
+
+  loadBrouillons() {
+    this.brouillonService.list().subscribe(data => {
+      this.brouillons = data || [];
+    });
+  }
+
+  reprendreBrouillon(b: Brouillon) {
+    this.router.navigate(['/upload'], { queryParams: { brouillon: b.id, folderName: b.folderName } });
+  }
+
+  supprimerBrouillon(b: Brouillon) {
+    if (confirm(`Supprimer le brouillon de ${b.nomDefunt} ?`)) {
+      this.brouillonService.delete(b.id).subscribe(() => {
+        this.loadBrouillons();
+      });
+    }
   }
 
   onSearch(event: any) {

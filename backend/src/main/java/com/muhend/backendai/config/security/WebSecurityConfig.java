@@ -72,7 +72,7 @@ public class WebSecurityConfig {
                     .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> 
-                auth.requestMatchers("/api/auth/**", "/api/calculs/**").permitAll()
+                auth.requestMatchers("/api/auth/**", "/api/calculs/**", "/api/brouillons/**").permitAll()
                     .requestMatchers("/v3/api-docs/**", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                     // Test de santé Docker (HEALTHCHECK du backend) : sans jeton, sinon 403 et conteneur « unhealthy »
                     .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()

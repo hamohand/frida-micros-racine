@@ -28,6 +28,17 @@ public class PathResolver {
         return targetLocation;
     }
 
+    public Path resolveTargetPathForFolder(String folderName, String subFolder) throws IOException {
+        Path rootPath = Paths.get(rootPathString, "dossiers");
+        Path folderPath = rootPath.resolve(folderName);
+        if (!Files.exists(folderPath)) {
+            throw new FileStorageException("Dossier introuvable: " + folderName);
+        }
+        Path targetLocation = folderPath.resolve(subFolder);
+        ensureDirectoryExists(targetLocation);
+        return targetLocation;
+    }
+
     public Path getLatestFolder() throws IOException {
         Path rootPath = Paths.get(rootPathString, "dossiers");
         if (!Files.exists(rootPath)) {
