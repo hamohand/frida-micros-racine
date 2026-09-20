@@ -37,7 +37,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
           <ng-container *ngIf="!windows['f1'].isUploading">
             <h2 class="window-title">1. Document du Défunt</h2>
             <app-file-upload #fileUploadF1
-                [config]="getUploadConfig('01', 'Défunt', false, '', 2)"
+                [config]="getUploadConfig('01', 'Défunt', false, '', 4)"
                 [initialFiles]="windows['f1'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"

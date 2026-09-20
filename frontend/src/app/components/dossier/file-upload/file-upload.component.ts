@@ -35,7 +35,12 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         </div>
         <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
           <span class="material-icons" style="color: #ffb84d;">lock</span>
-          <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max).</p>
+          <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;" (click)="$event.stopPropagation()">
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
+              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
+            </button>
+          </div>
         </div>
         <input
           #fileInput
