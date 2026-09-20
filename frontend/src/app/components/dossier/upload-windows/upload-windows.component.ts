@@ -850,21 +850,38 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   sauvegarderBrouillon() {
-    const activeKey = this.getActiveWindowKeys().find(key => this.windows[key].isVisible);
-    if (activeKey) {
-      const currentWin = this.windows[activeKey];
-      if (currentWin && currentWin.groupedFiles && currentWin.groupedFiles.length > 0) {
-        currentWin.groupedFiles.forEach(group => {
-          let uploadPath = currentWin.path + '_' + group.docType;
+    const allUploadObservables: Observable<any>[] = [];
+
+    // Uploader les fichiers de TOUTES les fenêtres, pas seulement la fenêtre active
+    this.getActiveWindowKeys().forEach(key => {
+      if (key === 'f_ai') return;
+      const win = this.windows[key];
+      if (win && win.groupedFiles && win.groupedFiles.length > 0) {
+        win.groupedFiles.forEach(group => {
+          let uploadPath = win.path + '_' + group.docType;
           if (group.entityName && group.entityName.trim() !== '') {
             uploadPath += '_' + group.entityName;
           }
-          this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined).subscribe();
+          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined));
         });
       }
+    });
+
+    if (allUploadObservables.length > 0) {
+      forkJoin(allUploadObservables).subscribe({
+        next: () => {
+          alert('Brouillon sauvegardé ✅');
+          this.router.navigate(['/search']);
+        },
+        error: (err) => {
+          console.error('Erreur lors de la sauvegarde du brouillon:', err);
+          alert('Erreur lors de la sauvegarde. Veuillez réessayer.');
+        }
+      });
+    } else {
+      alert('Brouillon sauvegardé ✅ (aucun nouveau fichier à uploader)');
+      this.router.navigate(['/search']);
     }
-    alert('Brouillon sauvegardé ✅');
-    this.router.navigate(['/search']);
   }
 
   private launchOcrAndReview() {
