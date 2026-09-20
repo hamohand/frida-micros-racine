@@ -491,8 +491,9 @@ public class MrzService {
 
             if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
 
-            // Siècle : si yy > 30 → 19xx, sinon → 20xx
-            int year = yy > 30 ? 1900 + yy : 2000 + yy;
+            // Siècle : si yy >= année courante → 19xx (né au siècle dernier), sinon → 20xx
+            int currentYY = java.time.LocalDate.now().getYear() % 100;
+            int year = yy >= currentYY ? 1900 + yy : 2000 + yy;
             return LocalDate.of(year, mm, dd);
         } catch (Exception e) {
             log.warn("MRZ : Date invalide '{}'", yymmdd);
