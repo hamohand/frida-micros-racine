@@ -10,10 +10,13 @@ export class FileUploadService {
 
   constructor(private http: HttpClient) {}
 
-  uploadFiles(files: File[], path: string): Observable<number> {
+  uploadFiles(files: File[], path: string, folderName?: string): Observable<number> {
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
     formData.append('path', path);
+    if (folderName) {
+      formData.append('folderName', folderName);
+    }
 
     return this.http.post(`${this.apiUrl}/upload`, formData, {
       reportProgress: true,

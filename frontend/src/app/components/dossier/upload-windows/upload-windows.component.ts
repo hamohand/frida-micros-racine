@@ -799,14 +799,19 @@ export class UploadWindowsComponent implements OnInit {
   onReviewFamily(): void {
     this.isUploadingFiles = true;
     
-    // Nettoyage du dossier serveur pour éviter le dédoublement des fichiers
-    this.ocrPipelineService.clearLatestFolder().subscribe({
-      next: () => this.startUploads(),
-      error: (err) => {
-        console.warn("Erreur lors du nettoyage du dossier, continuation...", err);
-        this.startUploads(); // On continue même en cas d'erreur (ex: dossier vide)
-      }
-    });
+    if (this.brouillonId) {
+      // En mode brouillon, ne pas effacer les fichiers déjà sur le serveur
+      this.startUploads();
+    } else {
+      // Nettoyage du dossier serveur pour éviter le dédoublement des fichiers
+      this.ocrPipelineService.clearLatestFolder().subscribe({
+        next: () => this.startUploads(),
+        error: (err) => {
+          console.warn("Erreur lors du nettoyage du dossier, continuation...", err);
+          this.startUploads();
+        }
+      });
+    }
   }
 
   private startUploads(): void {
@@ -821,7 +826,7 @@ export class UploadWindowsComponent implements OnInit {
           if (group.entityName && group.entityName.trim() !== '') {
             uploadPath += '_' + group.entityName;
           }
-          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath));
+          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined));
         });
       }
     });
@@ -854,7 +859,7 @@ export class UploadWindowsComponent implements OnInit {
           if (group.entityName && group.entityName.trim() !== '') {
             uploadPath += '_' + group.entityName;
           }
-          this.fileUploadService.uploadFiles(group.files, uploadPath).subscribe();
+          this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined).subscribe();
         });
       }
     }
