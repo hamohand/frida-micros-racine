@@ -11,8 +11,12 @@ export class OcrPipelineService {
     constructor(private http: HttpClient) {}
 
     // Ancienne méthode complète (optionnelle, gardée pour la rétrocompatibilité si besoin)
-    lireAiEcrireBd(mode: string = 'rapide'): Observable<any> {
-        return this.http.get(`${this.apiUrl}/lireai-ecrirebd?mode=${mode}`);
+    lireAiEcrireBd(mode: string = 'rapide', folderName?: string): Observable<any> {
+        let url = `${this.apiUrl}/lireai-ecrirebd?mode=${mode}`;
+        if (folderName) {
+            url += `&folderName=${encodeURIComponent(folderName)}`;
+        }
+        return this.http.get(url);
     }
 
     analyzeComposition(mode: string = 'rapide'): Observable<any> {

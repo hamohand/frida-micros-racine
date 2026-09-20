@@ -879,7 +879,7 @@ export class UploadWindowsComponent implements OnInit {
     }
     
     this.isReading = true;
-    this.ocrPipelineService.lireAiEcrireBd(this.ocrMode).subscribe({
+    this.ocrPipelineService.lireAiEcrireBd(this.ocrMode, this.brouillonFolderName || undefined).subscribe({
       next: (data) => {
         this.isReading = false;
         if (data && data.numFrida) {

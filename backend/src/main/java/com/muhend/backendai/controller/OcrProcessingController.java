@@ -39,17 +39,26 @@ public class OcrProcessingController {
      * Enregistrement des données extraites dans la BD.
      */
     @GetMapping("/lireai-ecrirebd")
-    public FridaEntity ecrireBd(@org.springframework.web.bind.annotation.RequestParam(defaultValue = "rapide") String mode) throws IOException {
-        java.nio.file.Path path = FolderService.getFolderPath();
-        if (path == null) {
-            path = pathResolver.getLatestFolder();
+    public FridaEntity ecrireBd(
+            @org.springframework.web.bind.annotation.RequestParam(defaultValue = "rapide") String mode,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String folderName) throws IOException {
+        java.nio.file.Path path = null;
+        if (folderName != null && !folderName.isEmpty()) {
+            // Mode brouillon : cibler un dossier spécifique
+            path = java.nio.file.Paths.get(pathResolver.getLatestFolder().getParent().toString(), folderName);
+        }
+        if (path == null || !java.nio.file.Files.exists(path)) {
+            path = FolderService.getFolderPath();
+            if (path == null) {
+                path = pathResolver.getLatestFolder();
+            }
         }
         String cheminDossierBase = path.toString();
         System.out.println("cheminDossierBase : " + cheminDossierBase + "");
         FridaEntity result = dossierProcessingService.traiterExtraitsNaissance(cheminDossierBase, mode);
         try {
-            String folderName = pathResolver.getLatestFolder().getFileName().toString();
-            brouillonRepository.findByFolderName(folderName)
+            String processedFolderName = path.getFileName().toString();
+            brouillonRepository.findByFolderName(processedFolderName)
                 .ifPresent(b -> { b.setStatut("TRAITE"); brouillonRepository.save(b); });
         } catch (Exception e) {
             org.slf4j.LoggerFactory.getLogger(OcrProcessingController.class).warn("Impossible de mettre à jour le brouillon: {}", e.getMessage());
