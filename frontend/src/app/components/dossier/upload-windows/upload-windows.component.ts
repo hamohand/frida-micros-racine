@@ -41,6 +41,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 [initialFiles]="windows['f1'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"
+                (skipClicked)="continueToNext('f1')"
             ></app-file-upload>
           </ng-container>
           <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
@@ -697,8 +698,8 @@ export class UploadWindowsComponent implements OnInit {
       title: title,
       docTypes: this.docTypeOptions,
       allowPrevious: allowPrevious,
-      allowSkip: skipText.length > 0,
-      skipText: skipText,
+      allowSkip: skipText.length > 0 || this.brouillonId !== null,
+      skipText: skipText || (this.brouillonId !== null ? 'Suivant' : ''),
       maxFiles: maxFiles
     };
   }
