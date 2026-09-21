@@ -4,6 +4,7 @@ import 'package:camera/camera.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'mrz_scanner_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class NfcReaderScreen extends StatefulWidget {
   final String? mrzText;
@@ -217,6 +218,24 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (context) => MrzScannerScreen(cameras: widget.cameras, uploadUrl: widget.uploadUrl),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 15),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text("Nouveau Scan (QR Code)"),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.all(15),
+                  foregroundColor: Colors.indigo,
+                  side: const BorderSide(color: Colors.indigo),
+                ),
+                onPressed: _isReading ? null : () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => QRScannerScreen(cameras: widget.cameras),
                     ),
                   );
                 },
