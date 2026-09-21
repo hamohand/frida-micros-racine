@@ -704,7 +704,7 @@ export class UploadWindowsComponent implements OnInit {
     return windowKeys.indexOf(activeKey || 'f1');
   }
 
-  constructor(private fileUploadService: FileUploadService, private router: Router,
+  constructor(private fileUploadService: FileUploadService, public router: Router,
     private ocrPipelineService: OcrPipelineService, private constitutionService: ConstitutionService,
     private uploadStateService: UploadStateService, private route: ActivatedRoute,
     private brouillonService: BrouillonService) { }
