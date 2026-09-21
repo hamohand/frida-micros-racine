@@ -36,11 +36,6 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
           <span class="material-icons" style="color: #ffb84d;">lock</span>
           <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
-          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 8px;" (click)="$event.stopPropagation()">
-            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
-              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
-            </button>
-          </div>
         </div>
         <input
           #fileInput
@@ -99,6 +94,11 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         <button class="btn btn-secondary continue-btn" (click)="onSkip()" *ngIf="uploadedFiles.length === 0 && config.allowSkip" style="margin-top: 0;">
           {{ config.skipText || 'Continuer' }}
         </button>
+        
+        <button *ngIf="!isBeta && uploadedFiles.length > 0" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
+          <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
+        </button>
+
         <button class="btn btn-secondary" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
           Vider
         </button>
