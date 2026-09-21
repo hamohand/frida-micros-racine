@@ -345,9 +345,9 @@ public class MrzService {
         String documentNumber = clean(line1.substring(5, 14));
         String optionalData1 = clean(line1.substring(15, 30));
 
-        LocalDate dateOfBirth = parseMrzDate(line2.substring(0, 6));
+        LocalDate dateOfBirth = parseMrzDate(line2.substring(0, 6), true);
         String sex = clean(line2.substring(7, 8));
-        LocalDate expiryDate = parseMrzDate(line2.substring(8, 14));
+        LocalDate expiryDate = parseMrzDate(line2.substring(8, 14), false);
         String nationality = clean(line2.substring(15, 18));
 
         // Nom et prénom depuis la ligne 3
@@ -418,9 +418,9 @@ public class MrzService {
 
         String passportNumber = clean(line2.substring(0, 9));
         String nationality = clean(line2.substring(10, 13));
-        LocalDate dateOfBirth = parseMrzDate(line2.substring(13, 19));
+        LocalDate dateOfBirth = parseMrzDate(line2.substring(13, 19), true);
         String sex = clean(line2.substring(20, 21));
-        LocalDate expiryDate = parseMrzDate(line2.substring(21, 27));
+        LocalDate expiryDate = parseMrzDate(line2.substring(21, 27), false);
         String optionalData = clean(line2.substring(28, 42));
 
         String nin = extractNin(optionalData);
@@ -482,7 +482,7 @@ public class MrzService {
     }
 
     /** Parse une date MRZ au format YYMMDD → LocalDate. */
-    private LocalDate parseMrzDate(String yymmdd) {
+    private LocalDate parseMrzDate(String yymmdd, boolean isDob) {
         try {
             String cleaned = yymmdd.replace('<', '0');
             int yy = Integer.parseInt(cleaned.substring(0, 2));
@@ -491,9 +491,17 @@ public class MrzService {
 
             if (mm < 1 || mm > 12 || dd < 1 || dd > 31) return null;
 
-            // Siècle : si yy >= année courante → 19xx (né au siècle dernier), sinon → 20xx
             int currentYY = java.time.LocalDate.now().getYear() % 100;
-            int year = yy >= currentYY ? 1900 + yy : 2000 + yy;
+            int year;
+            if (isDob) {
+                // Pour la date de naissance : si yy >= année courante → 19xx, sinon → 20xx
+                year = yy >= currentYY ? 1900 + yy : 2000 + yy;
+            } else {
+                // Pour la date d'expiration : l'expiration est soit dans le futur (20xx), 
+                // soit récemment passée (20xx). Les pièces d'identité 19xx sont expirées depuis très longtemps.
+                // Donc on assume 20xx pour les expirations, sauf cas extrême.
+                year = 2000 + yy;
+            }
             return LocalDate.of(year, mm, dd);
         } catch (Exception e) {
             log.warn("MRZ : Date invalide '{}'", yymmdd);

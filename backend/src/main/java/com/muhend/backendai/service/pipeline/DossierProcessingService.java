@@ -125,6 +125,7 @@ public class DossierProcessingService {
                 if ("0".equals(ctx.getNumFrida())) {
                     ctx.setNumFrida(fridaIdentifierService.genererIdentifiant(""));
                 }
+                ctx.getFicheFrida().setNumFrida(ctx.getNumFrida());
                 fridaPersistenceService.sauvegarderBrouillonFrida(ctx);
             }
 
