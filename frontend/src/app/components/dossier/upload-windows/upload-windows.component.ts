@@ -19,6 +19,51 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
   template: `
     <div class="windows-container carousel-viewport">
 
+      <!-- Écran récapitulatif du brouillon -->
+      <div *ngIf="showBrouillonRecap" class="brouillon-recap" style="max-width: 700px; margin: 0 auto; padding: 20px;">
+        <h2 style="text-align: center; color: #4ecca3; margin-bottom: 8px;">
+          <span class="material-icons" style="vertical-align: middle; font-size: 2rem;">folder_open</span>
+          Reprise du brouillon
+        </h2>
+        <p style="text-align: center; color: #94a3b8; margin-bottom: 24px;">
+          {{ brouillonFolderName }}
+        </p>
+
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(78,204,163,0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+          <h3 style="color: #e2e8f0; margin-bottom: 12px; font-size: 1rem;">
+            <span class="material-icons" style="vertical-align: middle; font-size: 1.2rem; color: #4ecca3;">inventory_2</span>
+            Documents déjà enregistrés ({{ getTotalExistingFiles() }})
+          </h3>
+          <div *ngIf="recapCategories.length === 0" style="color: #64748b; text-align: center; padding: 12px;">
+            Aucun document enregistré pour le moment.
+          </div>
+          <div *ngFor="let cat of recapCategories" style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+            <span style="color: #e2e8f0;">
+              <span class="material-icons" style="font-size: 1rem; vertical-align: middle; color: #4ecca3; margin-right: 6px;">check_circle</span>
+              {{ cat.label }}
+            </span>
+            <span style="background: rgba(78,204,163,0.15); color: #4ecca3; padding: 2px 10px; border-radius: 12px; font-size: 0.85rem;">
+              {{ cat.count }} fichier{{ cat.count > 1 ? 's' : '' }}
+            </span>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
+          <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
+            <span class="material-icons">person_add</span> Ajouter des héritiers
+          </button>
+          <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: #f59e0b; border-color: #f59e0b;" 
+            (click)="showBrouillonRecap = false; launchOcrAndReview()" [disabled]="getTotalExistingFiles() === 0">
+            <span class="material-icons">play_arrow</span> Créer le document Frida
+          </button>
+          <button class="btn btn-secondary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="router.navigate(['/search'])">
+            <span class="material-icons">close</span> Fermer
+          </button>
+        </div>
+      </div>
+
+      <!-- Carousel normal (masqué pendant le récap) -->
+      <ng-container *ngIf="!showBrouillonRecap">
 
       <!-- Action Globale pour sauter aux témoins -->
       <div class="global-actions" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 15px; padding: 0 20px;">
@@ -412,6 +457,8 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <span class="material-icons" style="font-size: 1.2rem; vertical-align: middle; color: #ffb84d; margin-right: 5px;">info</span>
         Utiliser uniquement les actes de naissance et de décès numériques, à demander sur le site : <a href="https://dzds.dz" target="_blank" style="color:#4ecca3;">dzds.dz</a>
       </div>
+
+      </ng-container> <!-- End !showBrouillonRecap -->
     </div> <!-- End Windows Container -->
   `,
   styles: [`
@@ -577,6 +624,30 @@ export class UploadWindowsComponent implements OnInit {
   brouillonId: number | null = null;
   brouillonFolderName: string | null = null;
   existingFiles: { [key: string]: string[] } = {};
+  showBrouillonRecap = false;
+  recapCategories: { label: string, count: number }[] = [];
+
+  private folderCodeLabels: { [key: string]: string } = {
+    '01': 'Défunt', '02': 'Conjoint', '03': 'Fils / Filles',
+    '04': 'Père / Mère', '05': 'Frères et sœurs', '06': 'Oncles paternels',
+    '07': 'Cousins paternels', '08': 'Grand-père paternel',
+    '09': 'Petits-fils / Tombes', '10': 'Petites-filles', 
+    '11': 'Grand-mère paternelle', '00': 'Témoins'
+  };
+
+  buildRecapCategories() {
+    const catMap: { [label: string]: number } = {};
+    for (const [folder, files] of Object.entries(this.existingFiles)) {
+      const code = folder.substring(0, 2);
+      const label = this.folderCodeLabels[code] || 'Autre (' + code + ')';
+      catMap[label] = (catMap[label] || 0) + files.length;
+    }
+    this.recapCategories = Object.entries(catMap).map(([label, count]) => ({ label, count }));
+  }
+
+  getTotalExistingFiles(): number {
+    return Object.values(this.existingFiles).reduce((sum, files) => sum + files.length, 0);
+  }
 
   getActiveWindowKeys(): string[] {
     const fiche = this.constitutionService.currentFiche;
@@ -665,6 +736,8 @@ export class UploadWindowsComponent implements OnInit {
     if (!this.brouillonId) return;
     this.brouillonService.getFichiers(this.brouillonId).subscribe(data => {
       this.existingFiles = data.subfolders || {};
+      this.buildRecapCategories();
+      this.showBrouillonRecap = true;
       console.log('Fichiers existants du brouillon:', this.existingFiles);
     });
   }
@@ -884,7 +957,7 @@ export class UploadWindowsComponent implements OnInit {
     }
   }
 
-  private launchOcrAndReview() {
+  launchOcrAndReview() {
     // Sauvegarde l'état du carrousel avant de partir
     this.uploadStateService.saveState(this.windows, this.ocrMode);
     
