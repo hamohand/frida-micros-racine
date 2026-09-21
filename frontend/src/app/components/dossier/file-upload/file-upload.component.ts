@@ -28,7 +28,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
             <button class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;" (click)="fileInput.click()">
               <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionnez des fichiers
             </button>
-            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
+            <button *ngIf="!isBeta && uploadedFiles.length === 0" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
               <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
             </button>
           </div>
