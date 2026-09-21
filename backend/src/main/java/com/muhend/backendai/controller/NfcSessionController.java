@@ -89,9 +89,11 @@ public class NfcSessionController {
                 
                 if (storedOcr.containsKey("nom")) nfcMap.put("nomArabe", storedOcr.get("nom"));
                 if (storedOcr.containsKey("prenom")) nfcMap.put("prenomArabe", storedOcr.get("prenom"));
+                if (storedOcr.containsKey("imagePath")) nfcMap.put("imagePath", storedOcr.get("imagePath"));
                 
                 nfcJsonData = mapper.writeValueAsString(nfcMap);
-                log.info("✨ Noms arabes OCR fusionnés : nom='{}', prenom='{}'", storedOcr.get("nom"), storedOcr.get("prenom"));
+                log.info("✨ Noms arabes OCR fusionnés : nom='{}', prenom='{}', image='{}'", 
+                    storedOcr.get("nom"), storedOcr.get("prenom"), storedOcr.containsKey("imagePath") ? "oui" : "non");
             } catch (Exception e) {
                 log.warn("⚠️ Impossible de fusionner les noms OCR : {}", e.getMessage());
             }

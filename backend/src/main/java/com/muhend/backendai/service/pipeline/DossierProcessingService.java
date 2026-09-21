@@ -335,6 +335,19 @@ public class DossierProcessingService {
             // Sauvegarder le chemin de l'image (recto) si disponible pour permettre l'affichage côté UI
             if (file != null) {
                 identite.setImagePath(file.toAbsolutePath().toString());
+            } else if (nfcJsonFile != null) {
+                // Si on a pas de fichier image, mais qu'on a un JSON NFC, on regarde si l'application mobile a envoyé une image OCR
+                try {
+                    String jsonContent = java.nio.file.Files.readString(nfcJsonFile);
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> map = mapper.readValue(jsonContent, java.util.Map.class);
+                    if (map.containsKey("imagePath") && map.get("imagePath") != null) {
+                        identite.setImagePath(map.get("imagePath").toString());
+                    }
+                } catch (Exception e) {
+                    log.error("Impossible de lire l'imagePath depuis le JSON NFC", e);
+                }
             }
 
             // Générer l'identifiant au document du défunt (peu importe l'ordre de traitement)
