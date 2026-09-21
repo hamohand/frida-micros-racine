@@ -76,12 +76,33 @@ public class StringUtils {
         };
 
         // 3. Essai de conversion
+        java.time.LocalDate date = null;
         for (java.time.format.DateTimeFormatter formatter : formatters) {
             try {
-                return java.time.LocalDate.parse(dateNettoyee, formatter);
+                date = java.time.LocalDate.parse(dateNettoyee, formatter);
+                break;
             } catch (java.time.format.DateTimeParseException e) {
                 // On ignore et on essaie le format suivant
             }
+        }
+        
+        if (date != null) {
+            // Puisqu'il s'agit d'une date de naissance (ou d'un évènement passé),
+            // elle ne peut pas être dans le futur.
+            // Si l'année extraite est supérieure à l'année actuelle, c'est que l'année à 2 chiffres
+            // (ex: 56) a été interprétée par défaut comme 2056 au lieu de 1956.
+            if (date.getYear() > java.time.LocalDate.now().getYear()) {
+                date = date.minusYears(100);
+            } else if (date.getYear() == java.time.LocalDate.now().getYear() && 
+                       date.isAfter(java.time.LocalDate.now())) {
+                // Si la date est plus tard dans l'année courante, c'est aussi le siècle dernier
+                date = date.minusYears(100);
+            }
+            
+            // Si la personne a 0 ans (née l'année en cours) et qu'on traite un défunt ou héritier majeur,
+            // il y a de fortes chances que ce soit 1926 et non 2026.
+            // Mais pour ne pas complexifier on va s'en tenir à une vérification stricte : si > aujd.
+            return date;
         }
 
         // L'OCR s'est probablement trompé ou le format est inconnu
