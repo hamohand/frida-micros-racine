@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -89,7 +89,7 @@ import { Subscription } from 'rxjs';
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 1000;
+      z-index: 10000;
     }
     .modal-content {
       background: #1e293b;
@@ -176,10 +176,15 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   constructor(
     private parametresService: ParametresService, 
     private authService: AuthService,
-    private nfcService: NfcService
+    private nfcService: NfcService,
+    private el: ElementRef,
+    private renderer: Renderer2
   ) {}
 
   ngOnInit() {
+    // Échapper au transform du carousel pour que position: fixed fonctionne correctement
+    this.renderer.appendChild(document.body, this.el.nativeElement);
+
     this.sessionId = uuidv4();
     this.estMaitre = this.authService.isMaitre();
 
@@ -256,6 +261,9 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     if (this.nfcSubscription) {
       this.nfcSubscription.unsubscribe();
+    }
+    if (this.el.nativeElement && this.el.nativeElement.parentNode === document.body) {
+      this.renderer.removeChild(document.body, this.el.nativeElement);
     }
   }
 
