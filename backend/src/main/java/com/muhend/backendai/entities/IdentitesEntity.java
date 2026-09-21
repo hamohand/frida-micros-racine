@@ -87,4 +87,8 @@ public class IdentitesEntity {
     /** Indique si la MRZ a été lue et validée (checksums OK) */
     @Column(name = "mrz_valid")
     private Boolean mrzValid;
+
+    /** Chemin d'accès au fichier image du scan (pour affichage de secours) */
+    @Column(name = "image_path")
+    private String imagePath = "";
 }

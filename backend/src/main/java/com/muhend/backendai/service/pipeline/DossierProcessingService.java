@@ -332,6 +332,11 @@ public class DossierProcessingService {
         IdentitesEntity identite = ocrMappingService.mergeOcrAndNfc(ocrEntity, nfcEntity);
 
         if (identite != null) {
+            // Sauvegarder le chemin de l'image (recto) si disponible pour permettre l'affichage côté UI
+            if (file != null) {
+                identite.setImagePath(file.toAbsolutePath().toString());
+            }
+
             // Générer l'identifiant au document du défunt (peu importe l'ordre de traitement)
             if (heirCategory == HeirCategory.DEFUNT && "0".equals(ctx.getNumFrida())) {
                 String dateNaissance = identite.getDateNaissance() != null

@@ -58,17 +58,26 @@ interface Personne {
         <!-- Mode Édition Défunt -->
         <div class="edit-form" *ngIf="editingDefunt">
           <h4>Modifier le Défunt</h4>
-          <div class="form-grid">
-            <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
-            <input type="text" [(ngModel)]="defunt.prenom" placeholder="Prénom">
-            <input type="date" [(ngModel)]="defunt.dateNaissance">
-            <input type="text" [(ngModel)]="defunt.nin" placeholder="NIN">
-            <select [(ngModel)]="defunt.sexe">
-              <option value="M">Homme</option>
-              <option value="F">Femme</option>
-            </select>
+          <div class="edit-container" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+            <div class="form-grid" style="flex: 1; min-width: 300px;">
+              <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
+              <input type="text" [(ngModel)]="defunt.prenom" placeholder="Prénom">
+              <input type="date" [(ngModel)]="defunt.dateNaissance">
+              <input type="text" [(ngModel)]="defunt.nin" placeholder="NIN">
+              <select [(ngModel)]="defunt.sexe">
+                <option value="M">Homme</option>
+                <option value="F">Femme</option>
+              </select>
+            </div>
+            
+            <div class="scan-preview" *ngIf="frida?.defunt?.identite?.imagePath" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
+              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source (sélectionnez le texte si besoin)</h5>
+              <img [src]="'/api/files/view?path=' + encodeURIComponent(frida.defunt.identite.imagePath)" 
+                   style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 4px;" 
+                   alt="Scan du document">
+            </div>
           </div>
-          <div class="form-actions">
+          <div class="form-actions" style="margin-top: 15px;">
             <button class="btn btn-sm btn-primary" (click)="saveDefuntEdit()">Valider</button>
           </div>
         </div>
@@ -82,29 +91,38 @@ interface Personne {
         <!-- Formulaire Ajout/Modif Héritier -->
         <div class="edit-form highlight" *ngIf="isAddingHeir || editingIndex !== null">
           <h4>{{ isAddingHeir ? 'Nouvel Héritier' : 'Modifier Héritier' }}</h4>
-          <div class="form-grid">
-            <input type="text" [(ngModel)]="currentHeir.nom" placeholder="Nom">
-            <input type="text" [(ngModel)]="currentHeir.prenom" placeholder="Prénom">
-            <input type="date" [(ngModel)]="currentHeir.dateNaissance">
-            <input type="text" [(ngModel)]="currentHeir.nin" placeholder="NIN">
-            <select [(ngModel)]="currentHeir.sexe">
-              <option value="M">Homme</option>
-              <option value="F">Femme</option>
-            </select>
-            <select [(ngModel)]="currentHeir.numParente">
-              <option value="02">Conjoint (Époux/Épouse)</option>
-              <option value="03">Enfant (Fils/Fille)</option>
-              <option value="04">Parent (Père/Mère)</option>
-              <option value="08">Grand-Père paternel</option>
-              <option value="11">Grand-Mère paternelle</option>
-              <option value="09">Petit-fils</option>
-              <option value="10">Petite-fille</option>
-              <option value="05">Frère / Sœur</option>
-              <option value="06">Oncle paternel</option>
-              <option value="07">Cousin paternel</option>
-            </select>
+          <div class="edit-container" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
+            <div class="form-grid" style="flex: 1; min-width: 300px;">
+              <input type="text" [(ngModel)]="currentHeir.nom" placeholder="Nom">
+              <input type="text" [(ngModel)]="currentHeir.prenom" placeholder="Prénom">
+              <input type="date" [(ngModel)]="currentHeir.dateNaissance">
+              <input type="text" [(ngModel)]="currentHeir.nin" placeholder="NIN">
+              <select [(ngModel)]="currentHeir.sexe">
+                <option value="M">Homme</option>
+                <option value="F">Femme</option>
+              </select>
+              <select [(ngModel)]="currentHeir.numParente">
+                <option value="02">Conjoint (Époux/Épouse)</option>
+                <option value="03">Enfant (Fils/Fille)</option>
+                <option value="04">Parent (Père/Mère)</option>
+                <option value="08">Grand-Père paternel</option>
+                <option value="11">Grand-Mère paternelle</option>
+                <option value="09">Petit-fils</option>
+                <option value="10">Petite-fille</option>
+                <option value="05">Frère / Sœur</option>
+                <option value="06">Oncle paternel</option>
+                <option value="07">Cousin paternel</option>
+              </select>
+            </div>
+            
+            <div class="scan-preview" *ngIf="editingIndex !== null && frida?.heritiers?.[editingIndex]?.identite?.imagePath" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
+              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source (sélectionnez le texte si besoin)</h5>
+              <img [src]="'/api/files/view?path=' + encodeURIComponent(frida.heritiers[editingIndex].identite.imagePath)" 
+                   style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 4px;" 
+                   alt="Scan du document">
+            </div>
           </div>
-          <div class="form-actions">
+          <div class="form-actions" style="margin-top: 15px;">
             <button class="btn btn-sm btn-secondary" (click)="cancelEdit()">Annuler</button>
             <button class="btn btn-sm btn-primary" (click)="saveHeir()">Enregistrer dans la fiche</button>
           </div>
@@ -379,8 +397,13 @@ export class HeirReviewComponent implements OnInit {
     });
   }
 
-  // ==== Méthodes CRUD ====
+  // ====================== MAPPING & LOGIQUE MÉTIER ======================
 
+  encodeURIComponent(str: string): string {
+    return encodeURIComponent(str || '');
+  }
+
+  /** Convertit l'entité Défunt en objet "plat" pour l'UI */ 
   editDefunt() {
     this.editingDefunt = true;
   }

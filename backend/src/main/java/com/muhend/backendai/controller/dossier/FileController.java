@@ -57,4 +57,28 @@ public class FileController {
             return ResponseEntity.ok(Collections.emptyList());
         }
     }
+
+    @GetMapping("/files/view")
+    @Operation(summary = "Voir une image", description = "Renvoie l'image d'un document à partir de son chemin absolu")
+    public ResponseEntity<org.springframework.core.io.Resource> viewFile(@RequestParam String path) {
+        try {
+            java.nio.file.Path filePath = java.nio.file.Paths.get(path);
+            if (!java.nio.file.Files.exists(filePath) || !java.nio.file.Files.isReadable(filePath)) {
+                return ResponseEntity.notFound().build();
+            }
+            org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
+            
+            String contentType = java.nio.file.Files.probeContentType(filePath);
+            if (contentType == null) {
+                contentType = "application/octet-stream";
+            }
+            
+            return ResponseEntity.ok()
+                    .contentType(org.springframework.http.MediaType.parseMediaType(contentType))
+                    .body(resource);
+        } catch (Exception e) {
+            log.error("Erreur lors de la lecture de l'image {}: {}", path, e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
