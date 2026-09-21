@@ -28,9 +28,6 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
             <button class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;" (click)="fileInput.click()">
               <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionnez des fichiers
             </button>
-            <button *ngIf="!isBeta && uploadedFiles.length === 0" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px;" (click)="showNfcModal = true">
-              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
-            </button>
           </div>
         </div>
         <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
@@ -87,7 +84,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         </div>
       </div>
 
-      <div class="button-group" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip">
+      <div class="button-group" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip || !isBeta">
         <button class="btn btn-secondary" *ngIf="config.allowPrevious" (click)="onPrevious()">
           Précédent
         </button>
@@ -95,7 +92,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
           {{ config.skipText || 'Continuer' }}
         </button>
         
-        <button *ngIf="!isBeta && uploadedFiles.length > 0" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
+        <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; gap: 6px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
           <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
         </button>
 
