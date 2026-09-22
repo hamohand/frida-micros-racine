@@ -105,11 +105,19 @@ public class OcrProcessingController {
             }
             
             byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
-            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("cni_front_", ".jpg");
-            java.nio.file.Files.write(tempFile, imageBytes);
+            
+            // Sauvegarder directement dans le répertoire persistant (évite les erreurs de permission /tmp → /app)
+            java.nio.file.Path nfcDir = java.nio.file.Paths.get("/frida-storage/nfc-images");
+            if (!java.nio.file.Files.exists(nfcDir)) {
+                java.nio.file.Files.createDirectories(nfcDir);
+            }
+            String imgFilename = (sessionId != null && !sessionId.isEmpty()) ? sessionId + ".jpg" : "unknown_" + System.currentTimeMillis() + ".jpg";
+            java.nio.file.Path persistentFile = nfcDir.resolve(imgFilename);
+            java.nio.file.Files.write(persistentFile, imageBytes);
+            String persistentImagePath = persistentFile.toAbsolutePath().toString();
             
             // 1. Upload de l'image vers l'API OCR Python
-            com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(tempFile);
+            com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(persistentFile);
             
             // 2. Appel PaddleOCR par mots-clés (cherche اللقب et الاسم)
             String ocrApiUrl = ocrApiClient.getOcrApiUrl();
@@ -121,22 +129,6 @@ public class OcrProcessingController {
             @SuppressWarnings("unchecked")
             java.util.Map<String, Object> ocrResult = rt.postForObject(
                 ocrApiUrl + "/api/ocr-noms-arabes", body, java.util.Map.class);
-            
-            // Déplacer l'image vers un stockage persistant au lieu de la supprimer, 
-            // pour que la Fiche Familiale Interactive puisse l'afficher.
-            String persistentImagePath = "";
-            try {
-                java.nio.file.Path nfcDir = java.nio.file.Paths.get("/app/uploads/nfc-images");
-                if (!java.nio.file.Files.exists(nfcDir)) {
-                    java.nio.file.Files.createDirectories(nfcDir);
-                }
-                java.nio.file.Path persistentFile = nfcDir.resolve(sessionId != null ? sessionId + ".jpg" : "unknown_" + System.currentTimeMillis() + ".jpg");
-                java.nio.file.Files.move(tempFile, persistentFile, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-                persistentImagePath = persistentFile.toAbsolutePath().toString();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                java.nio.file.Files.deleteIfExists(tempFile);
-            }
             
             if (ocrResult == null || !Boolean.TRUE.equals(ocrResult.get("success"))) {
                 return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "OCR: aucun nom détecté"));
