@@ -11,103 +11,107 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
   standalone: true,
   imports: [CommonModule, FormsModule, NfcScannerModalComponent],
   template: `
-    <div class="upload-container">
-      <h2>{{ config.title }}</h2>
-      <div
-        class="drop-zone"
-        (dragover)="onDragOver($event)"
-        (dragleave)="onDragLeave($event)"
-        (click)="fileInput.click()"
-        style="cursor: pointer;"
-        [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
-      >
-        <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-          <span class="material-icons">cloud_upload</span>
-          <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
-        </div>
-        <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
-          <span class="material-icons" style="color: #ffb84d;">lock</span>
-          <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
-        </div>
-        <input
-          #fileInput
-          type="file"
-          multiple
-          style="display: none;"
-          [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
-          (change)="onFileSelected($event)"
-        />
-      </div>
-
-      <div class="file-list" *ngIf="uploadedFiles.length > 0">
-        <div class="file-item" *ngFor="let file of uploadedFiles">
-          <div class="file-info">
-            <span class="material-icons">Document :</span>
-            <span class="file-name">{{ file.file.name }}</span>
-            <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" (change)="onDocTypeChange(file)" class="select-doc-type file-select">
-              <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
-            </select>
-            <select *ngIf="getEntitiesForDocType(file.docType).length > 0" [(ngModel)]="file.entityName" class="select-doc-type file-select">
-              <option *ngFor="let ent of getEntitiesForDocType(file.docType)" [value]="ent">
-                {{ ent }} {{ ent === entiteDefaut(file.docType) ? '(par défaut)' : '' }}
-              </option>
-            </select>
+    <div class="file-upload-layout" style="display: flex; gap: 20px; align-items: stretch; justify-content: center; max-width: 900px; margin: 0 auto; flex-wrap: wrap;">
+      <!-- Colonne de gauche : Zone d'upload principale -->
+      <div class="upload-container" style="flex: 1; min-width: 300px; max-width: 650px;">
+        <h2>{{ config.title }}</h2>
+        <div
+          class="drop-zone"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (click)="fileInput.click()"
+          style="cursor: pointer;"
+          [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
+        >
+          <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+            <span class="material-icons">cloud_upload</span>
+            <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
           </div>
-          <button 
-            class="btn-icon" 
-            (click)="removeFile(file.id)"
-            aria-label="Supprimer le fichier"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#D16D6A"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm336-552H312v480h336v-480ZM384-288h72v-336h-72v336Zm120 0h72v-336h-72v336ZM312-696v480-480Z"/></svg>
-          </button>
-          <!-- Verso optionnel pour CNI -->
-          <div class="verso-section" *ngIf="file.docType === 'cni'">
-            <div class="verso-info" *ngIf="file.versoFile">
-              <span class="verso-badge" style="display: flex; align-items: center; gap: 4px;">
-                <span class="material-icons" style="font-size: 1rem;">content_paste</span> Verso :
-              </span>
-              <span class="file-name">{{ file.versoFile.name }}</span>
-              <button class="btn-icon btn-sm" (click)="removeVerso(file.id)" aria-label="Supprimer verso">
-                <span class="material-icons" style="font-size: 1.2rem;">close</span>
-              </button>
+          <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
+            <span class="material-icons" style="color: #ffb84d;">lock</span>
+            <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
+          </div>
+          <input
+            #fileInput
+            type="file"
+            multiple
+            style="display: none;"
+            [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+
+        <div class="upload-actions" style="margin-top: 20px;">
+          <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+            <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
+              <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionner des fichiers
+            </button>
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
+              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
+            </button>
+          </div>
+        </div>
+
+        <div class="file-list" *ngIf="uploadedFiles.length > 0" style="margin-top: 20px;">
+          <div class="file-item" *ngFor="let file of uploadedFiles">
+            <div class="file-info">
+              <span class="material-icons">Document :</span>
+              <span class="file-name">{{ file.file.name }}</span>
+              <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" (change)="onDocTypeChange(file)" class="select-doc-type file-select">
+                <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
+              </select>
+              <select *ngIf="getEntitiesForDocType(file.docType).length > 0" [(ngModel)]="file.entityName" class="select-doc-type file-select">
+                <option *ngFor="let ent of getEntitiesForDocType(file.docType)" [value]="ent">
+                  {{ ent }} {{ ent === entiteDefaut(file.docType) ? '(par défaut)' : '' }}
+                </option>
+              </select>
             </div>
-            <button class="btn btn-verso" *ngIf="!file.versoFile" (click)="triggerVersoInput(file.id)">
-              + Ajouter verso (optionnel)
+            <button class="btn-icon" (click)="removeFile(file.id)" aria-label="Supprimer le fichier">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px" fill="#D16D6A"><path d="M312-144q-29.7 0-50.85-21.15Q240-186.3 240-216v-480h-48v-72h192v-48h192v48h192v72h-48v479.57Q720-186 698.85-165T648-144H312Zm336-552H312v480h336v-480ZM384-288h72v-336h-72v336Zm120 0h72v-336h-72v336ZM312-696v480-480Z"/></svg>
             </button>
-            <input [id]="'verso_' + file.id" type="file" style="display:none" [accept]="config.allowedTypes.join(',')" (change)="onVersoSelected($event, file.id)" />
+            <!-- Verso optionnel pour CNI -->
+            <div class="verso-section" *ngIf="file.docType === 'cni'">
+              <div class="verso-info" *ngIf="file.versoFile">
+                <span class="verso-badge" style="display: flex; align-items: center; gap: 4px;">
+                  <span class="material-icons" style="font-size: 1rem;">content_paste</span> Verso :
+                </span>
+                <span class="file-name">{{ file.versoFile.name }}</span>
+                <button class="btn-icon btn-sm" (click)="removeVerso(file.id)" aria-label="Supprimer verso">
+                  <span class="material-icons" style="font-size: 1.2rem;">close</span>
+                </button>
+              </div>
+              <button class="btn btn-verso" *ngIf="!file.versoFile" (click)="triggerVersoInput(file.id)">
+                + Ajouter verso (optionnel)
+              </button>
+              <input [id]="'verso_' + file.id" type="file" style="display:none" [accept]="config.allowedTypes.join(',')" (change)="onVersoSelected($event, file.id)" />
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="upload-actions" style="margin-top: 20px;">
-        <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-          <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
-            <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionner des fichiers
-          </button>
-          <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
-            <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
-          </button>
-        </div>
+      <!-- Colonne de droite : Boutons de navigation empilés -->
+      <div class="nav-sidebar" style="display: flex; flex-direction: column; gap: 12px; width: 250px; padding-top: 55px;" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip || !isBeta">
+        
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;" (click)="onUpload()" *ngIf="uploadedFiles.length > 0">
+          Suivant
+        </button>
 
-        <div class="button-group" style="display: flex; justify-content: space-between; align-items: center;" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip || !isBeta">
-          <button class="btn btn-secondary" *ngIf="config.allowPrevious" (click)="onPrevious()">
-            Précédent
-          </button>
+        <button class="btn" style="width: 100%; justify-content: center; padding: 12px;" [ngClass]="config.highlightSkip ? 'btn-primary' : 'btn-secondary'" (click)="onSkip()" *ngIf="uploadedFiles.length === 0 && config.allowSkip">
+          {{ config.skipText || 'Continuer' }}
+        </button>
 
-          <div style="display: flex; gap: 10px; margin-left: auto;">
-            <button class="btn btn-secondary" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
-              Vider
-            </button>
-            <button class="btn btn-primary" (click)="onUpload()" *ngIf="uploadedFiles.length > 0">
-              Suivant
-            </button>
-            <button class="btn" [ngClass]="config.highlightSkip ? 'btn-primary' : 'btn-secondary'" (click)="onSkip()" *ngIf="uploadedFiles.length === 0 && config.allowSkip">
-              {{ config.skipText || 'Continuer' }}
-            </button>
-          </div>
-        </div>
+        <button class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 12px;" *ngIf="config.allowPrevious" (click)="onPrevious()">
+          Précédent
+        </button>
+
+        <!-- Slot pour les boutons globaux passés par le parent -->
+        <ng-content select="[global-actions]"></ng-content>
+
+        <button class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 12px; border-color: #D16D6A; color: #D16D6A; margin-top: 10px;" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
+          Vider
+        </button>
       </div>
-      
+
       <!-- Modale de Scanner NFC -->
       <app-nfc-scanner-modal 
         *ngIf="showNfcModal" 

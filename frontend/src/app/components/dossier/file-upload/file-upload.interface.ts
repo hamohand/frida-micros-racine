@@ -23,4 +23,6 @@ export interface UploadConfig {
   skipText?: string;
   highlightSkip?: boolean;
   maxFiles?: number;
+  showSkipToTemoins?: boolean;
+  showSaveDraft?: boolean;
 }

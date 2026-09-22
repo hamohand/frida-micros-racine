@@ -65,16 +65,6 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
       <!-- Carousel normal (masqué pendant le récap) -->
       <ng-container *ngIf="!showBrouillonRecap">
 
-      <!-- Action Globale pour sauter aux témoins -->
-      <div class="global-actions" style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 15px; padding: 0 20px;">
-        <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; display: flex; align-items: center; gap: 6px;" (click)="skipToTemoins()">
-          <span class="material-icons" style="font-size: 1.2rem;">skip_next</span> Il n'y a plus d'héritiers (Aller aux témoins)
-        </button>
-        <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; display: flex; align-items: center; gap: 6px;" (click)="sauvegarderBrouillon()">
-          <span class="material-icons" style="font-size: 1.2rem;">save</span> Sauvegarder brouillon ✓
-        </button>
-      </div>
-
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
         <!-- Fenêtre Défunt -->
@@ -87,7 +77,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"
                 (skipClicked)="continueToNext('f1')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -106,7 +105,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f2')"
                 (pendingFilesChanged)="onPendingFilesChanged('f2', $event)"
                 (skipClicked)="continueToNext('f2')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -125,7 +133,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_garcons')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_garcons', $event)"
                 (skipClicked)="continueToNext('f_garcons')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_garcons'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -144,7 +161,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_filles')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_filles', $event)"
                 (skipClicked)="continueToNext('f_filles')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_filles'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -198,7 +224,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   (uploadCancelled)="onUploadCancelled('tombe_M_' + (idx + 1))"
                   (pendingFilesChanged)="onPendingFilesChanged('tombe_M_' + (idx + 1), $event)"
                   (skipClicked)="continueToNext('tombe_M_' + (idx + 1))"
-              ></app-file-upload>
+              >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
             </ng-container>
             <div *ngIf="getWindow('tombe_M_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
               <span class="spinner"></span> Sauvegarde en cours...
@@ -220,7 +255,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   (uploadCancelled)="onUploadCancelled('tombe_F_' + (idx + 1))"
                   (pendingFilesChanged)="onPendingFilesChanged('tombe_F_' + (idx + 1), $event)"
                   (skipClicked)="continueToNext('tombe_F_' + (idx + 1))"
-              ></app-file-upload>
+              >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
             </ng-container>
             <div *ngIf="getWindow('tombe_F_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
               <span class="spinner"></span> Sauvegarde en cours...
@@ -240,7 +284,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_pere')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_pere', $event)"
                 (skipClicked)="continueToNext('f_pere')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_pere'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -259,7 +312,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_grand_pere')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_grand_pere', $event)"
                 (skipClicked)="continueToNext('f_grand_pere')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_grand_pere'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -278,7 +340,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_mere')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_mere', $event)"
                 (skipClicked)="continueToNext('f_mere')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_mere'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -297,7 +368,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_grand_mere_paternelle')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_grand_mere_paternelle', $event)"
                 (skipClicked)="continueToNext('f_grand_mere_paternelle')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_grand_mere_paternelle'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -315,7 +395,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f5')"
                 (pendingFilesChanged)="onPendingFilesChanged('f5', $event)"
                 (skipClicked)="continueToNext('f5')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -333,7 +422,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f6')"
                 (pendingFilesChanged)="onPendingFilesChanged('f6', $event)"
                 (skipClicked)="continueToNext('f6')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f6'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -351,7 +449,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f7')"
                 (pendingFilesChanged)="onPendingFilesChanged('f7', $event)"
                 (skipClicked)="continueToNext('f7')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f7'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
@@ -369,7 +476,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                 (uploadCancelled)="onUploadCancelled('f_temoins')"
                 (pendingFilesChanged)="onPendingFilesChanged('f_temoins', $event)"
                 (skipClicked)="continueToNext('f_temoins')"
-            ></app-file-upload>
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
             <span class="spinner"></span> Sauvegarde en cours...
