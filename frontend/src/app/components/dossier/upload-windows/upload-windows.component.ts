@@ -773,6 +773,7 @@ export class UploadWindowsComponent implements OnInit {
       allowPrevious: allowPrevious,
       allowSkip: skipText.length > 0 || this.brouillonId !== null,
       skipText: skipText || (this.brouillonId !== null ? 'Suivant' : ''),
+      highlightSkip: path === '00',
       maxFiles: maxFiles
     };
   }
