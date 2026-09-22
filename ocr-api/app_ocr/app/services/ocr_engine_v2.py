@@ -1647,12 +1647,14 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                                 elif direction == 'gauche':
                                     nx2 = ax1
                                     nx1 = nx2 - val_w_px
-                                    ny1 = ay1 - (val_h_px - a_h) / 2
+                                    # Décaler légèrement la boîte vers le bas pour ne pas mordre sur la ligne du dessus
+                                    ny1 = ay1 - (val_h_px - a_h) / 4
                                     ny2 = ny1 + val_h_px
                                 elif direction == 'droite':
                                     nx1 = ax2
                                     nx2 = nx1 + val_w_px
-                                    ny1 = ay1 - (val_h_px - a_h) / 2
+                                    # Décaler légèrement la boîte vers le bas
+                                    ny1 = ay1 - (val_h_px - a_h) / 4
                                     ny2 = ny1 + val_h_px
                                 else:
                                     logger.warning(f"⚓ Ancre '{nom_zone}' : direction '{direction}' inconnue. Repli sur coordonnées absolues.")
