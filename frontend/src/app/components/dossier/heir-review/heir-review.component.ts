@@ -70,11 +70,21 @@ interface Personne {
               </select>
             </div>
             
-            <div class="scan-preview" *ngIf="frida?.defunt?.identite?.imagePath" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
-              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source (sélectionnez le texte si besoin)</h5>
-              <img [src]="'/api/files/view?path=' + encodeURIComponent(frida.defunt.identite.imagePath)" 
-                   style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 4px;" 
+            <div class="scan-preview" *ngIf="frida?.defunt?.identite?.imagePath || frida?.defunt?.identite?.rawOcrTextJson" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
+              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source</h5>
+              <img *ngIf="frida?.defunt?.identite?.imagePath"
+                   [src]="'/api/files/view?path=' + encodeURIComponent(frida.defunt.identite.imagePath)" 
+                   style="max-width: 100%; max-height: 300px; object-fit: contain; border-radius: 4px;" 
                    alt="Scan du document">
+              <div *ngIf="frida?.defunt?.identite?.rawOcrTextJson" style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                <h5 style="margin-top: 0; margin-bottom: 8px; color: #555; font-size: 0.85rem;">📋 Texte lu par l'IA (sélectionnable) :</h5>
+                <div style="direction: rtl; text-align: right; font-size: 0.95rem; line-height: 1.8; user-select: text; cursor: text; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;">
+                  <span *ngFor="let entry of parseOcrText(frida.defunt.identite.rawOcrTextJson)" 
+                        style="display: inline-block; margin: 2px 4px; padding: 2px 8px; background: rgba(78,204,163,0.1); border-radius: 4px; border: 1px solid rgba(78,204,163,0.2);">
+                    {{ entry.value }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="form-actions" style="margin-top: 15px;">
@@ -115,11 +125,21 @@ interface Personne {
               </select>
             </div>
             
-            <div class="scan-preview" *ngIf="editingIndex !== null && frida?.heritiers?.[editingIndex]?.identite?.imagePath" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
-              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source (sélectionnez le texte si besoin)</h5>
-              <img [src]="'/api/files/view?path=' + encodeURIComponent(frida.heritiers[editingIndex].identite.imagePath)" 
-                   style="max-width: 100%; max-height: 400px; object-fit: contain; border-radius: 4px;" 
+            <div class="scan-preview" *ngIf="editingIndex !== null && (frida?.heritiers?.[editingIndex]?.identite?.imagePath || frida?.heritiers?.[editingIndex]?.identite?.rawOcrTextJson)" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
+              <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source</h5>
+              <img *ngIf="frida?.heritiers?.[editingIndex]?.identite?.imagePath"
+                   [src]="'/api/files/view?path=' + encodeURIComponent(frida.heritiers[editingIndex].identite.imagePath)" 
+                   style="max-width: 100%; max-height: 300px; object-fit: contain; border-radius: 4px;" 
                    alt="Scan du document">
+              <div *ngIf="frida?.heritiers?.[editingIndex]?.identite?.rawOcrTextJson" style="margin-top: 10px; border-top: 1px solid #ddd; padding-top: 10px;">
+                <h5 style="margin-top: 0; margin-bottom: 8px; color: #555; font-size: 0.85rem;">📋 Texte lu par l'IA (sélectionnable) :</h5>
+                <div style="direction: rtl; text-align: right; font-size: 0.95rem; line-height: 1.8; user-select: text; cursor: text; background: white; padding: 8px; border-radius: 4px; border: 1px solid #eee;">
+                  <span *ngFor="let entry of parseOcrText(frida.heritiers[editingIndex].identite.rawOcrTextJson)" 
+                        style="display: inline-block; margin: 2px 4px; padding: 2px 8px; background: rgba(78,204,163,0.1); border-radius: 4px; border: 1px solid rgba(78,204,163,0.2);">
+                    {{ entry.value }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
           <div class="form-actions" style="margin-top: 15px;">
@@ -401,6 +421,17 @@ export class HeirReviewComponent implements OnInit {
 
   encodeURIComponent(str: string): string {
     return encodeURIComponent(str || '');
+  }
+
+  parseOcrText(jsonStr: string): {key: string, value: string}[] {
+    try {
+      const obj = JSON.parse(jsonStr);
+      return Object.entries(obj)
+        .filter(([_, v]) => v && (v as string).trim() !== '')
+        .map(([k, v]) => ({key: k, value: v as string}));
+    } catch {
+      return [];
+    }
   }
 
   /** Convertit l'entité Défunt en objet "plat" pour l'UI */ 
