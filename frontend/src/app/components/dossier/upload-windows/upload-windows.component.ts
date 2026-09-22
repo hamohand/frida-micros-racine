@@ -80,7 +80,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -108,7 +108,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -136,7 +136,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -164,7 +164,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -227,7 +227,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
               >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -258,7 +258,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
               >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -287,7 +287,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -315,7 +315,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -343,7 +343,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -371,7 +371,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -398,7 +398,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -425,7 +425,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -452,7 +452,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
@@ -479,7 +479,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">skip_next</span> Il n'y a plus d'héritiers
+                  Il n'y a plus d'héritiers
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
                   <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓

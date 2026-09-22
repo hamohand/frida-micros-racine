@@ -44,10 +44,10 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         <div class="upload-actions" style="margin-top: 20px;">
           <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
             <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
-              <span class="material-icons" style="font-size: 1.2rem;">folder_open</span> Sélectionner des fichiers
+              Sélectionner des fichiers
             </button>
             <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
-              <span class="material-icons" style="font-size: 1.2rem;">smartphone</span> Scanner via Mobile
+              Scanner via Mobile
             </button>
           </div>
         </div>
@@ -107,9 +107,6 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
         <!-- Slot pour les boutons globaux passés par le parent -->
         <ng-content select="[global-actions]"></ng-content>
 
-        <button class="btn btn-secondary" style="width: 100%; justify-content: center; padding: 12px; border-color: #D16D6A; color: #D16D6A; margin-top: 10px;" (click)="onCancel()" *ngIf="uploadedFiles.length > 0">
-          Vider
-        </button>
       </div>
 
       <!-- Modale de Scanner NFC -->
