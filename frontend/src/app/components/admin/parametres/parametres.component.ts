@@ -13,23 +13,7 @@ import { ParametresService } from '../../../services/parametres.service';
 
       <div *ngIf="chargement" class="info">Chargement...</div>
 
-      <div *ngIf="!chargement" class="option">
-        <label class="option-ligne">
-          <input type="checkbox"
-                 [(ngModel)]="verificationPhonetique"
-                 (ngModelChange)="basculerVerificationPhonetique($event)"
-                 [disabled]="enregistrement" />
-          <span class="option-titre">Vérification phonétique des noms</span>
-        </label>
-        <p class="option-aide">
-          Compare le nom arabe lu sur le document à sa version latine (MRZ de la CNI ou du passeport,
-          lecture NFC) et signale les écarts dans l'écran de revue.
-        </p>
-        <p class="option-aide">
-          Inutile avec la lecture du QR code des extraits de naissance, dont le résultat est exact.
-          À activer si les noms sont lus par OCR classique du texte.
-        </p>
-      </div>
+
 
       <div *ngIf="!chargement" class="option">
         <span class="option-titre">Adresse réseau locale du poste</span>

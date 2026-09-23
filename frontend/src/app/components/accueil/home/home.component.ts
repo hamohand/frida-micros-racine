@@ -13,8 +13,7 @@ import { AuthService } from '../../../services/auth.service';
         <div class="hero-content">
           <h1 class="hero-title">Ustadh-a</h1>
           <p class="hero-subtitle">
-            Système Avancé de Gestion Notariale<br />
-            <span class="highlight">Intelligence Artificielle & Traitement de Fridas</span>
+            Système Avancé de Gestion Notariale
           </p>
 
           <!-- Section Utilisation -->
