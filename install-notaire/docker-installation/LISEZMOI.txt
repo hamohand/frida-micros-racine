@@ -135,6 +135,30 @@ Aucun compte Linux n'est à créer : aucune fenêtre Ubuntu ne doit vous
 demander de nom d'utilisateur ni de mot de passe.
 
 
+INSTALLATION SUR UN SERVEUR LINUX NATIVE (Ubuntu/Debian)
+─────────────────────────────────────────────────────────
+Si vous installez FRIDA sur une machine fonctionnant nativement sous Linux
+(sans Windows), l'installation est très rapide. Vous n'avez pas besoin
+des scripts .bat ou .ps1.
+
+Prérequis : docker et docker-compose doivent être installés.
+
+1. Transférez et décompressez le fichier FRIDA-Installation.zip :
+   unzip FRIDA-Installation.zip -d Frida-Micros
+   cd Frida-Micros
+
+2. Extrayez le code source :
+   unzip frida-micros.zip
+
+3. Préparez le fichier de configuration (et personnalisez le .env si besoin) :
+   cp .env.local .env
+
+4. Lancez la construction et le démarrage en arrière-plan :
+   docker compose -f docker-compose.local.yml up -d --build
+
+L'application est alors accessible sur l'adresse IP de cette machine Linux !
+
+
 EN CAS DE PROBLÈME
 ───────────────────
 • « Docker installation failed » :
