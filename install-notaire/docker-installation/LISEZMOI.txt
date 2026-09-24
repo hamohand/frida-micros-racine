@@ -135,7 +135,7 @@ Aucun compte Linux n'est à créer : aucune fenêtre Ubuntu ne doit vous
 demander de nom d'utilisateur ni de mot de passe.
 
 
-INSTALLATION SUR UN SERVEUR LINUX NATIVE (Ubuntu/Debian)
+INSTALLATION SUR UN SERVEUR LINUX NATIVE (Ubuntu, Debian, Fedora, etc.)
 ─────────────────────────────────────────────────────────
 Si vous installez FRIDA sur une machine fonctionnant nativement sous Linux
 (sans Windows), l'installation est très rapide. Vous n'avez pas besoin
