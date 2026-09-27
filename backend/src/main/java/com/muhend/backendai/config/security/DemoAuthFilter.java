@@ -30,7 +30,7 @@ public class DemoAuthFilter extends OncePerRequestFilter {
         // Si le mode démo est activé et qu'aucune authentification n'a été effectuée (ex: token invalide ou absent)
         if (demoMode && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = new org.springframework.security.core.userdetails.User(
-                    "demo", "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_MAITRE")));
+                    "Moh", "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_MAITRE")));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
             
