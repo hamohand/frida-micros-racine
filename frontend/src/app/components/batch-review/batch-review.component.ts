@@ -23,11 +23,11 @@ interface DossierEnAttente {
         <!-- En-tête -->
         <div class="header-section">
           <div class="header-left">
-            <span class="header-icon">🌙</span>
+            <span class="header-icon">📝</span>
             <div>
-              <h2>Suivi du mode Batch</h2>
+              <h2>Dossiers à réviser</h2>
               <p class="subtitle">
-                Supervisez vos dossiers en attente de traitement, de correction OCR ou de validation familiale.
+                Dossiers traités par l'ancien mode batch, en attente de correction ou de validation familiale.
               </p>
             </div>
           </div>
@@ -39,30 +39,6 @@ interface DossierEnAttente {
         </div>
 
         <div *ngIf="!isLoading">
-          <!-- 1. Travaux mis en batch -->
-          <div class="section-container">
-            <h3><span class="section-icon">⏳</span> Travaux mis en batch <span class="badge-count" *ngIf="pendingFolders.length > 0">{{ pendingFolders.length }}</span></h3>
-            <div *ngIf="pendingFolders.length === 0" class="empty-state">
-              <p>Aucun dossier en attente de traitement OCR.</p>
-            </div>
-            <div class="table-container" *ngIf="pendingFolders.length > 0">
-              <table class="table">
-                <thead>
-                  <tr>
-                    <th>Nom du dossier</th>
-                    <th>État</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let folder of pendingFolders">
-                    <td class="font-mono"><strong>{{ folder }}</strong></td>
-                    <td><span class="badge-ocr warning">⏳ En attente de traitement batch</span></td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
           <!-- 2. Révisions -->
           <div class="section-container">
             <h3><span class="section-icon">⚠️</span> Révisions <span class="badge-count" *ngIf="revisions.length > 0">{{ revisions.length }}</span></h3>
@@ -339,7 +315,6 @@ interface DossierEnAttente {
   `]
 })
 export class BatchReviewComponent implements OnInit {
-  pendingFolders: string[] = [];
   revisions: DossierEnAttente[] = [];
   validations: DossierEnAttente[] = [];
   isLoading = true;
@@ -348,11 +323,9 @@ export class BatchReviewComponent implements OnInit {
 
   ngOnInit() {
     forkJoin({
-      pending: this.fridaService.lancerApi('/api/folders/pending-batch'),
       enAttente: this.fridaService.lancerApi('/api/frida/batch-en-attente')
     }).subscribe({
       next: (data) => {
-        this.pendingFolders = Array.isArray(data.pending) ? data.pending : [];
         const dossiers = Array.isArray(data.enAttente) ? data.enAttente : [];
         this.revisions = dossiers.filter(d => d.requiresCorrection);
         this.validations = dossiers.filter(d => !d.requiresCorrection);

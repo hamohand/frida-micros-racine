@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { NotificationService } from '../../../services/notification.service';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -272,6 +273,7 @@ interface Personne {
   `]
 })
 export class HeirReviewComponent implements OnInit {
+  private notif = inject(NotificationService);
   numFrida: string = '';
   frida: any = null;
   isLoading = true;
@@ -305,7 +307,7 @@ export class HeirReviewComponent implements OnInit {
         this.loadOcrDetails();
       } else {
         this.isLoading = false;
-        alert("Aucun numéro de dossier fourni.");
+        this.notif.erreur("Aucun numéro de dossier fourni.");
       }
     });
   }
@@ -347,7 +349,7 @@ export class HeirReviewComponent implements OnInit {
       error: (err) => {
         console.error(err);
         this.isLoading = false;
-        alert("Erreur de chargement du dossier");
+        this.notif.erreur("Erreur de chargement du dossier");
       }
     });
   }
@@ -429,8 +431,8 @@ export class HeirReviewComponent implements OnInit {
     this.currentHeir = { ...this.heritiers[index] };
   }
 
-  deleteHeir(index: number) {
-    if (confirm("Voulez-vous vraiment retirer cet héritier de la fiche ?")) {
+  async deleteHeir(index: number) {
+    if (await this.notif.confirmer("Voulez-vous vraiment retirer cet héritier de la fiche ?", { titre: "Retirer l'héritier", libelleConfirmer: "Retirer", danger: true })) {
       this.heritiers.splice(index, 1);
     }
   }
@@ -459,7 +461,7 @@ export class HeirReviewComponent implements OnInit {
 
        if (exists !== -1) {
           const role = this.getRoleLabel(num, sexe);
-          alert(`Il y a déjà un(e) ${role} dans la liste. L'unicité doit être respectée.`);
+          this.notif.avertissement(`Il y a déjà un(e) ${role} dans la liste. L'unicité doit être respectée.`);
           return;
        }
     }
@@ -499,8 +501,8 @@ export class HeirReviewComponent implements OnInit {
     this.router.navigate(['/upload']);
   }
 
-  annulerTout() {
-    if (confirm("Voulez-vous vraiment tout annuler ? L'état de ce dossier sera perdu.")) {
+  async annulerTout() {
+    if (await this.notif.confirmer("Voulez-vous vraiment tout annuler ? L'état de ce dossier sera perdu.", { titre: 'Tout annuler', libelleConfirmer: 'Tout annuler', danger: true })) {
       this.uploadStateService.clearState();
       this.router.navigate(['/']);
     }
@@ -575,14 +577,14 @@ export class HeirReviewComponent implements OnInit {
           error: (err) => {
              console.error("Erreur de calcul", err);
              this.isCalculating = false;
-             alert(this.messageErreur(err, "Une erreur s'est produite lors du calcul des parts."));
+             this.notif.erreur(this.messageErreur(err, "Une erreur s'est produite lors du calcul des parts."));
           }
         });
       },
       error: (err) => {
         console.error("Erreur de sauvegarde", err);
         this.isCalculating = false;
-        alert(this.messageErreur(err, "Impossible de sauvegarder la fiche modifiée."));
+        this.notif.erreur(this.messageErreur(err, "Impossible de sauvegarder la fiche modifiée."));
       }
     });
   }

@@ -8,6 +8,8 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 export class AuthService {
   private apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<any>(null);
+  /** Utilisateur connecté (null si déconnecté) ; émet à chaque connexion ou déconnexion. */
+  readonly utilisateur$ = this.currentUserSubject.asObservable();
 
   constructor(private http: HttpClient) {
     const token = localStorage.getItem('token');

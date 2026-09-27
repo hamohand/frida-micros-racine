@@ -32,3 +32,31 @@
 .btn-secondary:hover {
   background: rgba(100, 255, 218, 0.1);
 }
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+}
+
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Focus visible au clavier uniquement (pas au clic souris) */
+.btn:focus-visible,
+.nav-link:focus-visible,
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

@@ -1,38 +1,374 @@
-.nav-bar {
-  background: rgba(10, 31, 15, 0.95);
-  backdrop-filter: blur(10px);
-  height: var(--nav-height);
+/* ===== Coquille de l'application : barre du haut, barre latérale, zone principale ===== */
+
+.app-shell {
+  --sidebar-actuelle: 0px;
+}
+
+.app-shell.avec-sidebar {
+  --sidebar-actuelle: var(--sidebar-width);
+}
+
+.app-shell.avec-sidebar.sidebar-reduite {
+  --sidebar-actuelle: var(--sidebar-width-reduite);
+}
+
+/* --- Barre du haut --- */
+.app-topbar {
   position: fixed;
-  width: 100%;
   top: 0;
+  left: 0;
+  right: 0;
+  height: var(--nav-height);
   z-index: 1000;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 var(--spacing-md);
+  gap: var(--space-3);
+  padding: 0 var(--space-5) 0 var(--space-4);
+  background: rgba(10, 31, 15, 0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .nav-logo {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
-  color: var(--accent-color);
+  color: var(--primary);
   text-decoration: none;
+  white-space: nowrap;
 }
 
-.nav-links {
+.icone-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background var(--duree-rapide), color var(--duree-rapide);
+}
+
+.icone-btn:hover {
+  background: var(--primary-soft);
+  color: var(--text-1);
+}
+
+.bouton-deconnexion:hover {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* --- Fil d'Ariane --- */
+.fil-ariane {
   display: flex;
-  gap: var(--spacing-md);
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 
-.nav-link {
-  color: var(--text-primary);
+.fil-ariane a {
+  color: var(--text-2);
   text-decoration: none;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius);
-  transition: var(--transition);
 }
 
-.nav-link:hover {
-  color: var(--accent-color);
-  background: rgba(78, 204, 163, 0.1);
+.fil-ariane a:hover {
+  color: var(--primary);
+}
+
+.fil-ariane .courant {
+  color: var(--text-1);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Zone utilisateur --- */
+.topbar-droite {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.pastille-demo {
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all var(--duree-rapide);
+}
+
+.pastille-demo:hover {
+  color: var(--text-1);
+}
+
+.pastille-demo.actif {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.utilisateur {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.utilisateur-texte {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.utilisateur-nom {
+  color: var(--text-1);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.utilisateur-role {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* --- Barre latérale --- */
+.app-sidebar {
+  position: fixed;
+  top: var(--nav-height);
+  bottom: 0;
+  left: 0;
+  width: var(--sidebar-actuelle);
+  z-index: 900;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-3);
+  background: rgba(10, 31, 15, 0.97);
+  border-right: 1px solid var(--border-subtle);
+  overflow-x: hidden;
+  overflow-y: auto;
+  transition: width var(--duree-rapide) ease;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.sidebar-lien,
+.sidebar-replier {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  color: var(--text-2);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--duree-rapide), color var(--duree-rapide);
+}
+
+.sidebar-lien svg,
+.sidebar-replier svg {
+  flex-shrink: 0;
+}
+
+.sidebar-lien:hover {
+  background: var(--primary-soft);
+  color: var(--text-1);
+}
+
+.sidebar-lien.actif {
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.sidebar-section {
+  margin: var(--space-5) 0 var(--space-2);
+  padding: 0 var(--space-3);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.sidebar-replier {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.sidebar-replier:hover {
+  color: var(--text-1);
+}
+
+.sidebar-replier svg {
+  transition: transform var(--duree-rapide);
+}
+
+/* Barre repliée : icônes seules */
+.sidebar-reduite .sidebar-libelle {
+  display: none;
+}
+
+.sidebar-reduite .sidebar-section {
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  color: transparent;
+  background: var(--border-subtle);
+}
+
+.sidebar-reduite .sidebar-replier svg {
+  transform: rotate(180deg);
+}
+
+.sidebar-voile {
+  display: none;
+}
+
+/* --- Zone principale --- */
+.app-main {
+  padding-top: var(--nav-height);
+  margin-left: var(--sidebar-actuelle);
+  transition: margin-left var(--duree-rapide) ease;
+}
+
+.sans-navigation .app-main {
+  padding-top: 0;
+}
+
+/* --- Petits écrans : menu en tiroir par-dessus la page --- */
+@media (max-width: 900px) {
+  .app-shell.avec-sidebar,
+  .app-shell.avec-sidebar.sidebar-reduite {
+    --sidebar-actuelle: var(--sidebar-width);
+  }
+
+  .app-sidebar {
+    transform: translateX(-100%);
+    transition: transform var(--duree-rapide) ease;
+  }
+
+  .menu-mobile-ouvert .app-sidebar {
+    transform: none;
+  }
+
+  .sidebar-reduite .sidebar-libelle {
+    display: inline;
+  }
+
+  .sidebar-replier {
+    display: none;
+  }
+
+  .menu-mobile-ouvert .sidebar-voile {
+    display: block;
+    position: fixed;
+    inset: var(--nav-height) 0 0 0;
+    z-index: 800;
+    background: rgba(0, 0, 0, 0.5);
+  }
+
+  .app-main {
+    margin-left: 0;
+  }
+
+  .utilisateur-texte,
+  .fil-ariane {
+    display: none;
+  }
+}
+
+/* --- Lien « Reprendre le dossier en cours » --- */
+.sidebar-reprise {
+  height: auto;
+  min-height: 52px;
+  margin-bottom: var(--space-3);
+  padding-top: var(--space-2);
+  padding-bottom: var(--space-2);
+  border: 1px dashed var(--warning);
+  color: var(--warning);
+}
+
+.sidebar-reprise:hover,
+.sidebar-reprise.actif {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.sidebar-reprise.actif {
+  box-shadow: inset 3px 0 0 var(--warning);
+}
+
+.sidebar-reprise .sidebar-libelle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.reprise-titre {
+  font-weight: 600;
+}
+
+.reprise-nom {
+  font-size: 0.8rem;
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-reduite .sidebar-reprise {
+  min-height: 44px;
+}
+
+.sidebar-compteur {
+  margin-left: auto;
+  min-width: 22px;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: var(--warning-soft);
+  color: var(--warning);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.sidebar-reduite .sidebar-compteur {
+  display: none;
 }

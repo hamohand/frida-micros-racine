@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { NotificationService } from '../../services/notification.service';
+import { Component, OnInit, inject } from '@angular/core';
 import { FridaService } from '../../services/frida.service';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { BrouillonService, Brouillon } from '../../services/brouillon.service';
 
 @Component({
@@ -31,7 +32,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
             <h2>Rechercher</h2>
             <div class="search-box">
               <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
-              <input type="text" placeholder="Rechercher par nom, numéro ou date..." (input)="onSearch($event)" />
+              <input type="text" placeholder="Rechercher par nom, numéro ou date..." [value]="termeRecherche" (input)="onSearch($event)" />
             </div>
           </div>
 
@@ -378,6 +379,10 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
   `]
 })
 export class SearchComponent implements OnInit {
+  private notif = inject(NotificationService);
+  private route = inject(ActivatedRoute);
+  /** Terme saisi, conservé pour que le tri ne l'efface pas ; peut venir de l'accueil (?q=). */
+  termeRecherche = '';
   fridaList: any[] = [];
   filteredList: any[] = [];
   brouillons: Brouillon[] = [];
@@ -389,6 +394,7 @@ export class SearchComponent implements OnInit {
   constructor(private fridaService: FridaService, private brouillonService: BrouillonService, private router: Router) { }
 
   ngOnInit(): void {
+    this.termeRecherche = this.route.snapshot.queryParamMap.get('q') ?? '';
     this.fridaService.lancerApi('/api/frida/fridas').subscribe({
       next: data => {
         if (data && Array.isArray(data)) {
@@ -410,8 +416,8 @@ export class SearchComponent implements OnInit {
     this.router.navigate(['/upload'], { queryParams: { brouillon: b.id, folderName: b.folderName } });
   }
 
-  supprimerBrouillon(b: Brouillon) {
-    if (confirm(`Supprimer le brouillon de ${b.nomDefunt} ?`)) {
+  async supprimerBrouillon(b: Brouillon) {
+    if (await this.notif.confirmer(`Supprimer le brouillon de ${b.nomDefunt} ?`, { titre: 'Supprimer le brouillon', libelleConfirmer: 'Supprimer', danger: true })) {
       this.brouillonService.delete(b.id).subscribe(() => {
         this.loadBrouillons();
       });
@@ -419,7 +425,8 @@ export class SearchComponent implements OnInit {
   }
 
   onSearch(event: any) {
-    this.applySortAndFilter(event.target.value);
+    this.termeRecherche = event.target.value;
+    this.applySortAndFilter();
   }
 
   sort(column: string) {
@@ -437,7 +444,7 @@ export class SearchComponent implements OnInit {
     return this.sortDirection === 'asc' ? '▲' : '▼';
   }
 
-  private applySortAndFilter(searchTerm?: string) {
+  private applySortAndFilter(searchTerm: string = this.termeRecherche) {
     let list = [...this.fridaList];
 
     // Filter
@@ -470,8 +477,8 @@ export class SearchComponent implements OnInit {
     }
   }
 
-  deleteFrida(numFrida: string) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer la Frida n° ${numFrida} ?`)) {
+  async deleteFrida(numFrida: string) {
+    if (await this.notif.confirmer(`Êtes-vous sûr de vouloir supprimer la Frida n° ${numFrida} ?`, { titre: 'Supprimer le dossier', libelleConfirmer: 'Supprimer', danger: true })) {
       this.fridaService.deleteFrida(numFrida).subscribe({
         next: () => {
           this.fridaList = this.fridaList.filter(f => f.numFrida !== numFrida);
@@ -479,7 +486,7 @@ export class SearchComponent implements OnInit {
         },
         error: (err) => {
           console.error("Erreur lors de la suppression", err);
-          alert("Une erreur est survenue lors de la suppression.");
+          this.notif.erreur("Une erreur est survenue lors de la suppression.");
         }
       });
     }
@@ -494,11 +501,11 @@ export class SearchComponent implements OnInit {
     return this.fridaList.filter(f => this.isTest(f)).length;
   }
 
-  deleteAllTests() {
+  async deleteAllTests() {
     const tests = this.fridaList.filter(f => this.isTest(f));
     if (tests.length === 0) return;
     
-    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement les ${tests.length} dossiers de test ?`)) {
+    if (await this.notif.confirmer(`Êtes-vous sûr de vouloir supprimer définitivement les ${tests.length} dossiers de test ?`, { titre: 'Supprimer les dossiers de test', libelleConfirmer: 'Supprimer', danger: true })) {
       // Pour éviter de saturer l'API, on les supprime séquentiellement
       const deleteNext = (index: number) => {
         if (index >= tests.length) {

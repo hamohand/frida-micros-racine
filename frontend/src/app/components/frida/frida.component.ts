@@ -1,4 +1,5 @@
-import {AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild} from '@angular/core';
+import { NotificationService } from '../../services/notification.service';
+import {AfterViewChecked, AfterViewInit, Component, ElementRef, Input, OnInit, ViewChild, inject } from '@angular/core';
 import {CommonModule} from "@angular/common";
 import {ActivatedRoute} from "@angular/router";
 import {FridaService} from "../../services/frida.service";
@@ -15,6 +16,7 @@ import {MatButtonModule} from "@angular/material/button";
   styleUrl: './frida.component.css'
 })
 export class FridaComponent implements OnInit, AfterViewInit {
+  private notif = inject(NotificationService);
   public frida: any = null;
   //numFrida: string = '1956010320250116';
   //numFrida: string = '19560103202501171733';
@@ -295,7 +297,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
 
   printNgContainer() {
     if (!this.frida && this.temoins.length === 0 && this.heritiers.length === 0) {
-      alert('Le contenu est vide, impossible d\'imprimer.');
+      this.notif.avertissement('Le contenu est vide, impossible d\'imprimer.');
       return;
     }
 

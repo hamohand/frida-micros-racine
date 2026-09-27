@@ -14,6 +14,10 @@ import { ConstitutionService } from '../../../services/constitution.service';
     <div class="container form-container">
       <h1 class="form-title">Création du dossier</h1>
       <cite style="color: #2eaf7d">Tapez le nom de famille et le prénom du défunt en lettres latines</cite>
+      <div *ngIf="uploadStateService.dossierEnCours() as d" class="avis-en-cours">
+        <span>Le dossier <strong>{{ d.libelle }}</strong> est en cours. En créer un nouveau l'abandonnera.</span>
+        <button type="button" class="btn btn-secondary" (click)="router.navigateByUrl(d.url)">Reprendre ce dossier</button>
+      </div>
       <form [formGroup]="personForm" (ngSubmit)="onSubmit()" class="person-form">
         <div class="form-group">
           <label for="lastName">Nom</label>
@@ -59,6 +63,21 @@ import { ConstitutionService } from '../../../services/constitution.service';
     </div>
   `,
   styles: [`
+    .avis-en-cours {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-3);
+      flex-wrap: wrap;
+      margin: var(--space-4) 0;
+      padding: var(--space-3) var(--space-4);
+      border: 1px solid var(--warning);
+      border-radius: var(--radius-md);
+      background: var(--warning-soft);
+      color: var(--text-1);
+      font-size: 0.92rem;
+    }
+    .avis-en-cours .btn { padding: var(--space-2) var(--space-4); border-color: var(--warning); color: var(--warning); }
     .form-feedback {
       padding: var(--spacing-xs);
       margin-bottom: var(--spacing-xs);
@@ -138,8 +157,8 @@ export class CreatePersonComponent {
   constructor(
     private fb: FormBuilder,
     private folderService: FolderService,
-    private router: Router,
-    private uploadStateService: UploadStateService,
+    public router: Router,
+    public uploadStateService: UploadStateService,
     private constitutionService: ConstitutionService
   ) {
     this.personForm = this.fb.group({
@@ -171,6 +190,7 @@ export class CreatePersonComponent {
           this.isSubmitting = false;
           // Nettoyer la mémoire de l'ancien dossier
           this.uploadStateService.clearState();
+          this.uploadStateService.demarrerDossier(`${request.nom} ${request.prenom}`.trim());
           this.constitutionService.resetFiche();
           setTimeout(() => {
             this.router.navigate(['/upload']);

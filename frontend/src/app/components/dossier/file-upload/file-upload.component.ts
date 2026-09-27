@@ -56,7 +56,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
           <div class="file-item" *ngFor="let file of uploadedFiles">
             <div class="file-info">
               <span class="material-icons">Document :</span>
-              <span class="file-name">{{ file.file.name }}</span>
+              <span class="file-name" [title]="file.file.name">{{ file.file.name }}</span>
               <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" (change)="onDocTypeChange(file)" class="select-doc-type file-select">
                 <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
               </select>
@@ -194,18 +194,55 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
     
     .file-item {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
+      gap: var(--space-2);
       padding: var(--spacing-xs);
       background: rgba(78, 204, 163, 0.05);
       border-radius: var(--border-radius);
       margin-bottom: var(--spacing-xs);
     }
-    
+
+    /* Le contenu passe à la ligne au lieu de déborder : sinon la corbeille glissait
+       sous la colonne des boutons de navigation et ne recevait plus les clics. */
     .file-info {
       display: flex;
+      flex: 1;
+      flex-wrap: wrap;
       align-items: center;
       gap: var(--spacing-xs);
+      min-width: 0;
+    }
+
+    .file-name {
+      min-width: 0;
+      max-width: 100%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-item > .btn-icon {
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: var(--radius-sm);
+      background: transparent;
+      cursor: pointer;
+      transition: background var(--duree-rapide);
+    }
+
+    .file-item > .btn-icon:hover {
+      background: var(--danger-soft);
+    }
+
+    .file-item > .verso-section {
+      flex-basis: 100%;
     }
     
     .button-group {
@@ -216,7 +253,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
     }
     
     .file-select {
-      margin-left: var(--spacing-sm);
+      max-width: 100%;
       padding: 4px 8px;
     }
 

@@ -1,4 +1,5 @@
-import { Component, OnInit, Output } from '@angular/core';
+import { NotificationService } from '../../../services/notification.service';
+import { Component, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
@@ -498,7 +499,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             <div class="upload-container">
               <h2>Validation finale du dossier</h2>
               <div class="drop-zone">
-                <button *ngIf="!endReading && !isReading && !isBatchUploaded"
+                <button *ngIf="!endReading && !isReading && !isBatchUploaded && !ficheCreee"
                     class="btn btn-secondary continue-btn"
                     (click)="moveToPreviousWindow('f_ai')" [disabled]="isUploadingFiles"
                     style="margin-right: 10px;"
@@ -506,37 +507,20 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <span>Précédent</span>
                 </button>
 
-                <!-- UI de sélection du mode -->
-                <div *ngIf="!endReading && !isReading && !isBatchUploaded" class="mode-selector" style="margin-bottom: 20px; text-align: left; padding: 15px; border: 1px solid var(--accent-color); border-radius: 8px;">
-                  <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--accent-color);">Mode de traitement :</h3>
-                  <div style="margin-bottom: 8px;">
-                    <label style="cursor: pointer;">
-                      <input type="radio" name="ocrMode" value="rapide" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
-                      <strong>Rapide</strong> - Lecture immédiate des données
-                    </label>
-                  </div>
-                  <div style="margin-bottom: 8px;">
-                    <label style="cursor: pointer;">
-                      <input type="radio" name="ocrMode" value="approfondi" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
-                      <strong>Approfondi</strong> - Qualité maximale immédiate
-                    </label>
-                  </div>
-                  <div>
-                    <label style="cursor: pointer;">
-                      <input type="radio" name="ocrMode" value="batch" [(ngModel)]="ocrMode" [disabled]="isUploadingFiles">
-                      <strong>Batch (Différé)</strong> - Uploader seulement (pour traitement de nuit)
-                    </label>
-                  </div>
-                </div>
-
                 <!-- Bouton de lancement -->
-                <button *ngIf="!endReading && !isReading && !isBatchUploaded"
+                <button *ngIf="!endReading && !isReading && !isBatchUploaded && !ficheCreee"
                     class="btn btn-primary continue-btn"
                     (click)="onReviewFamily()" [disabled]="isUploadingFiles"
                 >
                   <span *ngIf="!isUploadingFiles">Vérifier la constitution de la famille</span>
                   <span *ngIf="isUploadingFiles"><span class="spinner"></span> Préparation...</span>
                 </button>
+
+                <!-- Fiche déjà créée : pas de second lancement -->
+                <div *ngIf="ficheCreee" style="margin-top: 15px; text-align: center; width: 100%;">
+                  <p style="color: var(--primary); font-weight: 600; margin-bottom: 15px;">Le dossier n° {{ ficheCreee.numFrida }} a été créé.</p>
+                  <button class="btn btn-primary continue-btn" (click)="ouvrirFicheCreee()">Ouvrir le dossier</button>
+                </div>
 
                 <!-- Vue en mode asynchrone (Pendant l'OCR) -->
                 <div *ngIf="isReading && !endReading" style="margin-top: 15px; text-align: center; width: 100%;">
@@ -690,7 +674,8 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
     }
   `]
 })
-export class UploadWindowsComponent implements OnInit {
+export class UploadWindowsComponent implements OnInit, OnDestroy {
+  private notif = inject(NotificationService);
   windows: { [key: string]: UploadWindowState } = {
     // Défunt
     f1: { isVisible: true, hasFiles: false, isUploading: false, path: '01' },
@@ -732,6 +717,10 @@ export class UploadWindowsComponent implements OnInit {
 
   isUploadingFiles = false;
   isReading = false;
+  /** Renseignée dès que l'analyse a créé la fiche ; interdit de relancer depuis cet écran. */
+  ficheCreee: { numFrida: string; requiresCorrection: boolean } | null = null;
+  /** Dossier passé en batch ou enregistré en brouillon : plus rien à reprendre ici. */
+  private etatClos = false;
   endReading = false;
   isBatchUploaded = false;
   numFrida: String = "";
@@ -834,10 +823,23 @@ export class UploadWindowsComponent implements OnInit {
       }
     });
 
+    // Un brouillon ne reprend l'état en mémoire que s'il s'agit du même brouillon
+    const brouillonParam = this.route.snapshot.queryParamMap.get('brouillon');
+    const enCours = this.uploadStateService.dossierEnCours();
+    const memeDossier = !brouillonParam || !!enCours?.url.includes('brouillon=' + brouillonParam);
+    if (!memeDossier) {
+      this.uploadStateService.clearState();
+    }
+    if (brouillonParam && !this.uploadStateService.dossierEnCours()) {
+      const nom = this.route.snapshot.queryParamMap.get('folderName');
+      this.uploadStateService.demarrerDossier(nom ? 'Brouillon ' + nom : 'Brouillon', this.router.url);
+    }
+
     const saved = this.uploadStateService.getState();
     if (saved.windows) {
       this.windows = saved.windows;
-      this.ocrMode = saved.ocrMode || 'rapide';
+      // Le choix du mode a été retiré : la lecture des QR codes est la même quel que soit le mode
+      this.ocrMode = 'rapide';
       
       // Resynchronisation forcée du ConstitutionService au cas où on revient de l'écran de synthèse
       ['f2', 'f_garcons', 'f_filles', 'f_petits_fils', 'f_petites_filles', 'f_pere', 'f_grand_pere', 'f_mere', 'f_grand_mere_paternelle', 'f5', 'f6', 'f7'].forEach(key => {
@@ -845,6 +847,13 @@ export class UploadWindowsComponent implements OnInit {
            this.updateConstitutionState(key, this.windows[key].hasFiles, this.windows[key].rawFiles?.length || 0);
         }
       });
+    }
+  }
+
+  ngOnDestroy() {
+    // Quitter le carrousel (menu, accueil…) ne doit pas perdre les documents déjà choisis
+    if (!this.etatClos) {
+      this.uploadStateService.saveState(this.windows, this.ocrMode);
     }
   }
 
@@ -987,6 +996,8 @@ export class UploadWindowsComponent implements OnInit {
   }
 
   onReviewFamily(): void {
+    // Chaque lancement crée une fiche : on refuse un second lancement (double clic, navigation échouée)
+    if (this.isUploadingFiles || this.isReading || this.ficheCreee) return;
     this.isUploadingFiles = true;
     
     if (this.brouillonId) {
@@ -1030,7 +1041,7 @@ export class UploadWindowsComponent implements OnInit {
         error: (err) => {
           console.error('Erreur lors du transfert des dossiers au serveur :', err);
           this.isUploadingFiles = false;
-          alert("Une erreur de réseau empêche le transfert des fichiers.");
+          this.notif.erreur("Une erreur de réseau empêche le transfert des fichiers.");
         }
       });
     } else {
@@ -1060,21 +1071,37 @@ export class UploadWindowsComponent implements OnInit {
     if (allUploadObservables.length > 0) {
       forkJoin(allUploadObservables).subscribe({
         next: () => {
-          alert('Brouillon sauvegardé ✅');
+          this.notif.succes('Brouillon sauvegardé');
+          this.fermerEtat();
           this.router.navigate(['/search']);
         },
         error: (err) => {
           console.error('Erreur lors de la sauvegarde du brouillon:', err);
-          alert('Erreur lors de la sauvegarde. Veuillez réessayer.');
+          this.notif.erreur('Erreur lors de la sauvegarde. Veuillez réessayer.');
         }
       });
     } else {
-      alert('Brouillon sauvegardé ✅ (aucun nouveau fichier à uploader)');
+      this.notif.succes('Brouillon sauvegardé (aucun nouveau fichier à uploader)');
+      this.fermerEtat();
       this.router.navigate(['/search']);
     }
   }
 
+  /** Le dossier est confié au batch ou au brouillon : il ne figure plus comme « en cours ». */
+  private fermerEtat() {
+    this.etatClos = true;
+    this.uploadStateService.clearState();
+  }
+
+  /** Fiche créée par l'analyse : ouvre l'écran suivant (aussi appelé par le bouton si la navigation a échoué). */
+  ouvrirFicheCreee() {
+    if (!this.ficheCreee) return;
+    const { numFrida, requiresCorrection } = this.ficheCreee;
+    this.router.navigate([requiresCorrection ? '/correction' : '/review-family'], { queryParams: { numFrida } });
+  }
+
   launchOcrAndReview() {
+    if (this.isReading || this.ficheCreee) return;
     // Sauvegarde l'état du carrousel avant de partir
     this.uploadStateService.saveState(this.windows, this.ocrMode);
     
@@ -1082,6 +1109,7 @@ export class UploadWindowsComponent implements OnInit {
     // prendra le relais plus tard pour traiter le dossier.
     if (this.ocrMode === 'batch') {
       this.isBatchUploaded = true;
+      this.fermerEtat();
       return;
     }
     
@@ -1090,20 +1118,18 @@ export class UploadWindowsComponent implements OnInit {
       next: (data) => {
         this.isReading = false;
         if (data && data.numFrida) {
+           this.ficheCreee = { numFrida: data.numFrida, requiresCorrection: !!data.requiresCorrection };
+           this.uploadStateService.lierFiche(data.numFrida);
            // Si l'OCR a détecté des champs à faible confiance, passer par la fiche de correction
-           if (data.requiresCorrection) {
-             this.router.navigate(['/correction'], { queryParams: { numFrida: data.numFrida } });
-           } else {
-             this.router.navigate(['/review-family'], { queryParams: { numFrida: data.numFrida } });
-           }
+           this.ouvrirFicheCreee();
         } else {
-           alert("L'analyse n'a renvoyé aucun dossier valide (aucun document n'a été reconnu).");
+           this.notif.avertissement("L'analyse n'a renvoyé aucun dossier valide (aucun document n'a été reconnu).");
         }
       },
       error: (error) => {
         console.error('Erreur lors de l\'analyse OCR:', error);
         this.isReading = false;
-        alert("Une erreur est survenue pendant l'analyse des documents par l'IA.");
+        this.notif.erreur("Une erreur est survenue pendant l'analyse des documents.");
       },
     });
   }

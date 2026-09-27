@@ -142,6 +142,7 @@ Copy `.env.example` to `.env` and set values. Key variables:
 - `CORS_ORIGINS` — comma-separated allowed origins (ou `*` en profil calc-only)
 - `CORS_ALLOW_CREDENTIALS` — `true` par défaut ; forcer `false` en calc-only avec `CORS_ORIGINS=*`
 - `MAX_PARALLEL_FOLDERS` — OCR parallelism (default 2)
+- `BATCH_ENABLED` — `false` par défaut (2026-09-27) : le traitement différé (`BatchJobScheduler`) est désactivé. La lecture des QR codes prend une seconde par dossier, le brouillon couvre la saisie interrompue, et le planificateur transformait brouillons et créations abandonnées en fiches à réviser. L'écran « Dossiers à réviser » (`/batch-review`) n'apparaît dans le menu que s'il reste des fiches `EN_ATTENTE_REVISION`.
 - `ROOT_PATH` — host path mounted as `/frida-storage/` in containers
 - `APP_DEMO_MODE` — `false` par défaut : en mode démo, toute requête sans jeton est authentifiée en Maître. `docker-compose.yml` (dev), `compose/dev.demo.yml` et `compose/vps.demo.yml` le mettent à `true`.
 - `SAUVEGARDES_LECTURE_SEULE` — `true` sur la démo publique : sauvegardes et archives consultables, mais ni créées, ni restaurées, ni supprimées, ni téléchargées.

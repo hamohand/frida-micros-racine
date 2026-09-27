@@ -6,6 +6,7 @@ import com.muhend.backendai.service.pipeline.DossierProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -19,8 +20,15 @@ import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+/**
+ * Traitement différé des dossiers : désactivé par défaut (app.batch.enabled).
+ * La lecture des QR codes prend une seconde par dossier et le brouillon couvre la saisie
+ * interrompue ; surtout, ce planificateur ne distingue pas un dossier envoyé en batch
+ * d'un brouillon ou d'une création abandonnée, qu'il transformait en fiches à réviser.
+ */
 @Slf4j
 @Profile("!calc-only")
+@ConditionalOnProperty(name = "app.batch.enabled", havingValue = "true")
 @Component
 @RequiredArgsConstructor
 public class BatchJobScheduler {

@@ -1,0 +1,1 @@
+import{a}from"./chunk-XMFGVXFY.js";import"./chunk-WOPJNZE2.js";import"./chunk-JRH7FYD5.js";import"./chunk-OMU54DOP.js";import"./chunk-YMTIHGXD.js";import"./chunk-ERSAI6LJ.js";export{a as FridaComponent};

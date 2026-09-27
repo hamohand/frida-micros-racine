@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { NotificationService } from '../../../services/notification.service';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -457,6 +458,7 @@ interface ChampSuspect {
   `]
 })
 export class OcrCorrectionComponent implements OnInit {
+  private notif = inject(NotificationService);
   numFrida = '';
   champs: ChampSuspect[] = [];
   champsSuspects: ChampSuspect[] = [];
@@ -502,7 +504,7 @@ export class OcrCorrectionComponent implements OnInit {
   }
 
   retourAvant() {
-    this.router.navigate(['/dossier/upload'], { queryParams: { numFrida: this.numFrida } });
+    this.router.navigate(['/upload']);
   }
 
   validerCorrections() {
@@ -529,7 +531,7 @@ export class OcrCorrectionComponent implements OnInit {
       error: (err) => {
         console.error('Erreur application corrections', err);
         this.isSubmitting = false;
-        alert('Une erreur est survenue lors de la sauvegarde des corrections.');
+        this.notif.erreur('Une erreur est survenue lors de la sauvegarde des corrections.');
       }
     });
   }
@@ -554,7 +556,7 @@ export class OcrCorrectionComponent implements OnInit {
       error: (err) => {
         console.error('Erreur mise en attente', err);
         this.isSubmitting = false;
-        alert('Une erreur est survenue lors de la mise en attente.');
+        this.notif.erreur('Une erreur est survenue lors de la mise en attente.');
       }
     });
   }

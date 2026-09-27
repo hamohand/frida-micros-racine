@@ -1,275 +1,438 @@
-import { Component, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { forkJoin, of, catchError } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
+import { FridaService } from '../../../services/frida.service';
+import { Brouillon, BrouillonService } from '../../../services/brouillon.service';
+import { BackupInfo, BackupService } from '../../../services/backup.service';
+import { UploadStateService } from '../../../services/upload-state.service';
+
+interface DossierResume {
+  numFrida: string;
+  dateCreation: string;
+  nom: string;
+  prenom: string;
+  requiresCorrection: boolean;
+}
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [RouterLink, CommonModule],
   template: `
-    <div class="home-wrapper">
-      <section class="hero-section glass-panel">
-        <div class="hero-content">
-          <h1 class="hero-title">Ustadh-a</h1>
-          <p class="hero-subtitle">
-            Système Avancé de Gestion Notariale
-          </p>
+    <!-- Visiteur non connecté -->
+    <section *ngIf="!authService.isLoggedIn(); else tableauDeBord" class="accueil-public">
+      <h1 class="hero-title">Ustadh-a</h1>
+      <p class="hero-subtitle">Système Avancé de Gestion Notariale</p>
+      <div class="actions-publiques">
+        <a routerLink="/login" class="btn btn-primary">Se connecter</a>
+        <a routerLink="/simulateur" class="btn btn-secondary">Simulateur de parts</a>
+      </div>
+    </section>
 
-          <!-- Section Utilisation -->
-          <div class="section-label">
-            <span class="section-icon">📋</span>
-            <span>Utilisation</span>
+    <ng-template #tableauDeBord>
+      <div class="dashboard">
+        <header class="dashboard-entete">
+          <div>
+            <h1>Bonjour{{ nomUtilisateur ? ', ' + nomUtilisateur : '' }}</h1>
+            <p class="date-jour">{{ aujourdhui }}</p>
           </div>
-          <div class="action-grid">
-            <a routerLink="/create" class="action-card card-green">
-              <div class="card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M440-280h80v-160h160v-80H520v-160h-80v160H280v80h160v160Zm40 200q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></svg>
-              </div>
-              <h3>Nouveau Dossier</h3>
-              <p>Ouvrir une nouvelle instruction Frida</p>
-            </a>
-
-            <a routerLink="/batch-review" class="action-card card-purple">
-              <div class="card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h200v-80H240v80Zm280-80h200v-80H520v80ZM240-440h200v-80H240v80Zm280 0h200v-80H520v80ZM240-600h200v-80H240v80Zm280 0h200v-80H520v80ZM200-200v-560 560Z"/></svg>
-              </div>
-              <h3>Batch</h3>
-              <p>Traitement en lot de plusieurs dossiers</p>
-            </a>
-
-            <a routerLink="/search" class="action-card card-blue">
-              <div class="card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
-              </div>
-              <h3>Rechercher / Archive</h3>
-              <p>Consulter, rechercher et trier les dossiers</p>
-            </a>
-
-            <a routerLink="/simulateur" class="action-card card-teal">
-              <div class="card-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M280-400q-33 0-56.5-23.5T200-480q0-33 23.5-56.5T280-560q33 0 56.5 23.5T360-480q0 33-23.5 56.5T280-400Zm400 0q-33 0-56.5-23.5T600-480q0-33 23.5-56.5T680-560q33 0 56.5 23.5T760-480q0 33-23.5 56.5T680-400ZM480-240q-33 0-56.5-23.5T400-320q0-33 23.5-56.5T480-400q33 0 56.5 23.5T560-320q0 33-23.5 56.5T480-240ZM200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm0-560v560-560Z"/></svg>
-              </div>
-              <h3>Simulateur de parts</h3>
-              <p>Calculez instantanément un héritage</p>
-            </a>
+          <div class="entete-actions">
+            <form class="recherche-rapide" (submit)="rechercher($event, champ.value)">
+              <svg viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
+              <input #champ type="search" placeholder="N° de dossier, nom du défunt…" aria-label="Rechercher un dossier" />
+            </form>
+            <a routerLink="/create" class="btn btn-primary bouton-nouveau">+ Nouveau dossier</a>
           </div>
+        </header>
 
-          <!-- Section Administration (Maître uniquement) -->
-          <ng-container *ngIf="authService.isMaitre()">
-            <div class="section-divider"></div>
-            <div class="section-label admin-label">
-              <span class="section-icon">⚙️</span>
-              <span>Administration</span>
-            </div>
-            <div class="action-grid admin-grid">
-              <a routerLink="/users" class="action-card card-amber">
-                <div class="card-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M40-160v-112q0-34 17.5-62.5T104-378q62-31 126-46.5T360-440q66 0 130 15.5T616-378q29 15 46.5 43.5T680-272v112H40Zm720 0v-120q0-44-24.5-84.5T666-434q51 6 96 20.5t84 35.5q36 20 55 44.5t19 53.5v120H760ZM360-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47Zm400-160q0 66-47 113t-113 47q-11 0-28-2.5t-28-5.5q27-32 41.5-71t14.5-81q0-42-14.5-81T544-792q14-5 28-6.5t28-1.5q66 0 113 47t47 113ZM120-240h480v-32q0-11-5.5-20T580-306q-54-27-109-40.5T360-360q-56 0-111 13.5T140-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T440-640q0-33-23.5-56.5T360-720q-33 0-56.5 23.5T280-640q0 33 23.5 56.5T360-560Zm0 320Zm0-400Z"/></svg>
-                </div>
-                <h3>Utilisateurs</h3>
-                <p>Gérer les comptes et les rôles</p>
-              </a>
-
-              <a routerLink="/backups" class="action-card card-slate">
-                <div class="card-icon">
-                  <svg xmlns="http://www.w3.org/2000/svg" height="36" viewBox="0 -960 960 960" width="36" fill="currentColor"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
-                </div>
-                <h3>Sauvegardes</h3>
-                <p>Sauvegarder et restaurer la base et les documents</p>
-              </a>
-            </div>
-          </ng-container>
-
+        <!-- Indicateurs -->
+        <div class="tuiles">
+          <a routerLink="/search" class="tuile">
+            <span class="tuile-valeur">{{ chargement ? '–' : dossiers.length }}</span>
+            <span class="tuile-libelle">Dossiers actifs</span>
+          </a>
+          <a routerLink="/search" class="tuile">
+            <span class="tuile-valeur">{{ chargement ? '–' : dossiersDuMois }}</span>
+            <span class="tuile-libelle">Créés ce mois-ci</span>
+          </a>
+          <a routerLink="/search" class="tuile" [class.tuile-attention]="brouillons.length > 0">
+            <span class="tuile-valeur">{{ chargement ? '–' : brouillons.length }}</span>
+            <span class="tuile-libelle">Brouillons en cours</span>
+          </a>
+          <a *ngIf="batchAReviser > 0" routerLink="/batch-review" class="tuile tuile-attention">
+            <span class="tuile-valeur">{{ batchAReviser }}</span>
+            <span class="tuile-libelle">Dossiers à réviser</span>
+          </a>
         </div>
-      </section>
-    </div>
+
+        <!-- Dossier en cours de création -->
+        <button *ngIf="uploadState.dossierEnCours() as d" type="button" class="bandeau-reprise" (click)="router.navigateByUrl(d.url)">
+          <span class="bandeau-icone">▶</span>
+          <span>Dossier en cours : <strong class="demo-blur">{{ d.libelle }}</strong></span>
+          <span class="bandeau-lien">Reprendre ›</span>
+        </button>
+
+        <!-- Alerte sauvegarde (Maître) -->
+        <a *ngIf="authService.isMaitre() && !chargement && etatSauvegarde as s" routerLink="/backups"
+           class="bandeau-sauvegarde" [class.en-retard]="s.enRetard">
+          <span class="bandeau-icone">{{ s.enRetard ? '⚠' : '✓' }}</span>
+          <span>{{ s.texte }}</span>
+          <span class="bandeau-lien">Sauvegardes ›</span>
+        </a>
+
+        <div class="colonnes">
+          <!-- Brouillons -->
+          <section class="panneau">
+            <div class="panneau-entete">
+              <h2>Reprendre un brouillon</h2>
+              <a *ngIf="brouillons.length > 5" routerLink="/search" class="voir-tout">Tout voir ({{ brouillons.length }})</a>
+            </div>
+            <div *ngIf="chargement" class="squelette-liste">
+              <div class="squelette" *ngFor="let i of [1,2,3]"></div>
+            </div>
+            <ul *ngIf="!chargement && brouillons.length" class="liste">
+              <li *ngFor="let b of brouillons.slice(0, 5)">
+                <button type="button" class="ligne" (click)="reprendreBrouillon(b)">
+                  <span class="ligne-principal demo-blur">{{ b.nomDefunt }} {{ b.prenomDefunt }}</span>
+                  <span class="ligne-secondaire">Commencé le {{ formaterDate(b.dateCreation) }}</span>
+                  <span class="ligne-action">Reprendre ›</span>
+                </button>
+              </li>
+            </ul>
+            <p *ngIf="!chargement && !brouillons.length" class="vide">
+              Aucun brouillon en attente. Un dossier interrompu à l'étape Documents apparaîtra ici.
+            </p>
+          </section>
+
+          <!-- Derniers dossiers -->
+          <section class="panneau">
+            <div class="panneau-entete">
+              <h2>Derniers dossiers</h2>
+              <a routerLink="/search" class="voir-tout">Tout voir</a>
+            </div>
+            <div *ngIf="chargement" class="squelette-liste">
+              <div class="squelette" *ngFor="let i of [1,2,3]"></div>
+            </div>
+            <ul *ngIf="!chargement && derniersDossiers.length" class="liste">
+              <li *ngFor="let d of derniersDossiers">
+                <button type="button" class="ligne" (click)="ouvrirDossier(d)">
+                  <span class="ligne-principal">
+                    <span class="num">{{ d.numFrida }}</span>
+                    <span class="demo-blur">{{ d.nom }} {{ d.prenom }}</span>
+                  </span>
+                  <span class="ligne-secondaire">{{ formaterDate(d.dateCreation) }}</span>
+                  <span *ngIf="d.requiresCorrection" class="badge-correction">À corriger</span>
+                </button>
+              </li>
+            </ul>
+            <div *ngIf="!chargement && !derniersDossiers.length" class="vide">
+              <p>Aucun dossier pour l'instant.</p>
+              <a routerLink="/create" class="btn btn-secondary">Créer le premier dossier</a>
+            </div>
+          </section>
+        </div>
+      </div>
+    </ng-template>
   `,
   styles: [`
-    .home-wrapper {
-      min-height: calc(100vh - 80px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      background: radial-gradient(circle at center, #112d1b 0%, #0a1f0f 100%);
-      animation: fadeIn 0.8s ease-out;
-    }
+    :host { display: block; }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .glass-panel {
-      background: rgba(255, 255, 255, 0.03);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 24px;
-      padding: 3rem 3.5rem;
-      max-width: 960px;
-      width: 100%;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-      text-align: center;
-    }
-
-    .hero-title {
-      font-size: 3rem;
-      font-weight: 700;
-      color: #ffffff;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.02em;
-    }
-
-    .hero-subtitle {
-      font-size: 1.15rem;
-      color: #a0aec0;
-      line-height: 1.6;
-      margin-bottom: 2rem;
-    }
-
-    .highlight {
-      color: #38a169;
-      font-weight: 600;
-    }
-
-    /* Section labels */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #cbd5e0;
-      margin-bottom: 1.2rem;
-      text-align: left;
-      padding-left: 4px;
-    }
-
-    .section-icon {
-      font-size: 1.3rem;
-    }
-
-    .admin-label {
-      color: #fbd38d;
-    }
-
-    .section-divider {
-      height: 1px;
-      background: linear-gradient(to right, transparent, rgba(255,255,255,0.12), transparent);
-      margin: 2rem 0 1.8rem;
-    }
-
-    /* Card grid */
-    .action-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 1.2rem;
-    }
-
-    .admin-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
-
-    .action-card {
+    /* --- Visiteur --- */
+    .accueil-public {
+      min-height: calc(100vh - var(--nav-height));
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem 1.5rem;
-      border-radius: 16px;
+      justify-content: center;
+      text-align: center;
+      padding: var(--space-6);
+    }
+    .actions-publiques { display: flex; gap: var(--space-3); flex-wrap: wrap; justify-content: center; }
+
+    /* --- Tableau de bord --- */
+    .dashboard {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: var(--space-6) var(--space-6) var(--space-7);
+    }
+    .dashboard-entete {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: var(--space-4);
+      flex-wrap: wrap;
+      margin-bottom: var(--space-6);
+    }
+    .dashboard-entete h1 { font-size: 1.75rem; color: var(--text-1); margin: 0; }
+    .date-jour { color: var(--text-muted); margin: var(--space-1) 0 0; }
+    .entete-actions { display: flex; gap: var(--space-3); align-items: center; flex-wrap: wrap; }
+
+    .recherche-rapide {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      width: 300px;
+      max-width: 100%;
+      padding: 0 var(--space-3);
+      height: 42px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      color: var(--text-muted);
+      transition: border-color var(--duree-rapide);
+    }
+    .recherche-rapide:focus-within { border-color: var(--primary); }
+    .recherche-rapide input {
+      flex: 1;
+      min-width: 0;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: var(--text-1);
+      font: inherit;
+    }
+    .bouton-nouveau { padding: var(--space-2) var(--space-5); height: 42px; display: inline-flex; align-items: center; }
+
+    /* Tuiles */
+    .tuiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+    .tuile {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-1);
+      padding: var(--space-4) var(--space-5);
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
       text-decoration: none;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      background: rgba(0, 0, 0, 0.2);
+      transition: border-color var(--duree-rapide), transform var(--duree-rapide);
+    }
+    .tuile:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .tuile-valeur { font-size: 2rem; font-weight: 700; color: var(--text-1); line-height: 1.1; }
+    .tuile-libelle { color: var(--text-2); font-size: 0.9rem; }
+    .tuile-attention .tuile-valeur { color: var(--warning); }
+
+    /* Bandeau dossier en cours */
+    .bandeau-reprise {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      width: 100%;
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-4);
+      border: 1px solid var(--warning);
+      border-radius: var(--radius-md);
+      background: var(--warning-soft);
+      color: var(--text-1);
+      font: inherit;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+    }
+    .bandeau-reprise .bandeau-icone, .bandeau-reprise .bandeau-lien { color: var(--warning); }
+    .bandeau-reprise:hover { border-style: dashed; }
+
+    /* Bandeau sauvegarde */
+    .bandeau-sauvegarde {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3) var(--space-4);
+      margin-bottom: var(--space-5);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-subtle);
+      background: var(--primary-soft);
+      color: var(--text-2);
+      text-decoration: none;
+      font-size: 0.92rem;
+    }
+    .bandeau-sauvegarde.en-retard { background: var(--warning-soft); border-color: var(--warning); color: var(--text-1); }
+    .bandeau-icone { font-weight: 700; color: var(--primary); }
+    .en-retard .bandeau-icone { color: var(--warning); }
+    .bandeau-lien { margin-left: auto; color: var(--primary); white-space: nowrap; }
+    .en-retard .bandeau-lien { color: var(--warning); }
+
+    /* Panneaux */
+    .colonnes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+    .panneau {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      min-width: 0;
+    }
+    .panneau-entete { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: var(--space-3); }
+    .panneau-entete h2 { font-size: 1.05rem; color: var(--text-1); margin: 0; }
+    .voir-tout { color: var(--primary); text-decoration: none; font-size: 0.88rem; }
+    .voir-tout:hover { text-decoration: underline; }
+
+    .liste { list-style: none; display: flex; flex-direction: column; }
+    .ligne {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "principal action" "secondaire action";
+      align-items: center;
+      column-gap: var(--space-3);
+      padding: var(--space-3);
+      margin: 0 calc(-1 * var(--space-3));
+      width: calc(100% + 2 * var(--space-3));
+      border: none;
+      border-radius: var(--radius-md);
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      text-align: left;
+      cursor: pointer;
+      transition: background var(--duree-rapide);
+    }
+    .liste li + li .ligne { border-top: 1px solid rgba(255, 255, 255, 0.04); }
+    .ligne:hover { background: var(--primary-soft); }
+    .ligne-principal { grid-area: principal; color: var(--text-1); font-weight: 500; display: flex; gap: var(--space-2); min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .ligne-secondaire { grid-area: secondaire; color: var(--text-muted); font-size: 0.85rem; }
+    .ligne-action { grid-area: action; color: var(--primary); font-size: 0.88rem; opacity: 0; transition: opacity var(--duree-rapide); }
+    .ligne:hover .ligne-action, .ligne:focus-visible .ligne-action { opacity: 1; }
+    .num { font-family: var(--font-mono); color: var(--primary); }
+    .badge-correction {
+      grid-area: action;
+      padding: 2px var(--space-2);
+      border-radius: 999px;
+      background: var(--warning-soft);
+      color: var(--warning);
+      font-size: 0.75rem;
+      font-weight: 600;
     }
 
-    .action-card:hover {
-      transform: translateY(-4px);
-    }
+    .vide { color: var(--text-muted); font-size: 0.92rem; padding: var(--space-4) 0; }
+    .vide p { margin-bottom: var(--space-3); }
 
-    /* Color variants */
-    .card-green .card-icon { color: #48bb78; }
-    .card-green:hover {
-      background: rgba(56, 161, 105, 0.15);
-      border-color: rgba(56, 161, 105, 0.4);
-      box-shadow: 0 0 24px rgba(56, 161, 105, 0.15);
+    /* Squelettes de chargement */
+    .squelette-liste { display: flex; flex-direction: column; gap: var(--space-3); }
+    .squelette {
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(90deg, var(--surface-1) 25%, rgba(255,255,255,0.08) 50%, var(--surface-1) 75%);
+      background-size: 200% 100%;
+      animation: reflet 1.4s infinite;
     }
+    @keyframes reflet { to { background-position: -200% 0; } }
 
-    .card-purple .card-icon { color: #b794f4; }
-    .card-purple:hover {
-      background: rgba(159, 122, 234, 0.15);
-      border-color: rgba(159, 122, 234, 0.4);
-      box-shadow: 0 0 24px rgba(159, 122, 234, 0.15);
+    @media (max-width: 1000px) {
+      .colonnes { grid-template-columns: 1fr; }
     }
-
-    .card-blue .card-icon { color: #63b3ed; }
-    .card-blue:hover {
-      background: rgba(66, 153, 225, 0.15);
-      border-color: rgba(66, 153, 225, 0.4);
-      box-shadow: 0 0 24px rgba(66, 153, 225, 0.15);
+    @media (max-width: 600px) {
+      .dashboard { padding: var(--space-4); }
+      .recherche-rapide { width: 100%; }
     }
-
-    .card-teal .card-icon { color: #4fd1c5; }
-    .card-teal:hover {
-      background: rgba(56, 178, 172, 0.15);
-      border-color: rgba(56, 178, 172, 0.4);
-      box-shadow: 0 0 24px rgba(56, 178, 172, 0.15);
-    }
-
-    .card-amber .card-icon { color: #f6ad55; }
-    .card-amber:hover {
-      background: rgba(237, 137, 54, 0.15);
-      border-color: rgba(237, 137, 54, 0.4);
-      box-shadow: 0 0 24px rgba(237, 137, 54, 0.15);
-    }
-
-    .card-slate .card-icon { color: #a0aec0; }
-    .card-slate:hover {
-      background: rgba(160, 174, 192, 0.12);
-      border-color: rgba(160, 174, 192, 0.35);
-      box-shadow: 0 0 24px rgba(160, 174, 192, 0.1);
-    }
-
-    .card-icon {
-      margin-bottom: 1rem;
-      opacity: 0.9;
-    }
-
-    .action-card h3 {
-      font-size: 1.25rem;
-      color: #ffffff;
-      margin-bottom: 0.4rem;
-    }
-
-    .action-card p {
-      color: #a0aec0;
-      font-size: 0.9rem;
-      margin: 0;
-      line-height: 1.4;
-    }
-
-    /* Responsive */
-    @media (max-width: 640px) {
-      .action-grid {
-        grid-template-columns: 1fr;
-      }
-      .glass-panel {
-        padding: 2rem 1.5rem;
-      }
-      .hero-title {
-        font-size: 2.2rem;
-      }
+    @media (prefers-reduced-motion: reduce) {
+      .squelette { animation: none; }
     }
   `]
 })
 export class HomeComponent {
   authService = inject(AuthService);
-  private router = inject(Router);
+  router = inject(Router);
+  uploadState = inject(UploadStateService);
+  private fridaService = inject(FridaService);
+  private brouillonService = inject(BrouillonService);
+  private backupService = inject(BackupService);
+  private destroyRef = inject(DestroyRef);
+
+  chargement = true;
+  dossiers: DossierResume[] = [];
+  brouillons: Brouillon[] = [];
+  batchAReviser = 0;
+  derniereSauvegarde: BackupInfo | null = null;
+
+  aujourdhui = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  get nomUtilisateur(): string {
+    return localStorage.getItem('username') || '';
+  }
+
+  get derniersDossiers(): DossierResume[] {
+    return [...this.dossiers]
+      .sort((a, b) => (b.dateCreation || '').localeCompare(a.dateCreation || '') || b.numFrida.localeCompare(a.numFrida))
+      .slice(0, 6);
+  }
+
+  get dossiersDuMois(): number {
+    const mois = new Date().toISOString().slice(0, 7);
+    return this.dossiers.filter(d => (d.dateCreation || '').startsWith(mois)).length;
+  }
+
+  /** Alerte si aucune sauvegarde ou si la dernière a plus de 48 h (l'automatique tourne toutes les 24 h). */
+  get etatSauvegarde(): { texte: string; enRetard: boolean } {
+    if (!this.derniereSauvegarde) {
+      return { texte: 'Aucune sauvegarde n\'a encore été faite.', enRetard: true };
+    }
+    const date = new Date(this.derniereSauvegarde.createdAt);
+    const heures = (Date.now() - date.getTime()) / 3_600_000;
+    const quand = date.toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    return heures > 48
+      ? { texte: `Dernière sauvegarde le ${quand}, il y a plus de deux jours.`, enRetard: true }
+      : { texte: `Dernière sauvegarde le ${quand}.`, enRetard: false };
+  }
 
   ngOnInit() {
     if (window.location.hostname.includes('simul-frida')) {
       this.router.navigate(['/simulateur']);
+      return;
+    }
+    // En mode démo, la connexion automatique peut arriver après l'affichage de la page
+    this.authService.utilisateur$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(u => {
+      if (u && !this.chargementLance) this.charger();
+    });
+  }
+
+  private chargementLance = false;
+
+  private charger() {
+    this.chargementLance = true;
+    const aucun = catchError(() => of([]));
+    forkJoin({
+      dossiers: this.fridaService.lancerApi('/api/frida/fridas').pipe(aucun),
+      brouillons: this.brouillonService.list().pipe(catchError(() => of([] as Brouillon[]))),
+      batch: this.fridaService.lancerApi('/api/frida/batch-en-attente').pipe(aucun),
+      sauvegardes: this.authService.isMaitre() ? this.backupService.listBackups().pipe(catchError(() => of([] as BackupInfo[]))) : of([] as BackupInfo[]),
+    }).subscribe(r => {
+      this.dossiers = Array.isArray(r.dossiers) ? r.dossiers.filter((d: any) => d != null) : [];
+      this.brouillons = r.brouillons || [];
+      this.batchAReviser = Array.isArray(r.batch) ? r.batch.length : 0;
+      this.derniereSauvegarde = [...(r.sauvegardes || [])]
+        .filter(s => !s.avantRestauration)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0] ?? null;
+      this.chargement = false;
+    });
+  }
+
+  formaterDate(iso: string): string {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  rechercher(event: Event, terme: string) {
+    event.preventDefault();
+    this.router.navigate(['/search'], { queryParams: terme.trim() ? { q: terme.trim() } : {} });
+  }
+
+  reprendreBrouillon(b: Brouillon) {
+    this.router.navigate(['/upload'], { queryParams: { brouillon: b.id, folderName: b.folderName } });
+  }
+
+  // Même règle que l'écran Recherche
+  ouvrirDossier(d: DossierResume) {
+    if (d.requiresCorrection) {
+      this.router.navigate(['/edit', d.numFrida]);
+    } else {
+      this.router.navigate(['/frida'], { queryParams: { numFrida: d.numFrida } });
     }
   }
 }

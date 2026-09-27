@@ -1,4 +1,5 @@
-import { Component, HostListener, OnInit } from '@angular/core';
+import { NotificationService } from '../../services/notification.service';
+import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
 import {
@@ -18,6 +19,7 @@ import { AuthService } from '../../services/auth.service';
   styleUrls: ['./backup.component.css']
 })
 export class BackupComponent implements OnInit {
+  private notif = inject(NotificationService);
   activeTab: 'backups' | 'archives' = 'backups';
 
   // Sauvegardes
@@ -77,12 +79,12 @@ export class BackupComponent implements OnInit {
     });
   }
 
-  restoreBackup(backup: BackupInfo): void {
+  async restoreBackup(backup: BackupInfo): Promise<void> {
     const date = this.formatDate(backup.createdAt);
-    if (confirm('⚠️ Revenir à l\'état du ' + date + ' ?\n\n'
+    if (await this.notif.confirmer('Revenir à l\'état du ' + date + ' ?\n\n'
       + 'La base de données et les documents redeviendront ceux de cette sauvegarde : '
       + 'les dossiers créés ou modifiés depuis seront retirés.\n\n'
-      + 'L\'état actuel est d\'abord mis de côté : vous pourrez annuler la restauration juste après.')) {
+      + 'L\'état actuel est d\'abord mis de côté : vous pourrez annuler la restauration juste après.', { titre: 'Restaurer la sauvegarde', libelleConfirmer: 'Restaurer', danger: true })) {
       this.restaurer(backup.fileName);
     }
   }
@@ -130,8 +132,8 @@ export class BackupComponent implements OnInit {
     });
   }
 
-  deleteBackup(fileName: string): void {
-    if (confirm('Supprimer la sauvegarde "' + fileName + '" ?')) {
+  async deleteBackup(fileName: string): Promise<void> {
+    if (await this.notif.confirmer('Supprimer la sauvegarde "' + fileName + '" ?', { titre: 'Supprimer la sauvegarde', libelleConfirmer: 'Supprimer', danger: true })) {
       this.loading = true;
       this.backupService.deleteBackup(fileName).subscribe({
         next: () => { this.showMessage('Sauvegarde supprimée.', false); this.loadBackups(); },
@@ -164,8 +166,8 @@ export class BackupComponent implements OnInit {
     }
   }
 
-  archiveFrida(numFrida: string, nom: string): void {
-    if (confirm('Archiver le dossier "' + numFrida + ' — ' + nom + '" ?\n\nCe dossier sera retiré de la base active et conservé dans un fichier archive.')) {
+  async archiveFrida(numFrida: string, nom: string): Promise<void> {
+    if (await this.notif.confirmer('Archiver le dossier "' + numFrida + ' — ' + nom + '" ?\n\nCe dossier sera retiré de la base active et conservé dans un fichier archive.', { titre: 'Archiver le dossier', libelleConfirmer: 'Archiver' })) {
       this.loading = true;
       this.showMessage('Archivage en cours...', false);
       this.backupService.archiveFrida(numFrida).subscribe({
@@ -179,8 +181,8 @@ export class BackupComponent implements OnInit {
     }
   }
 
-  autoArchive(): void {
-    if (confirm('Archiver maintenant tous les dossiers éligibles ?\n\nTous les dossiers de plus de 6 mois seront retirés de la base active et conservés dans des fichiers archive.')) {
+  async autoArchive(): Promise<void> {
+    if (await this.notif.confirmer('Archiver maintenant tous les dossiers éligibles ?\n\nTous les dossiers de plus de 6 mois seront retirés de la base active et conservés dans des fichiers archive.', { titre: 'Archiver maintenant', libelleConfirmer: 'Archiver' })) {
       this.loading = true;
       this.showMessage('Archivage en cours...', false);
       this.backupService.autoArchive().subscribe({
@@ -190,8 +192,8 @@ export class BackupComponent implements OnInit {
     }
   }
 
-  restoreArchive(fileName: string): void {
-    if (confirm('Restaurer cette archive dans la base active ?\n\nLe dossier sera de nouveau accessible dans l\'application.')) {
+  async restoreArchive(fileName: string): Promise<void> {
+    if (await this.notif.confirmer('Restaurer cette archive dans la base active ?\n\nLe dossier sera de nouveau accessible dans l\'application.', { titre: "Restaurer l'archive", libelleConfirmer: "Restaurer" })) {
       this.loading = true;
       this.showMessage('Restauration en cours...', false);
       this.backupService.restoreArchive(fileName).subscribe({
@@ -201,8 +203,8 @@ export class BackupComponent implements OnInit {
     }
   }
 
-  deleteArchive(fileName: string): void {
-    if (confirm('⚠️ Supprimer définitivement cette archive ?\n\nCette action est irréversible.')) {
+  async deleteArchive(fileName: string): Promise<void> {
+    if (await this.notif.confirmer('Supprimer définitivement cette archive ?\n\nCette action est irréversible.', { titre: "Supprimer l'archive", libelleConfirmer: "Supprimer définitivement", danger: true })) {
       this.loading = true;
       this.backupService.deleteArchive(fileName).subscribe({
         next: () => { this.showMessage('Archive supprimée.', false); this.loadArchives(); },
