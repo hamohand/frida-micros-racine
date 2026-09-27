@@ -40,6 +40,9 @@ public class ArchiveService {
     @Value("${app.archive.threshold-months:6}")
     private int archiveThresholdMonths;
 
+    @Value("${app.archive.threshold-days-manual:1}")
+    private int archiveThresholdDaysManual;
+
     private final FridaRepo fridaRepo;
 
     private static final String ARCHIVE_DIR = "archives";
@@ -91,7 +94,7 @@ public class ArchiveService {
      * Liste les dossiers Frida éligibles à l'archivage (plus anciens que le seuil).
      */
     public List<FridaDetailsDTO> getArchivableFridas() {
-        LocalDate threshold = LocalDate.now().minusMonths(archiveThresholdMonths);
+        LocalDate threshold = LocalDate.now().minusDays(archiveThresholdDaysManual);
         return fridaRepo.findAllFridas().stream()
                 .filter(f -> f.getDateCreation() != null && f.getDateCreation().isBefore(threshold))
                 .collect(Collectors.toList());
@@ -244,7 +247,10 @@ public class ArchiveService {
      */
     @Transactional
     public int autoArchive() {
-        List<FridaDetailsDTO> archivable = getArchivableFridas();
+        LocalDate autoThreshold = LocalDate.now().minusMonths(archiveThresholdMonths);
+        List<FridaDetailsDTO> archivable = fridaRepo.findAllFridas().stream()
+                .filter(f -> f.getDateCreation() != null && f.getDateCreation().isBefore(autoThreshold))
+                .collect(Collectors.toList());
         int count = 0;
         for (FridaDetailsDTO dto : archivable) {
             try {
