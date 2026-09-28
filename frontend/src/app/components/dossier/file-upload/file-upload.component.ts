@@ -115,6 +115,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
       <!-- Modale de Scanner NFC -->
       <app-nfc-scanner-modal 
         *ngIf="showNfcModal" 
+        [mode]="scannerMode"
         (closeModal)="showNfcModal = false" 
         (nfcDataReceived)="onNfcDataReceived($event)">
       </app-nfc-scanner-modal>
