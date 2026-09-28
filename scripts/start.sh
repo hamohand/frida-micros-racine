@@ -25,6 +25,20 @@ if ! command -v docker compose &> /dev/null; then
     exit 1
 fi
 
+# Vérifier si le daemon Docker tourne, sinon le démarrer
+if ! docker info &> /dev/null; then
+    echo "⚠️  Le service Docker est arrêté."
+    echo "Tentative de démarrage de Docker (votre mot de passe sudo peut être requis)..."
+    sudo service docker start
+    sleep 3
+    if ! docker info &> /dev/null; then
+        echo "❌ Impossible de démarrer Docker. Vérifiez votre installation."
+        exit 1
+    fi
+    echo "✅ Docker démarré avec succès."
+    echo ""
+fi
+
 # Créer .env s'il n'existe pas
 if [ ! -f .env ]; then
     echo "⚠️  Le fichier .env n'existe pas."
