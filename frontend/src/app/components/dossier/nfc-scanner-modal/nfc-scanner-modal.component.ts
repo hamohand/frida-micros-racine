@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
+﻿import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -20,7 +20,6 @@ import { Subscription } from 'rxjs';
           <button class="close-btn" (click)="close()">✕</button>
         </div>
 
-        <!-- Mode Mobile: Adresse réseau manquante -->
         <div class="modal-body config-manquante" *ngIf="mode === 'mobile' && adresseNonConfiguree">
           <span class="material-icons warning-icon">wifi_off</span>
           <h3>Adresse réseau non configurée</h3>
@@ -28,8 +27,6 @@ import { Subscription } from 'rxjs';
         </div>
 
         <div class="modal-body" *ngIf="(!adresseNonConfiguree || mode === 'usb') && !successData">
-          
-          <!-- MODE USB -->
           <div *ngIf="mode === 'usb'">
             <div *ngIf="!isUsbAvailable && !checkingUsb" style="color:#D16D6A; margin-bottom: 1rem;">
               <span class="material-icons" style="font-size:3rem; display:block; margin-bottom:10px;">error</span>
@@ -38,13 +35,8 @@ import { Subscription } from 'rxjs';
 
             <div *ngIf="isUsbAvailable">
               <span class="material-icons usb-icon" style="font-size: 3rem; color: #4ecca3; margin-bottom: 10px; display: block;">usb</span>
-              
-              <!-- Étape 1 : Webcam -->
               <div *ngIf="!mrzDoc">
-                <p class="instructions" style="text-align:center;">
-                  Veuillez présenter le bas de la pièce d'identité (Zone MRZ) à la webcam pour extraire les clés d'ouverture de la puce.
-                </p>
-                
+                <p class="instructions" style="text-align:center;">Veuillez présenter le bas de la pièce d'identité (Zone MRZ) à la webcam pour extraire les clés d'ouverture de la puce.</p>
                 <div class="webcam-container" style="position: relative;">
                   <video #webcamVideo autoplay playsinline style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; background: #000;"></video>
                   <button class="btn btn-primary" (click)="captureMrz()" [disabled]="isScanningMrz" style="margin-top:10px; width:100%;">
@@ -53,21 +45,15 @@ import { Subscription } from 'rxjs';
                 </div>
               </div>
 
-              <!-- Étape 2 : NFC Reading -->
               <div *ngIf="mrzDoc">
                 <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; text-align: left;">
                   <span class="material-icons" style="vertical-align:middle;">check_circle</span> MRZ décodée avec succès !<br>
                   <small>Clés: {{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
                 </div>
-
-                <p class="instructions" style="text-align:center;">
-                  Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b> posé sur votre bureau.
-                </p>
-
+                <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b> posé sur votre bureau.</p>
                 <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:10px; width: 100%; font-size: 1.1rem; padding: 12px;">
                   <span class="spinner" *ngIf="isReadingUsb"></span> {{ isReadingUsb ? 'Lecture sans contact en cours...' : '💳 Lire la puce' }}
                 </button>
-                
                 <div class="listening-state" *ngIf="usbError" style="margin-top: 15px;">
                   <span class="material-icons" style="color:#D16D6A; vertical-align:middle;">error</span> <i style="color:#D16D6A;">{{ usbError }}</i>
                 </div>
@@ -75,18 +61,15 @@ import { Subscription } from 'rxjs';
             </div>
           </div>
 
-          <!-- MODE MOBILE -->
           <div *ngIf="mode === 'mobile' && !adresseNonConfiguree">
             <p class="instructions">
               <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
               <strong>2.</strong> Ouvrez l'application <b>Frida Mobile</b>.<br>
               <strong>3.</strong> Scannez ce QR Code avec l'application.
             </p>
-
             <div class="qr-container" *ngIf="qrData">
               <qrcode [qrdata]="qrData" [width]="256" [errorCorrectionLevel]="'M'"></qrcode>
             </div>
-
             <div class="listening-state" *ngIf="qrData">
               <span class="spinner"></span> <i>En attente des données du mobile...</i>
             </div>
@@ -104,41 +87,24 @@ import { Subscription } from 'rxjs';
       </div>
     </div>
   \,
-  styles: [\n    .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-      display: flex; align-items: center; justify-content: center; z-index: 10000;
-    }
-    .modal-content {
-      background: #1e293b; border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 12px;
-      width: 400px; max-width: 90vw; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      color: white; max-height: 90vh; overflow-y: auto;
-    }
-    .modal-header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
+  styles: [\
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10000; }
+    .modal-content { background: #1e293b; border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 12px; width: 400px; max-width: 90vw; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
     .modal-header h2 { margin: 0; font-size: 1.25rem; color: #4ecca3; }
     .close-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; opacity: 0.7; }
     .close-btn:hover { opacity: 1; }
     .modal-body { padding: 1.5rem; text-align: center; }
-    .instructions {
-      text-align: left; background: rgba(255,255,255,0.05); padding: 1rem;
-      border-radius: 8px; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem;
-    }
+    .instructions { text-align: left; background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; line-height: 1.6; font-size: 0.95rem; }
     .qr-container { background: white; padding: 1rem; border-radius: 8px; display: inline-block; margin-bottom: 1rem; }
     .listening-state { color: #ffb84d; margin-top: 1rem; font-size: 0.9rem; }
     .success { text-align: center; padding: 2rem; }
     .success-icon { font-size: 4rem; color: #4ecca3; margin-bottom: 1rem; }
     .config-manquante { text-align: left; }
     .warning-icon { font-size: 3rem; color: #ffb84d; display: block; text-align: center; margin-bottom: 0.5rem; }
-    .spinner {
-      display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite;
-      vertical-align: middle; margin-right: 8px;
-    }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-  `]
+  \]
 })
 export class NfcScannerModalComponent implements OnInit, OnDestroy {
   @Input() mode: 'mobile' | 'usb' = 'mobile';
@@ -151,7 +117,6 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   adresseNonConfiguree = false;
   estMaitre = false;
   
-  // USB & Webcam logic
   checkingUsb = false;
   isUsbAvailable = false;
   mrzDoc: string = '';
@@ -203,7 +168,6 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     this.closeModal.emit();
   }
 
-  // --- USB & WEBCAM LOGIC ---
   async startWebcam() {
     try {
       this.videoStream = await navigator.mediaDevices.getUserMedia({ 
@@ -289,7 +253,6 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  // --- MOBILE LOGIC ---
   private setupMobileNfc() {
     this.parametresService.lire().subscribe({
       next: (p) => {
