@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 
 @Profile("!calc-only")
+@lombok.extern.slf4j.Slf4j
 @RestController
 @AllArgsConstructor
 @RequestMapping("/api/pdfs")
