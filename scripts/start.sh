@@ -42,7 +42,7 @@ fi
 # Afficher les versions
 echo "📋 Vérifications des versions:"
 docker --version
-docker compose --version
+docker compose version
 echo ""
 
 # Récupérer les ports depuis .env ou utiliser les valeurs par défaut
