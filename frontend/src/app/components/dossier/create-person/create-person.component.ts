@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
 import { FolderService } from '../../../services/folder.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { ConstitutionService } from '../../../services/constitution.service';
@@ -240,7 +239,7 @@ export class CreatePersonComponent {
     const formData = new FormData();
     formData.append('file', file);
     
-    this.http.post<any>(`${environment.apiUrl}/pdfs/extraire-noms-qr`, formData).subscribe({
+    this.http.post<any>(`/api/pdfs/extraire-noms-qr`, formData).subscribe({
       next: (res) => {
         this.isScanningQr = false;
         if (res.success) {
