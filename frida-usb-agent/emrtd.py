@@ -271,20 +271,14 @@ def _parse_mrz_data(dg1_bytes):
             mrz_str = mrz_bytes.decode('ascii', errors='ignore').replace('\n', '').replace('\r', '')
             
             lines = []
-            if len(mrz_str) >= 88:
+            if len(mrz_str) >= 88 and len(mrz_str) < 90:
                 lines = [mrz_str[0:44], mrz_str[44:88]]
+                name_part = lines[0][5:]
             elif len(mrz_str) >= 90:
                 lines = [mrz_str[0:30], mrz_str[30:60], mrz_str[60:90]]
+                name_part = lines[2]
             else:
-                lines = [mrz_str]
-                
-            name_line = lines[0]
-            if name_line[0] in ('P', 'V'):
-                name_part = name_line[5:]
-            elif len(lines) == 3 and name_line[0] in ('I', 'A', 'C'):
-                name_part = lines[0][5:]
-            else:
-                name_part = name_line[5:]
+                name_part = mrz_str
                 
             parts = name_part.split('<<')
             nom = parts[0].replace('<', ' ').strip()
