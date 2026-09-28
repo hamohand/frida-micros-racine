@@ -56,7 +56,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
           <div class="file-item" *ngFor="let file of uploadedFiles">
             <div class="file-info">
               <span class="material-icons">Document :</span>
-              <span class="file-name" [title]="file.file.name">{{ file.file.name }}</span>
+              <span class="file-name" [title]="file.file.name">{{ file.file.name }} <span *ngIf="file.file.size === 0" style="background: rgba(78,204,163,0.2); color: #4ecca3; border: 1px solid #4ecca3; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;">✓ Sur le serveur</span></span>
               <select *ngIf="config.docTypes && config.docTypes.length > 0" [(ngModel)]="file.docType" (change)="onDocTypeChange(file)" class="select-doc-type file-select">
                 <option *ngFor="let dt of config.docTypes" [value]="dt.id">{{ dt.label }}</option>
               </select>
@@ -543,3 +543,4 @@ export class FileUploadComponent implements OnInit {
     // this.onUpload();
   }
 }
+

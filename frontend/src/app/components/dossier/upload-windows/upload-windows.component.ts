@@ -862,6 +862,55 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
     this.brouillonService.getFichiers(this.brouillonId).subscribe(data => {
       this.existingFiles = data.subfolders || {};
       this.buildRecapCategories();
+      
+      // Inject dummy files into windows so they appear in the carousels
+      for (const [folder, files] of Object.entries(this.existingFiles)) {
+        if (!files || files.length === 0) continue;
+        
+        const parts = folder.split('_');
+        if (parts.length < 2) continue;
+        const code = parts[0];
+        const docType = parts[1];
+        const entityName = parts.slice(2).join('_');
+        
+        // Map code to window key
+        let windowKey = '';
+        if (code === '01') windowKey = 'f1';
+        else if (code === '02') windowKey = 'f2';
+        else if (code === '03') windowKey = 'f_garcons'; // Group all children in garcons
+        else if (code === '04') windowKey = 'f_pere'; // Or f_mere, using f_pere as fallback
+        else if (code === '05') windowKey = 'f5';
+        else if (code === '06') windowKey = 'f6';
+        else if (code === '07') windowKey = 'f7';
+        else if (code === '08') windowKey = 'f_grand_pere';
+        else if (code === '09') windowKey = 'tombe_M_1'; // Simplified
+        else if (code === '10') windowKey = 'tombe_F_1';
+        else if (code === '11') windowKey = 'f_grand_mere_paternelle';
+        else if (code === '00') windowKey = 'f_temoins';
+        
+        if (windowKey && this.windows[windowKey]) {
+          this.windows[windowKey].hasFiles = true;
+          this.windows[windowKey].rawFiles = this.windows[windowKey].rawFiles || [];
+          
+          files.forEach(filename => {
+            // Create a dummy file object to satisfy the UploadedFile interface
+            const dummyFile = new File([], filename, { type: 'application/octet-stream' });
+            (dummyFile as any).isRemote = true; // Mark it so we don't re-upload it
+            
+            // Only add if not already present
+            if (!this.windows[windowKey].rawFiles.some(f => f.file.name === filename)) {
+              this.windows[windowKey].rawFiles.push({
+                file: dummyFile,
+                id: 'remote_' + Math.random().toString(36).substr(2, 9),
+                progress: 100,
+                docType: docType,
+                entityName: entityName
+              });
+            }
+          });
+        }
+      }
+      
       this.showBrouillonRecap = true;
       console.log('Fichiers existants du brouillon:', this.existingFiles);
     });
@@ -1027,7 +1076,7 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
           if (group.entityName && group.entityName.trim() !== '') {
             uploadPath += '_' + group.entityName;
           }
-          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined));
+          const realFiles = group.files.filter(f => !(f as any).isRemote); if (realFiles.length > 0) allUploadObservables.push(this.fileUploadService.uploadFiles(realFiles, uploadPath, this.brouillonFolderName || undefined));
         });
       }
     });
@@ -1063,7 +1112,7 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
           if (group.entityName && group.entityName.trim() !== '') {
             uploadPath += '_' + group.entityName;
           }
-          allUploadObservables.push(this.fileUploadService.uploadFiles(group.files, uploadPath, this.brouillonFolderName || undefined));
+          const realFiles = group.files.filter(f => !(f as any).isRemote); if (realFiles.length > 0) allUploadObservables.push(this.fileUploadService.uploadFiles(realFiles, uploadPath, this.brouillonFolderName || undefined));
         });
       }
     });
