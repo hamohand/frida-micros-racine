@@ -18,7 +18,7 @@ export interface NfcData {
 })
 export class NfcService {
   // L'adresse de l'agent local (lecteur USB)
-  private readonly USB_AGENT_URL = 'http://localhost:8088/api/nfc';
+  private readonly USB_AGENT_URL = 'http://127.0.0.1:5000';
 
   constructor(private http: HttpClient) {}
 
