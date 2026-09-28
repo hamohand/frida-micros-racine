@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-nfc-scanner-modal',
   standalone: true,
   imports: [CommonModule, FormsModule, QRCodeModule],
-  template: 
+  template: \
     <div class="modal-overlay" (click)="close()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -103,9 +103,8 @@ import { Subscription } from 'rxjs';
         </div>
       </div>
     </div>
-  ,
-  styles: [
-    .modal-overlay {
+  \,
+  styles: [\n    .modal-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
       display: flex; align-items: center; justify-content: center; z-index: 10000;
@@ -139,7 +138,7 @@ import { Subscription } from 'rxjs';
       vertical-align: middle; margin-right: 8px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
-  ]
+  `]
 })
 export class NfcScannerModalComponent implements OnInit, OnDestroy {
   @Input() mode: 'mobile' | 'usb' = 'mobile';
@@ -301,7 +300,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         }
         
         const port = window.location.port ? ':' + window.location.port : '';
-        const apiUrl =  + "" + ${window.location.protocol}///api + "" + ;
+        const apiUrl = window.location.protocol + '//' + adresse + port + '/api';
         this.qrData = JSON.stringify({ url: apiUrl, sessionId: this.sessionId });
         
         this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
