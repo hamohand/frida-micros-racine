@@ -26,6 +26,7 @@ services:
       dockerfile: Dockerfile
       network: host
     environment:
+      TZ: Africa/Algiers
       DB_HOST: db
       DB_PORT: 5432
       DB_NAME: ${DB_NAME}

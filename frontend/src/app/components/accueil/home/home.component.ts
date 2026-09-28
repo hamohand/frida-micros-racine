@@ -350,7 +350,9 @@ export class HomeComponent {
   batchAReviser = 0;
   derniereSauvegarde: BackupInfo | null = null;
 
-  aujourdhui = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  get aujourdhui(): string {
+    return new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  }
 
   get nomUtilisateur(): string {
     return localStorage.getItem('username') || '';

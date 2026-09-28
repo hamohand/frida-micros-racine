@@ -51,6 +51,7 @@ services:
       dockerfile: Dockerfile
     container_name: frida-backend
     environment:
+      - TZ=Africa/Algiers
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=db
       - DB_PORT=5432
