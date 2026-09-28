@@ -33,6 +33,65 @@ public class OcrProcessingController {
     @Autowired
     private com.muhend.backendai.repository.BrouillonRepo brouillonRepository;
 
+    @org.springframework.web.bind.annotation.PostMapping("/extraire-noms-qr")
+    public org.springframework.http.ResponseEntity<?> extraireNomsQr(@org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        try {
+            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("qr_upload_", file.getOriginalFilename());
+            java.nio.file.Files.write(tempFile, file.getBytes());
+
+            // 1. Upload au service OCR Python
+            com.muhend.backendai.client.ocr.dto.OcrUploadResponseDto uploadResponse = ocrApiClient.uploadFile(tempFile);
+            java.nio.file.Files.deleteIfExists(tempFile);
+
+            String filename = uploadResponse.getSaved_filename() != null ? uploadResponse.getSaved_filename() : uploadResponse.getFilename();
+
+            // 2. Analyser le QR code
+            String ocrApiUrl = ocrApiClient.getOcrApiUrl();
+            org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
+
+            java.util.Map<String, Object> body = new java.util.HashMap<>();
+            body.put("filename", filename);
+            java.util.Map<String, Object> zones = new java.util.HashMap<>();
+            java.util.Map<String, Object> qrZone = new java.util.HashMap<>();
+            qrZone.put("type", "qrcode");
+            qrZone.put("coords", new double[]{0.0, 0.0, 1.0, 1.0});
+            zones.put("qr_zone", qrZone);
+            body.put("zones", zones);
+
+            @SuppressWarnings("unchecked")
+            java.util.Map<String, Object> ocrResult = rt.postForObject(ocrApiUrl + "/api/analyser", body, java.util.Map.class);
+
+            if (ocrResult != null && ocrResult.containsKey("resultats")) {
+                @SuppressWarnings("unchecked")
+                java.util.Map<String, Object> resultats = (java.util.Map<String, Object>) ocrResult.get("resultats");
+                
+                String nomLatines = "";
+                String prenomLatines = "";
+                
+                if (resultats.containsKey("latines")) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> latObj = (java.util.Map<String, Object>) resultats.get("latines");
+                    if (latObj.containsKey("texte_final")) nomLatines = latObj.get("texte_final").toString();
+                }
+                if (resultats.containsKey("prenomLatines")) {
+                    @SuppressWarnings("unchecked")
+                    java.util.Map<String, Object> prenomObj = (java.util.Map<String, Object>) resultats.get("prenomLatines");
+                    if (prenomObj.containsKey("texte_final")) prenomLatines = prenomObj.get("texte_final").toString();
+                }
+
+                if (!nomLatines.isEmpty() || !prenomLatines.isEmpty()) {
+                    return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "nom", nomLatines, "prenom", prenomLatines));
+                }
+            }
+
+            return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "Aucun nom en lettres latines extrait depuis le QR code"));
+
+        } catch (Exception e) {
+            log.error("Erreur extraction QR: {}", e.getMessage(), e);
+            return org.springframework.http.ResponseEntity.status(500).body(java.util.Map.of("success", false, "message", "Erreur serveur: " + e.getMessage()));
+        }
+    }
+
     /**
      * Extrait tous les pdf du dossier de base 'cheminDossierBase',
      * Lecture des pdf Par l'AI
