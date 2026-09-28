@@ -261,6 +261,21 @@ class eMRTD:
             
         return full_data
 
+def _extract_arabic(dg11_bytes, tag):
+    idx = dg11_bytes.find(tag)
+    if idx != -1:
+        try:
+            length = dg11_bytes[idx+len(tag)]
+            val = dg11_bytes[idx+len(tag)+1 : idx+len(tag)+1+length]
+            parts = val.split(b'<<')
+            if len(parts) > 1 and len(parts[-1]) > 0:
+                arabic_bytes = parts[-1].rstrip(b'<')
+                if len(arabic_bytes) > 0:
+                    return arabic_bytes.decode('iso-8859-6')
+        except Exception:
+            pass
+    return ""
+
 def _parse_mrz_data(dg1_bytes):
     try:
         # Find 5F1F tag
@@ -306,12 +321,16 @@ def read_passport(doc_num, dob, doe):
         # Read DG11 (Additional Personal Details)
         dg11 = b''
         nin = ""
+        nomArabe = ""
+        prenomArabe = ""
         try:
             dg11 = passport.read_file([0x01, 0x0B])
             import re
             match = re.search(b'\d{18}', dg11)
             if match:
                 nin = match.group(0).decode('ascii')
+            nomArabe = _extract_arabic(dg11, b'\x5f\x0e')
+            prenomArabe = _extract_arabic(dg11, b'\x5f\x0f')
         except Exception:
             pass
             
@@ -320,6 +339,8 @@ def read_passport(doc_num, dob, doe):
             "message": "Puce lue avec succès",
             "nom": nom,
             "prenom": prenom,
+            "nomArabe": nomArabe,
+            "prenomArabe": prenomArabe,
             "nin": nin,
             "dg1_hex": dg1.hex(),
             "dg11_hex": dg11.hex() if dg11 else "",
