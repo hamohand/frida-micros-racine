@@ -58,13 +58,16 @@ def _check_digit(s):
     return str(tot % 10)
 
 def _get_mrz_info(doc, dob, doe):
-    doc = doc.ljust(9, '<').replace(' ', '<')
+    doc = doc.upper().replace(' ', '<')[:9].ljust(9, '<')
     cd_doc = _check_digit(doc)
-    dob = dob.replace(' ', '<')
+    dob = dob.upper().replace(' ', '<')[:6].ljust(6, '<')
     cd_dob = _check_digit(dob)
-    doe = doe.replace(' ', '<')
+    doe = doe.upper().replace(' ', '<')[:6].ljust(6, '<')
     cd_doe = _check_digit(doe)
-    return doc + cd_doc + dob + cd_dob + doe + cd_doe
+    mrz_info = doc + cd_doc + dob + cd_dob + doe + cd_doe
+    print(f"\n---> DEBUG MRZ: doc='{doc}' cd='{cd_doc}' dob='{dob}' cd='{cd_dob}' doe='{doe}' cd='{cd_doe}'")
+    print(f"---> CHAINE HASHEE: {mrz_info}\n")
+    return mrz_info
 
 class eMRTD:
     def __init__(self, connection):
@@ -140,7 +143,7 @@ class eMRTD:
                 resp_do87 = b'\x87' + resp[idx-1:idx-1 + length + (1 if resp[idx-2]==0x81 else 2 if resp[idx-3]==0x82 else 1)] # raw
                 
                 # skip padding indicator (0x01)
-                enc_data = resp[idx:idx+length-1]
+                enc_data = resp[idx+1:idx+length]
                 idx += length
                 cipher = DES3.new(self.ks_enc + self.ks_enc[:8], DES3.MODE_CBC, b'\x00'*8)
                 dec_data = cipher.decrypt(enc_data)
