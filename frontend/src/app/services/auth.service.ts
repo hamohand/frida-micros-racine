@@ -69,7 +69,7 @@ export class AuthService {
   loginDemo() {
     localStorage.setItem('token', 'demo-token');
     localStorage.setItem('role', 'ROLE_MAITRE');
-    localStorage.setItem('username', 'demo');
-    this.currentUserSubject.next({ token: 'demo-token', role: 'ROLE_MAITRE', username: 'demo' });
+    localStorage.setItem('username', 'Moh');
+    this.currentUserSubject.next({ token: 'demo-token', role: 'ROLE_MAITRE', username: 'Moh' });
   }
 }
