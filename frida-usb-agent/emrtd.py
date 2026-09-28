@@ -303,12 +303,26 @@ def read_passport(doc_num, dob, doe):
         dg1 = passport.read_file([0x01, 0x01])
         nom, prenom = _parse_mrz_data(dg1)
         
+        # Read DG11 (Additional Personal Details)
+        dg11 = b''
+        nin = ""
+        try:
+            dg11 = passport.read_file([0x01, 0x0B])
+            import re
+            match = re.search(b'\d{18}', dg11)
+            if match:
+                nin = match.group(0).decode('ascii')
+        except Exception:
+            pass
+            
         return {
             "success": True,
             "message": "Puce lue avec succès",
             "nom": nom,
             "prenom": prenom,
+            "nin": nin,
             "dg1_hex": dg1.hex(),
+            "dg11_hex": dg11.hex() if dg11 else "",
             "documentNumber": doc_num
         }
     except Exception as e:
