@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+﻿import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
@@ -46,7 +46,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
             <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
               Sélectionner des fichiers
             </button>
-            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="showNfcModal = true">
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
               Scanner via Mobile
             </button>
           </div>
@@ -316,6 +316,12 @@ export class FileUploadComponent implements OnInit {
   }
 
   showNfcModal: boolean = false;
+  scannerMode: 'mobile' | 'usb' = 'mobile';
+
+  openScanner(mode: 'mobile' | 'usb') {
+    this.scannerMode = mode;
+    this.showNfcModal = true;
+  }
 
   /** Entité OCR proposée par défaut, par type de document (sinon {type}_01). */
   private readonly entitesParDefaut: Record<string, string> = {
@@ -543,4 +549,7 @@ export class FileUploadComponent implements OnInit {
     // this.onUpload();
   }
 }
+
+
+
 
