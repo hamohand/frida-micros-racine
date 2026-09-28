@@ -55,24 +55,15 @@ def read_card():
         logging.info(f"Utilisation du lecteur: {reader}")
         
         # ---------------------------------------------------------
-        # TODO: Implémentation réelle de la lecture eMRTD (Passeport)
-        # Ici on utiliserait pyPassport ou une implémentation APDU
-        # pour lire la puce avec le BAC.
+        # Implémentation réelle de la lecture eMRTD (Passeport/CNI)
         # ---------------------------------------------------------
+        import emrtd
+        result = emrtd.read_passport(doc, dob, doe)
         
-        import time
-        time.sleep(2) # Simulation de la durée de lecture sans contact
-        
-        return jsonify({
-            "success": True,
-            "nom": "BOUCHENE",
-            "prenom": "Mohand",
-            "nomArabe": "بوشان",
-            "prenomArabe": "محند",
-            "dateNaissance": "1990-01-01",
-            "lieuNaissance": "Alger",
-            "documentNumber": doc
-        })
+        if "error" in result:
+            return jsonify({"error": result["error"]}), 500
+            
+        return jsonify(result)
         
     except Exception as e:
         logging.error(f"Erreur lors de la lecture: {e}")
