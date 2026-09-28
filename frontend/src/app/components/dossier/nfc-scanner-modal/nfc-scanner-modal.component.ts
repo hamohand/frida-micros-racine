@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
   selector: 'app-nfc-scanner-modal',
   standalone: true,
   imports: [CommonModule, FormsModule, QRCodeModule],
-  template: \
+  template: `
     <div class="modal-overlay" (click)="close()">
       <div class="modal-content" (click)="$event.stopPropagation()">
         <div class="modal-header">
@@ -35,22 +35,25 @@ import { Subscription } from 'rxjs';
 
             <div *ngIf="isUsbAvailable">
               <span class="material-icons usb-icon" style="font-size: 3rem; color: #4ecca3; margin-bottom: 10px; display: block;">usb</span>
-              <div *ngIf="!mrzDoc">
-                <p class="instructions" style="text-align:center;">Veuillez présenter le bas de la pièce d'identité (Zone MRZ) à la webcam pour extraire les clés d'ouverture de la puce.</p>
-                <div class="webcam-container" style="position: relative;">
-                  <video #webcamVideo autoplay playsinline style="width:100%; max-height:220px; object-fit:cover; border-radius:8px; background: #000;"></video>
-                  <button class="btn btn-primary" (click)="captureMrz()" [disabled]="isScanningMrz" style="margin-top:10px; width:100%;">
-                    <span class="spinner" *ngIf="isScanningMrz"></span> {{ isScanningMrz ? 'Analyse OCR en cours...' : '📸 Capturer' }}
-                  </button>
+              <div *ngIf="!mrzDoc || !mrzDob || !mrzExp || forceManualEntry">
+                <p class="instructions" style="text-align:center;">Veuillez saisir les 3 informations de la zone MRZ pour déverrouiller la puce.</p>
+                <div class="manual-entry-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                  <input type="text" [(ngModel)]="mrzDoc" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                  <input type="text" [(ngModel)]="mrzDob" placeholder="Date Naissance (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                  <input type="text" [(ngModel)]="mrzExp" placeholder="Date Expiration (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
                 </div>
+                <button class="btn btn-primary" (click)="forceManualEntry = false" [disabled]="!mrzDoc || !mrzDob || !mrzExp" style="margin-top:10px; width:100%;">
+                  Valider les clés
+                </button>
               </div>
 
-              <div *ngIf="mrzDoc">
-                <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; text-align: left;">
-                  <span class="material-icons" style="vertical-align:middle;">check_circle</span> MRZ décodée avec succès !<br>
-                  <small>Clés: {{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
+              <div *ngIf="mrzDoc && mrzDob && mrzExp && !forceManualEntry">
+                <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; text-align: left; position: relative;">
+                  <span class="material-icons" style="vertical-align:middle;">check_circle</span> Clés validées !<br>
+                  <small>{{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
+                  <button (click)="forceManualEntry = true" style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: #4ecca3; cursor: pointer;"><span class="material-icons" style="font-size: 1rem;">edit</span></button>
                 </div>
-                <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b> posé sur votre bureau.</p>
+                <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b>.</p>
                 <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:10px; width: 100%; font-size: 1.1rem; padding: 12px;">
                   <span class="spinner" *ngIf="isReadingUsb"></span> {{ isReadingUsb ? 'Lecture sans contact en cours...' : '💳 Lire la puce' }}
                 </button>
@@ -86,8 +89,8 @@ import { Subscription } from 'rxjs';
         </div>
       </div>
     </div>
-  \,
-  styles: [\
+  `,
+  styles: [`
     .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 10000; }
     .modal-content { background: #1e293b; border: 1px solid rgba(78, 204, 163, 0.3); border-radius: 12px; width: 400px; max-width: 90vw; box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: white; max-height: 90vh; overflow-y: auto; }
     .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
@@ -104,7 +107,7 @@ import { Subscription } from 'rxjs';
     .warning-icon { font-size: 3rem; color: #ffb84d; display: block; text-align: center; margin-bottom: 0.5rem; }
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; vertical-align: middle; margin-right: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-  \]
+  `]
 })
 export class NfcScannerModalComponent implements OnInit, OnDestroy {
   @Input() mode: 'mobile' | 'usb' = 'mobile';
@@ -116,6 +119,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   successData: NfcData | null = null;
   adresseNonConfiguree = false;
   estMaitre = false;
+  forceManualEntry = false;
   
   checkingUsb = false;
   isUsbAvailable = false;
