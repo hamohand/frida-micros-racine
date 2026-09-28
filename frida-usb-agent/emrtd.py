@@ -261,20 +261,51 @@ class eMRTD:
             
         return full_data
 
-def _extract_arabic(dg11_bytes, tag):
-    idx = dg11_bytes.find(tag)
-    if idx != -1:
-        try:
-            length = dg11_bytes[idx+len(tag)]
-            val = dg11_bytes[idx+len(tag)+1 : idx+len(tag)+1+length]
-            parts = val.split(b'<<')
-            if len(parts) > 1 and len(parts[-1]) > 0:
-                arabic_bytes = parts[-1].rstrip(b'<')
-                if len(arabic_bytes) > 0:
-                    return arabic_bytes.decode('iso-8859-6')
-        except Exception:
-            pass
-    return ""
+def _parse_dg11(dg11_bytes):
+    data = {}
+    idx = 0
+    # Skip outer tag 6B
+    if idx < len(dg11_bytes) and dg11_bytes[idx] == 0x6B:
+        idx += 1
+        # skip length
+        if dg11_bytes[idx] == 0x81: idx += 2
+        elif dg11_bytes[idx] == 0x82: idx += 3
+        else: idx += 1
+
+    while idx < len(dg11_bytes):
+        if dg11_bytes[idx] in [0x5F, 0x7F, 0xA0]:
+            tag = bytes(dg11_bytes[idx:idx+2])
+            idx += 2
+        else:
+            tag = bytes(dg11_bytes[idx:idx+1])
+            idx += 1
+            
+        if idx >= len(dg11_bytes): break
+        length = dg11_bytes[idx]
+        idx += 1
+        
+        # A0 is constructed, we enter it
+        if tag == b'\xA0':
+            continue
+            
+        val = dg11_bytes[idx:idx+length]
+        idx += length
+        
+        data[tag] = val
+        
+    def _get_arabic(val):
+        parts = val.split(b'<<')
+        if len(parts) > 1 and len(parts[-1]) > 0:
+            arabic_bytes = parts[-1].rstrip(b'<')
+            if len(arabic_bytes) > 0:
+                return arabic_bytes.decode('iso-8859-6', errors='ignore')
+        return ""
+
+    return {
+        'nomArabe': _get_arabic(data.get(b'\x5F\x0E', b'')),
+        'prenomArabe': _get_arabic(data.get(b'\x5F\x0F', b'')),
+        'lieuNaissanceArabe': _get_arabic(data.get(b'\x5F\x11', b''))
+    }
 
 def _parse_mrz_data(dg1_bytes):
     try:
@@ -323,14 +354,18 @@ def read_passport(doc_num, dob, doe):
         nin = ""
         nomArabe = ""
         prenomArabe = ""
+        lieuNaissanceArabe = ""
         try:
             dg11 = passport.read_file([0x01, 0x0B])
             import re
             match = re.search(b'\d{18}', dg11)
             if match:
                 nin = match.group(0).decode('ascii')
-            nomArabe = _extract_arabic(dg11, b'\x5f\x0e')
-            prenomArabe = _extract_arabic(dg11, b'\x5f\x0f')
+            
+            parsed = _parse_dg11(dg11)
+            nomArabe = parsed.get('nomArabe', '')
+            prenomArabe = parsed.get('prenomArabe', '')
+            lieuNaissanceArabe = parsed.get('lieuNaissanceArabe', '')
         except Exception:
             pass
             
@@ -341,6 +376,7 @@ def read_passport(doc_num, dob, doe):
             "prenom": prenom,
             "nomArabe": nomArabe,
             "prenomArabe": prenomArabe,
+            "lieuNaissanceArabe": lieuNaissanceArabe,
             "nin": nin,
             "dg1_hex": dg1.hex(),
             "dg11_hex": dg11.hex() if dg11 else "",
