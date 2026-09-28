@@ -1,4 +1,4 @@
-﻿import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
@@ -47,7 +47,10 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
               Sélectionner des fichiers
             </button>
             <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
-              Scanner via Mobile
+              📱 Scanner (Mobile)
+            </button>
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #3b82f6; border-color: #3b82f6;" (click)="openScanner('usb')">
+              🪪 Scanner (Lecteur USB)
             </button>
           </div>
         </div>
