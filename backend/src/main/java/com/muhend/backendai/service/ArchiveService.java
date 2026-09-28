@@ -96,7 +96,7 @@ public class ArchiveService {
     public List<FridaDetailsDTO> getArchivableFridas() {
         LocalDate threshold = LocalDate.now().minusDays(archiveThresholdDaysManual);
         return fridaRepo.findAllFridas().stream()
-                .filter(f -> f.getDateCreation() != null && f.getDateCreation().isBefore(threshold))
+                .filter(f -> f.getDateCreation() != null && !f.getDateCreation().isAfter(threshold))
                 .collect(Collectors.toList());
     }
 
