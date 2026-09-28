@@ -144,7 +144,7 @@ interface ChampSuspect {
     </div>
   `,
   styles: [`
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+    
 
     :host { font-family: 'Outfit', sans-serif; }
 
