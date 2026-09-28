@@ -898,8 +898,8 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
             (dummyFile as any).isRemote = true; // Mark it so we don't re-upload it
             
             // Only add if not already present
-            if (!this.windows[windowKey].rawFiles.some(f => f.file.name === filename)) {
-              this.windows[windowKey].rawFiles.push({
+            if (!this.windows[windowKey].rawFiles!.some(f => f.file.name === filename)) {
+              this.windows[windowKey].rawFiles!.push({
                 file: dummyFile,
                 id: 'remote_' + Math.random().toString(36).substr(2, 9),
                 progress: 100,
