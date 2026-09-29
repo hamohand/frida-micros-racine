@@ -52,13 +52,22 @@ export class NfcService {
    * @param apiUrl L'URL de l'API backend (ex: http://192.168.1.47/api)
    * @param sessionId L'UUID unique de la session (généré pour le QR Code)
    */
-  public listenToMobileNfc(apiUrl: string, sessionId: string): Observable<NfcData> {
-    return new Observable<NfcData>((subscriber: Subscriber<NfcData>) => {
+  public listenToMobileNfc(apiUrl: string, sessionId: string): Observable<any> {
+    return new Observable<any>((subscriber: Subscriber<any>) => {
       const streamUrl = `${apiUrl}/nfc-session/${sessionId}/stream`;
       const eventSource = new EventSource(streamUrl);
 
       eventSource.addEventListener('INIT', (event) => {
         console.log('SSE Connecté (Attente du Mobile NFC):', event);
+      });
+
+      eventSource.addEventListener('MRZ_DATA', (event: MessageEvent) => {
+        try {
+          const mrzData = JSON.parse(event.data);
+          subscriber.next({ type: 'MRZ_DATA', payload: mrzData });
+        } catch (e) {
+          console.error(e);
+        }
       });
 
       eventSource.addEventListener('NFC_DATA', (event: MessageEvent) => {
@@ -72,7 +81,7 @@ export class NfcService {
             prenomArabe: rawData.prenomArabe || rawData.prenom_arabe
           };
           // Dès qu'on reçoit la donnée, on l'émet et on coupe la connexion
-          subscriber.next(data);
+          subscriber.next({ type: 'NFC_DATA', payload: data });
           subscriber.complete();
           eventSource.close();
         } catch (e) {

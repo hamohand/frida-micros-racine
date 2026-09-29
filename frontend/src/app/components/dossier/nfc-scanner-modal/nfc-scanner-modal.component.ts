@@ -268,10 +268,46 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = window.location.protocol + '//' + adresse + port + '/api';
-        this.qrData = JSON.stringify({ url: apiUrl, sessionId: this.sessionId });
+        
+        // Nouvelle URL Web Companion au lieu du JSON brut
+        this.qrData = window.location.origin + '/mobile-scanner/' + this.sessionId;
         
         this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
-          next: (data) => this.handleSuccess(data),
+          next: (event: any) => {
+            if (event.type === 'MRZ_DATA') {
+              const mrz = event.payload;
+              if (mrz.documentNumber) this.mrzDoc = mrz.documentNumber;
+              
+              const formatDate = (d: any) => {
+                if (Array.isArray(d)) {
+                  // [year, month, day]
+                  const y = String(d[0]).substring(2);
+                  const m = String(d[1]).padStart(2, '0');
+                  const day = String(d[2]).padStart(2, '0');
+                  return y + m + day;
+                } else if (typeof d === 'string') {
+                  const parts = d.split('-');
+                  if (parts.length === 3) {
+                    return parts[0].substring(2) + parts[1] + parts[2];
+                  }
+                }
+                return '';
+              };
+              
+              if (mrz.dateOfBirth) {
+                this.mrzDob = formatDate(mrz.dateOfBirth);
+              }
+              if (mrz.expiryDate) {
+                this.mrzExp = formatDate(mrz.expiryDate);
+              }
+              
+              // Switch to USB mode automatically and trigger read
+              this.forceManualEntry = true;
+              this.lireUsb();
+            } else if (event.type === 'NFC_DATA') {
+              this.handleSuccess(event.payload);
+            }
+          },
           error: (err) => console.error('Erreur NFC Mobile', err)
         });
       },

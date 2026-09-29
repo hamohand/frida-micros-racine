@@ -18,10 +18,23 @@ import java.util.concurrent.ConcurrentHashMap;
 public class NfcSessionController {
 
     // Stockage en mémoire des sessions SSE actives
-    private final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
+    private static final Map<String, SseEmitter> emitters = new ConcurrentHashMap<>();
     
     // Stockage des résultats OCR (nom/prénom arabes) en attente de fusion avec NFC
     private static final Map<String, Map<String, String>> ocrResults = new ConcurrentHashMap<>();
+
+    public static boolean sendEvent(String sessionId, String eventName, String data) {
+        SseEmitter emitter = emitters.get(sessionId);
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event().name(eventName).data(data));
+                return true;
+            } catch (Exception e) {
+                emitters.remove(sessionId);
+            }
+        }
+        return false;
+    }
 
     /** Appelé par OcrProcessingController pour stocker les noms arabes OCR */
     public static void storeOcrResults(String sessionId, Map<String, String> noms) {

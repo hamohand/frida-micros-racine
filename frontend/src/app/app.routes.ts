@@ -82,5 +82,9 @@ export const routes: Routes = [
     path: 'license',
     loadComponent: () => import('./components/license/license.component').then(m => m.LicenseComponent)
   },
+  {
+    path: 'mobile-scanner/:sessionId',
+    loadComponent: () => import('./components/mobile-scanner/mobile-scanner.component').then(m => m.MobileScannerComponent)
+  },
   { path: '**', redirectTo: '' }
 ];

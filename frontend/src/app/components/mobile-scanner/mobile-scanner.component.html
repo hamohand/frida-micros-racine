@@ -1,0 +1,34 @@
+<div class="mobile-scanner-container">
+  <div class="header">
+    <h1><span class="icon">📷</span> Frida Scanner</h1>
+    <p>Scan compagnon pour poste fixe</p>
+  </div>
+
+  <div class="content" *ngIf="status === 'idle' || status === 'error'">
+    <div class="instruction">
+      Prenez en photo le <b>recto</b> de la pièce d'identité pour extraire la date de délivrance et déverrouiller la puce.
+    </div>
+
+    <label class="scan-btn">
+      <span>Prendre la photo</span>
+      <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" />
+    </label>
+
+    <div class="error" *ngIf="status === 'error'">
+      ⚠️ {{ errorMessage }}
+    </div>
+  </div>
+
+  <div class="content loading" *ngIf="status === 'uploading'">
+    <div class="spinner"></div>
+    <p>Analyse de la carte en cours...</p>
+    <small>Veuillez patienter.</small>
+  </div>
+
+  <div class="content success" *ngIf="status === 'success'">
+    <div class="check-icon">✅</div>
+    <h2>Succès !</h2>
+    <p>La carte a été analysée avec succès.</p>
+    <p>Vous pouvez retourner sur votre ordinateur, la lecture va se lancer automatiquement.</p>
+  </div>
+</div>

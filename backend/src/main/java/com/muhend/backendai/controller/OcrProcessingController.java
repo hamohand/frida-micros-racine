@@ -218,11 +218,17 @@ public class OcrProcessingController {
             return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("message", "Erreur OCR : " + e.getMessage()));
         }
     }
-    public org.springframework.http.ResponseEntity<?> extraireMrzWebcam(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, String> payload) {
+    
+    @org.springframework.web.bind.annotation.PostMapping("/mobile-mrz")
+    public org.springframework.http.ResponseEntity<?> extraireMrzMobile(@org.springframework.web.bind.annotation.RequestBody java.util.Map<String, String> payload) {
         try {
             String base64Image = payload.get("image");
+            String sessionId = payload.get("sessionId");
             if (base64Image == null || base64Image.isEmpty()) {
-                return org.springframework.http.ResponseEntity.badRequest().body("Image manquante");
+                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", "Image manquante"));
+            }
+            if (sessionId == null || sessionId.isEmpty()) {
+                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", "SessionId manquant"));
             }
             // Enlever l'en-tête data:image/jpeg;base64, si présent
             if (base64Image.contains(",")) {
@@ -230,7 +236,7 @@ public class OcrProcessingController {
             }
             
             byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Image);
-            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("webcam_mrz_", ".jpg");
+            java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("mobile_mrz_", ".jpg");
             java.nio.file.Files.write(tempFile, imageBytes);
             
             // 1. Upload au service OCR Python
@@ -239,13 +245,22 @@ public class OcrProcessingController {
             // 2. Extraire la MRZ
             com.muhend.backendai.dto.MrzResult mrzResult = mrzService.extractAndParse(uploadResponse.getFilename());
             
+            // TODO: Appeler extract_cni pour Date et Lieu de délivrance
+            
             // Nettoyage
             java.nio.file.Files.deleteIfExists(tempFile);
             
             if (mrzResult != null && mrzResult.isValid()) {
-                return org.springframework.http.ResponseEntity.ok(mrzResult);
+                // Envoyer le résultat au PC via SSE
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                mapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
+                String json = mapper.writeValueAsString(mrzResult);
+                
+                NfcSessionController.sendEvent(sessionId, "MRZ_DATA", json);
+                
+                return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true));
             } else {
-                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", "MRZ introuvable ou invalide sur l'image fournie."));
+                return org.springframework.http.ResponseEntity.badRequest().body(java.util.Map.of("message", "MRZ introuvable sur l'image"));
             }
         } catch (Exception e) {
             return org.springframework.http.ResponseEntity.internalServerError().body(java.util.Map.of("message", "Erreur lors de l'extraction MRZ : " + e.getMessage()));
