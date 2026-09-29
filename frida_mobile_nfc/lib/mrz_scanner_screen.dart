@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'nfc_reader_screen.dart';
@@ -150,7 +152,44 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
               },
             ),
             ElevatedButton(
-              child: const Text("Passer au lecteur NFC"),
+              child: const Text("Scanner via USB (PC)", style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
+              onPressed: () async {
+                String doc = "";
+                String dob = "";
+                String exp = "";
+                List<String> lines = mrzController.text.split('\n');
+                if (lines.length >= 2) {
+                   if (lines[0].length == 30) {
+                      doc = lines[0].substring(5, 14).replaceAll('<', '');
+                      dob = lines[1].substring(0, 6);
+                      exp = lines[1].substring(8, 14);
+                   } else if (lines[0].length == 44) {
+                      doc = lines[0].substring(5, 14).replaceAll('<', '');
+                      dob = lines[1].substring(13, 19);
+                      exp = lines[1].substring(21, 27);
+                   }
+                }
+                var payload = {
+                   "documentNumber": doc,
+                   "dateOfBirth": dob,
+                   "expiryDate": exp
+                };
+                
+                try {
+                  await http.post(
+                    Uri.parse(widget.uploadUrl.replaceAll('/upload', '/mrz-only')),
+                    headers: {"Content-Type": "application/json"},
+                    body: jsonEncode({"type": "MRZ_DATA", "data": payload})
+                  );
+                } catch(e) { print(e); }
+                
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("MRZ envoyée au PC !")));
+              },
+            ),
+            ElevatedButton(
+              child: const Text("Continuer sur Mobile"),
               onPressed: () {
                 Navigator.of(context).pop();
                   Navigator.pushReplacement(

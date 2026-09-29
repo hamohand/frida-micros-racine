@@ -81,7 +81,26 @@ public class NfcSessionController {
     /**
      * Mobile : L'application Flutter envoie les données lues depuis la CNI.
      * Le serveur fusionne automatiquement les noms arabes OCR (stockés précédemment).
-     */
+     */    @PostMapping("/{sessionId}/mrz-only")
+    public ResponseEntity<String> uploadMrzOnly(@PathVariable String sessionId, org.springframework.http.HttpEntity<String> httpEntity) {
+        log.info("📱 Réception de MRZ (seule) pour la session : {}", sessionId);
+        String json = httpEntity.getBody();
+        
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = mapper.readValue(json, Map.class);
+            Map<String, Object> data = (Map<String, Object>) map.get("data");
+            
+            // On le renvoie au Desktop avec le type MRZ_DATA
+            sendEvent(sessionId, "MRZ_DATA", mapper.writeValueAsString(data));
+            return ResponseEntity.ok("OK");
+        } catch(Exception e) {
+            log.error("Erreur parse MRZ", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     @PostMapping("/{sessionId}/upload")
     public ResponseEntity<String> uploadNfcData(@PathVariable String sessionId, org.springframework.http.HttpEntity<String> httpEntity) {
         log.info("📱 Réception de données NFC pour la session : {}", sessionId);

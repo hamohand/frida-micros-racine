@@ -269,8 +269,13 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = window.location.protocol + '//' + adresse + port + '/api';
         
-        // Nouvelle URL Web Companion au lieu du JSON brut
-        this.qrData = window.location.origin + '/mobile-scanner/' + this.sessionId;
+        const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
+        const payload: any = { action: 'nfc_upload', url: uploadUrl };
+        if (this.mrzDoc && this.mrzDob && this.mrzExp) {
+          payload.mrz = { doc: this.mrzDoc, dob: this.mrzDob, exp: this.mrzExp };
+        }
+        
+        this.qrData = JSON.stringify(payload);
         
         this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
           next: (event: any) => {
