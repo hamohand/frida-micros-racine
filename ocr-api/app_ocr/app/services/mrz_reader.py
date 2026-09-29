@@ -91,13 +91,17 @@ class MrzReader:
 
             # Étape 2 : Lire le texte MRZ avec Tesseract
             raw_text = self._read_mrz_text(mrz_roi)
-            if not raw_text:
-                return self._error("Aucun texte MRZ extrait par Tesseract")
-
+            
             # Étape 3 : Nettoyer et valider les lignes
             lines, mrz_format, confidence = self._clean_and_validate(raw_text)
+            
             if not lines:
-                return self._error(f"Texte MRZ invalide : '{raw_text[:80]}...'")
+                logger.info("🔍 MRZ : Échec sur le ROI, tentative sur l'image entière (très lent)...")
+                raw_text_full = self._read_mrz_text(img)
+                lines, mrz_format, confidence = self._clean_and_validate(raw_text_full)
+            
+            if not lines:
+                return self._error(f"Texte MRZ invalide ou non détecté")
 
             logger.info(f"✅ MRZ {mrz_format} détectée — {len(lines)} lignes, "
                         f"confiance={confidence:.0%}")
