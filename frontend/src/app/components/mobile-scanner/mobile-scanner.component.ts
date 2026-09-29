@@ -1,8 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
-
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -34,7 +32,7 @@ export class MobileScannerComponent implements OnInit {
     reader.onload = () => {
       const base64 = reader.result as string;
       
-      this.http.post<any>(`${environment.apiUrl}/pdfs/mobile-mrz`, { 
+      this.http.post<any>('/api/pdfs/mobile-mrz', { 
         image: base64,
         sessionId: this.sessionId
       }).subscribe({
