@@ -97,7 +97,7 @@ class MrzReader:
             
             if not lines:
                 logger.info("🔍 MRZ : Échec sur le ROI, tentative sur l'image entière (très lent)...")
-                raw_text_full = self._read_mrz_text(img)
+                raw_text_full = self._read_mrz_text(img, psm=11, scale=1)
                 lines, mrz_format, confidence = self._clean_and_validate(raw_text_full)
             
             if not lines:
@@ -218,27 +218,17 @@ class MrzReader:
     # LECTURE OCR DE LA ZONE MRZ
     # =========================================================================
 
-    def _read_mrz_text(self, mrz_roi: np.ndarray) -> str:
+    def _read_mrz_text(self, mrz_roi: np.ndarray, psm=6, scale=2) -> str:
         """
         Lit le texte MRZ avec Tesseract en mode optimisé.
-
-        Prétraitement :
-        - Agrandissement 2× pour améliorer la résolution
-        - Conversion en niveaux de gris
-        - Seuillage adaptatif
-        - Inversion si nécessaire (texte sombre sur fond clair)
-
-        Configuration Tesseract :
-        - PSM 6 : bloc de texte uniforme
-        - Whitelist : A-Z, 0-9, <
-        - Pas de dictionnaire
         """
         import pytesseract
 
-        # Agrandir l'image 2× (améliore la précision OCR)
-        scale = 2
-        roi = cv2.resize(mrz_roi, None, fx=scale, fy=scale,
-                         interpolation=cv2.INTER_CUBIC)
+        if scale != 1:
+            roi = cv2.resize(mrz_roi, None, fx=scale, fy=scale,
+                             interpolation=cv2.INTER_CUBIC)
+        else:
+            roi = mrz_roi
 
         # Niveaux de gris
         if len(roi.shape) == 3:
@@ -263,7 +253,7 @@ class MrzReader:
 
         # Configuration Tesseract pour MRZ
         config = (
-            "--psm 6 "
+            f"--psm {psm} "
             "-c tessedit_char_whitelist=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789< "
             "-c load_system_dawg=false "
             "-c load_freq_dawg=false "
