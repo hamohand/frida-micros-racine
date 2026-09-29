@@ -317,22 +317,29 @@ def _parse_mrz_data(dg1_bytes):
             mrz_str = mrz_bytes.decode('ascii', errors='ignore').replace('\n', '').replace('\r', '')
             
             lines = []
+            sexe = "Inconnu"
             if len(mrz_str) >= 88 and len(mrz_str) < 90:
                 lines = [mrz_str[0:44], mrz_str[44:88]]
                 name_part = lines[0][5:]
+                sexe = lines[1][20]
             elif len(mrz_str) >= 90:
                 lines = [mrz_str[0:30], mrz_str[30:60], mrz_str[60:90]]
                 name_part = lines[2]
+                sexe = lines[1][7]
             else:
                 name_part = mrz_str
                 
             parts = name_part.split('<<')
             nom = parts[0].replace('<', ' ').strip()
             prenom = parts[1].replace('<', ' ').strip() if len(parts) > 1 else ''
-            return nom, prenom
+            
+            if sexe == 'M': sexe = 'Masculin'
+            elif sexe == 'F': sexe = 'Féminin'
+            
+            return nom, prenom, sexe
     except Exception:
         pass
-    return 'Inconnu', 'Inconnu'
+    return 'Inconnu', 'Inconnu', 'Inconnu'
 
 def read_passport(doc_num, dob, doe):
     try:
@@ -347,7 +354,7 @@ def read_passport(doc_num, dob, doe):
         
         # Read DG1 (MRZ text)
         dg1 = passport.read_file([0x01, 0x01])
-        nom, prenom = _parse_mrz_data(dg1)
+        nom, prenom, sexe = _parse_mrz_data(dg1)
         
         # Read DG11 (Additional Personal Details)
         dg11 = b''
@@ -369,17 +376,26 @@ def read_passport(doc_num, dob, doe):
         except Exception:
             pass
             
+        # Read DG12 (Additional Document Details)
+        dg12 = b''
+        try:
+            dg12 = passport.read_file([0x01, 0x0C])
+        except Exception:
+            pass
+            
         return {
             "success": True,
             "message": "Puce lue avec succès",
             "nom": nom,
             "prenom": prenom,
+            "sexe": sexe,
             "nomArabe": nomArabe,
             "prenomArabe": prenomArabe,
             "lieuNaissanceArabe": lieuNaissanceArabe,
             "nin": nin,
             "dg1_hex": dg1.hex(),
             "dg11_hex": dg11.hex() if dg11 else "",
+            "dg12_hex": dg12.hex() if dg12 else "",
             "documentNumber": doc_num
         }
     except Exception as e:
