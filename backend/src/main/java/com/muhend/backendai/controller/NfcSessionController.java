@@ -119,8 +119,8 @@ public class NfcSessionController {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> nfcMap = mapper.readValue(nfcJsonData, Map.class);
                 
-                if (storedOcr.containsKey("nom")) nfcMap.put("nomArabe", storedOcr.get("nom"));
-                if (storedOcr.containsKey("prenom")) nfcMap.put("prenomArabe", storedOcr.get("prenom"));
+                // if (storedOcr.containsKey("nom")) nfcMap.put("nomArabe", storedOcr.get("nom"));
+                // if (storedOcr.containsKey("prenom")) nfcMap.put("prenomArabe", storedOcr.get("prenom"));
                 if (storedOcr.containsKey("imagePath")) nfcMap.put("imagePath", storedOcr.get("imagePath"));
                 
                 nfcJsonData = mapper.writeValueAsString(nfcMap);

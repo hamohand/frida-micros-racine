@@ -383,19 +383,27 @@ def read_passport(doc_num, dob, doe):
         except Exception:
             pass
             
+        # Read DG13 (Optional Details)
+        dg13 = b''
+        try:
+            dg13 = passport.read_file([0x01, 0x0D])
+        except Exception:
+            pass
+            
         return {
             "success": True,
             "message": "Puce lue avec succès",
-            "nom": nom,
-            "prenom": prenom,
+            "latines": nom,
+            "prenomLatines": prenom,
             "sexe": sexe,
-            "nomArabe": nomArabe,
-            "prenomArabe": prenomArabe,
+            "nom": nomArabe,
+            "prenom": prenomArabe,
             "lieuNaissanceArabe": lieuNaissanceArabe,
             "nin": nin,
             "dg1_hex": dg1.hex(),
             "dg11_hex": dg11.hex() if dg11 else "",
             "dg12_hex": dg12.hex() if dg12 else "",
+            "dg13_hex": dg13.hex() if dg13 else "",
             "documentNumber": doc_num
         }
     except Exception as e:

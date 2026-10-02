@@ -73,27 +73,49 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
       for (TextBlock block in recognizedText.blocks) {
         for (TextLine line in block.lines) {
           String text = line.text.replaceAll(' ', '').toUpperCase();
-          // Correction classique OCR : ML Kit confond souvent '<<' avec 'K' ou '«'
-          text = text.replaceAll('«', '<');
-          text = text.replaceAllMapped(RegExp(r'(?<=<)K+(?=<)'), (m) => '<' * m.group(0)!.length);
-          text = text.replaceAllMapped(RegExp(r'(?<=<)K+$'), (m) => '<' * m.group(0)!.length);
-          text = text.replaceAllMapped(RegExp(r'^K+(?=<)'), (m) => '<' * m.group(0)!.length);
+          // Correction classique OCR : ML Kit confond souvent '<<' avec 'K', 'C', 'E' ou des parenthèses
+          text = text.replaceAll('«', '<').replaceAll('(', '<').replaceAll(')', '<').replaceAll('[', '<').replaceAll(']', '<');
+          text = text.replaceAllMapped(RegExp(r'(?<=<)[KCE]+(?=<)'), (m) => '<' * m.group(0)!.length);
+          text = text.replaceAllMapped(RegExp(r'(?<=<)[KCE]+$'), (m) => '<' * m.group(0)!.length);
+          text = text.replaceAllMapped(RegExp(r'^[KCE]+(?=<)'), (m) => '<' * m.group(0)!.length);
           
-          if (text.contains('<') && (text.length == 30 || text.length == 36 || text.length == 44)) {
+          // Tolérance pour la coupure des '<' à la fin de la ligne (ML Kit les ignore souvent)
+          // Sur la première ligne (qui commence par ID, I<, P<, etc), MLKit ignore TOUS les chevrons de fin !
+          if (text.startsWith(RegExp(r'^(ID|I<|P<|A<|C<|V<)'))) {
+            if (text.length >= 10 && text.length < 30) text = text.padRight(30, '<');
+            else if (text.length > 30 && text.length < 36) text = text.padRight(36, '<');
+            else if (text.length > 36 && text.length < 44) text = text.padRight(44, '<');
+          } else if (text.contains('<')) {
+            if (text.length >= 25 && text.length < 30) text = text.padRight(30, '<');
+            else if (text.length >= 31 && text.length < 36) text = text.padRight(36, '<');
+            else if (text.length >= 39 && text.length < 44) text = text.padRight(44, '<');
+          }
+          
+          // La ligne doit maintenant faire exactement 30, 36 ou 44 caractères, et si c'est la ligne 1, elle n'a peut-être pas de < à la base mais a été paddée
+          bool validLength = text.length == 30 || text.length == 36 || text.length == 44;
+          if (validLength && (text.contains('<') || text.startsWith(RegExp(r'^(ID|I<|P<|A<|C<|V<)')))) {
             mrzLines.add(text);
           }
         }
       }
 
-      // On n'accepte le résultat que s'il y a 2 ou 3 lignes de MRZ
-      if (mrzLines.length >= 2) {
-        // Optionnel : vérifier que toutes les lignes ont la même taille
-        if (mrzLines[0].length == mrzLines[1].length) {
-          String foundMrz = mrzLines.join('\n');
-          if (foundMrz != _mrzResult) {
-            setState(() {
-              _mrzResult = foundMrz;
-            });
+      if (mrzLines.isNotEmpty) {
+        int expectedLines = mrzLines[0].length == 30 ? 3 : 2;
+        
+        if (mrzLines.length >= expectedLines) {
+          // On prend exactement le nombre de lignes attendues (au cas où il y a des doublons lus)
+          List<String> finalLines = mrzLines.sublist(0, expectedLines);
+          
+          bool allSameLength = finalLines.every((l) => l.length == finalLines[0].length);
+          bool hasLine1 = finalLines[0].startsWith(RegExp(r'^(ID|I<|P<|A<|C<|V<)'));
+          
+          if (allSameLength && hasLine1) {
+            String foundMrz = finalLines.join('\n');
+            if (foundMrz != _mrzResult) {
+              setState(() {
+                _mrzResult = foundMrz;
+              });
+            }
           }
         }
       }
@@ -160,12 +182,12 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                 String exp = "";
                 List<String> lines = mrzController.text.split('\n');
                 if (lines.length >= 2) {
-                   if (lines[0].length == 30) {
+                   if (lines[0].length >= 30) {
                       doc = lines[0].substring(5, 14).replaceAll('<', '');
                       dob = lines[1].substring(0, 6);
                       exp = lines[1].substring(8, 14);
-                   } else if (lines[0].length == 44) {
-                      doc = lines[0].substring(5, 14).replaceAll('<', '');
+                   } else if (lines.length >= 2 && lines[1].length >= 44) {
+                      doc = lines[1].substring(0, 9).replaceAll('<', '');
                       dob = lines[1].substring(13, 19);
                       exp = lines[1].substring(21, 27);
                    }
@@ -176,16 +198,25 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
                    "expiryDate": exp
                 };
                 
+                String targetUrl = widget.uploadUrl.replaceAll('/upload', '/mrz-only');
+                Navigator.of(context).pop(); // Fermer la modale immédiatement
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Envoi au PC en cours...")));
+                
                 try {
-                  await http.post(
-                    Uri.parse(widget.uploadUrl.replaceAll('/upload', '/mrz-only')),
+                  final response = await http.post(
+                    Uri.parse(targetUrl),
                     headers: {"Content-Type": "application/json"},
                     body: jsonEncode({"type": "MRZ_DATA", "data": payload})
-                  );
-                } catch(e) { print(e); }
-                
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("MRZ envoyée au PC !")));
+                  ).timeout(const Duration(seconds: 5));
+                  
+                  if(response.statusCode == 200) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ MRZ reçue par le PC !"), backgroundColor: Colors.green));
+                  } else {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Erreur HTTP ${response.statusCode}"), backgroundColor: Colors.red));
+                  }
+                } catch(e) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Timeout : Vérifiez l'adresse IP ($targetUrl)"), backgroundColor: Colors.red));
+                }
               },
             ),
             ElevatedButton(
@@ -223,6 +254,33 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
         fit: StackFit.expand,
         children: [
           CameraPreview(_controller),
+          
+          // Surcouche visuelle (cadre pour guider l'utilisateur)
+          if (!_isLocked)
+            Positioned.fill(
+              child: CustomPaint(
+                painter: MrzOverlayPainter(),
+              ),
+            ),
+            
+          // Guide textuel au-dessus du cadre
+          if (!_isLocked)
+            Positioned(
+              top: MediaQuery.of(context).size.height * 0.35,
+              left: 0,
+              right: 0,
+              child: const Text(
+                "Alignez la bande MRZ dans ce cadre",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.greenAccent,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  backgroundColor: Colors.black45
+                ),
+              ),
+            ),
+            
           if (_isLocked)
             Container(color: Colors.black.withOpacity(0.5)), // Effet assombri quand bloqué
           Positioned(
@@ -261,3 +319,62 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
   }
 }
 
+
+class MrzOverlayPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.black.withOpacity(0.6);
+    final path = Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    
+    // Taille typique de la bande MRZ
+    final double mrzHeight = size.height * 0.18;
+    final double mrzWidth = size.width * 0.95;
+    
+    final cutout = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset(size.width / 2, size.height * 0.5),
+          width: mrzWidth,
+          height: mrzHeight,
+        ),
+        const Radius.circular(8),
+      ));
+
+    // Combine paths (zone assombrie autour du cadre)
+    final background = Path.combine(PathOperation.difference, path, cutout);
+    canvas.drawPath(background, paint);
+
+    // Dessiner une bordure pour guider
+    final borderPaint = Paint()
+      ..color = Colors.greenAccent
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0;
+    
+    // Dessiner des coins (corners)
+    final double cornerLength = 30.0;
+    final Rect rect = Rect.fromCenter(
+      center: Offset(size.width / 2, size.height * 0.5),
+      width: mrzWidth,
+      height: mrzHeight,
+    );
+    
+    // Top Left
+    canvas.drawLine(rect.topLeft, rect.topLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(rect.topLeft, rect.topLeft + Offset(0, cornerLength), borderPaint);
+    
+    // Top Right
+    canvas.drawLine(rect.topRight, rect.topRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(rect.topRight, rect.topRight + Offset(0, cornerLength), borderPaint);
+    
+    // Bottom Left
+    canvas.drawLine(rect.bottomLeft, rect.bottomLeft + Offset(cornerLength, 0), borderPaint);
+    canvas.drawLine(rect.bottomLeft, rect.bottomLeft + Offset(0, -cornerLength), borderPaint);
+    
+    // Bottom Right
+    canvas.drawLine(rect.bottomRight, rect.bottomRight + Offset(-cornerLength, 0), borderPaint);
+    canvas.drawLine(rect.bottomRight, rect.bottomRight + Offset(0, -cornerLength), borderPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}

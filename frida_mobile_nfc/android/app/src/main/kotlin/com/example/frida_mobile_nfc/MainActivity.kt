@@ -211,11 +211,15 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                     var ninDg11 = ""
                     var addressDg11 = ""
                     var fullNameDg11 = ""
+                    var dg11Hex = ""
 
                     try {
                         println("JMRTD: Tentative de lecture du fichier DG11...")
                         val dg11In: InputStream = passportService.getInputStream(PassportService.EF_DG11)
-                        val dg11File = org.jmrtd.lds.icao.DG11File(dg11In)
+                        val dg11Bytes = dg11In.readBytes()
+                        dg11Hex = dg11Bytes.joinToString("") { "%02x".format(it) }
+                        
+                        val dg11File = org.jmrtd.lds.icao.DG11File(java.io.ByteArrayInputStream(dg11Bytes))
                         ninDg11 = dg11File.personalNumber ?: ""
                         addressDg11 = dg11File.permanentAddress?.joinToString(", ") ?: ""
                         fullNameDg11 = dg11File.nameOfHolder ?: ""
@@ -241,7 +245,8 @@ class MainActivity : FlutterActivity(), NfcAdapter.ReaderCallback {
                         "rawMrz": "${mrzInfo.toString().replace("\n", "\\n")}",
                         "nin_dg11": "$ninDg11",
                         "address_dg11": "$addressDg11",
-                        "fullName_dg11": "$fullNameDg11"
+                        "fullName_dg11": "$fullNameDg11",
+                        "dg11_hex": "$dg11Hex"
                     }
                     """.trimIndent()
 
