@@ -19,6 +19,9 @@ interface Personne {
   mrzValid?: boolean | null;
   latines?: string;
   prenomLatines?: string;
+  pere?: string;
+  mere?: string;
+  dateDeces?: string;
 }
 
 @Component({
@@ -44,6 +47,7 @@ interface Personne {
             <span class="name"><span class="demo-blur">{{ defunt.nom }}</span> {{ defunt.prenom }}</span>
             <span class="badge">{{ defunt.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
             <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ defunt.nin || '-' }}</span></span>
+            <span class="details" *ngIf="defunt.dateDeces">Décédé(e) le {{ defunt.dateDeces }}</span>
             <div *ngIf="frida?.defunt?.identite?.mrzValid !== null && frida?.defunt?.identite?.mrzValid !== undefined" style="margin: 5px 0; direction: ltr;">
               <span style="padding: 3px 10px; border-radius: 12px; font-size: 0.85rem;" [style.background]="frida?.defunt?.identite?.mrzValid ? 'rgba(78,204,163,0.15)' : 'rgba(255,184,77,0.15)'" [style.border]="frida?.defunt?.identite?.mrzValid ? '1px solid #4ecca3' : '1px solid #ffb84d'" [style.color]="frida?.defunt?.identite?.mrzValid ? '#4ecca3' : '#ffb84d'">
                 {{ frida?.defunt?.identite?.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
@@ -64,7 +68,11 @@ interface Personne {
               <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
               <input type="text" [(ngModel)]="defunt.prenom" placeholder="Prénom">
               <input type="date" [(ngModel)]="defunt.dateNaissance">
+              <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: -8px;">Date de décès</label>
+              <input type="date" [(ngModel)]="defunt.dateDeces">
               <input type="text" [(ngModel)]="defunt.nin" placeholder="NIN">
+              <input type="text" [(ngModel)]="defunt.pere" placeholder="Nom et prénom du père">
+              <input type="text" [(ngModel)]="defunt.mere" placeholder="Nom et prénom de la mère">
               <select [(ngModel)]="defunt.sexe">
                 <option value="M">Homme</option>
                 <option value="F">Femme</option>
@@ -98,6 +106,8 @@ interface Personne {
               <input type="text" [(ngModel)]="currentHeir.prenom" placeholder="Prénom">
               <input type="date" [(ngModel)]="currentHeir.dateNaissance">
               <input type="text" [(ngModel)]="currentHeir.nin" placeholder="NIN">
+              <input type="text" [(ngModel)]="currentHeir.pere" placeholder="Nom et prénom du père">
+              <input type="text" [(ngModel)]="currentHeir.mere" placeholder="Nom et prénom de la mère">
               <select [(ngModel)]="currentHeir.sexe">
                 <option value="M">Homme</option>
                 <option value="F">Femme</option>
@@ -336,9 +346,12 @@ export class HeirReviewComponent implements OnInit {
              nom: data.defunt.identite.nom || '',
              prenom: data.defunt.identite.prenom || '',
              dateNaissance: data.defunt.identite.dateNaissance || '',
+             dateDeces: data.defunt.dateDeces || '',
              sexe: isFemale ? 'F' : 'M',
              numParente: '01',
-             nin: data.defunt.identite.nin || ''
+             nin: data.defunt.identite.nin || '',
+             pere: data.defunt.identite.pere || '',
+             mere: data.defunt.identite.mere || ''
            };
         }
         if (data.sexeParentPredecede) {
@@ -370,7 +383,9 @@ export class HeirReviewComponent implements OnInit {
                 nin: h.identite?.nin || '',
                 mrzValid: h.identite?.mrzValid ?? null,
                 latines: h.identite?.latines || '',
-                prenomLatines: h.identite?.prenomLatines || ''
+                prenomLatines: h.identite?.prenomLatines || '',
+                pere: h.identite?.pere || '',
+                mere: h.identite?.mere || ''
               };
            });
            
@@ -545,6 +560,42 @@ export class HeirReviewComponent implements OnInit {
   }
 
   validateAndCalculate() {
+    // === VALIDATIONS ===
+    const erreurs: string[] = [];
+    
+    // 1. Le défunt doit avoir un nom et prénom
+    if (!this.defunt.nom || !this.defunt.prenom) {
+      erreurs.push('Le nom et prénom du défunt sont obligatoires.');
+    }
+    
+    // 2. La date de naissance du défunt est obligatoire
+    if (!this.defunt.dateNaissance) {
+      erreurs.push('La date de naissance du défunt est obligatoire.');
+    }
+    
+    // 3. La date de décès est obligatoire
+    if (!this.defunt.dateDeces) {
+      erreurs.push('La date de décès du défunt est obligatoire.');
+    }
+    
+    // 4. Il faut au moins 2 témoins
+    const temoins = this.frida?.temoins || [];
+    // if (temoins.length < 2) {
+    //   erreurs.push("Il faut au moins 2 témoins pour valider l'acte (actuellement : " + temoins.length + ").");
+    // }
+    
+    // 5. Il faut au moins 1 héritier (hors témoins)
+    const vraisHeritiers = this.heritiers.filter(h => h.numParente !== '00' && h.numParente !== '01');
+    if (vraisHeritiers.length === 0) {
+      erreurs.push('Il faut au moins un héritier.');
+    }
+    
+    if (erreurs.length > 0) {
+      this.notif.erreur(erreurs.join("\n"));
+
+      return;
+    }
+
     this.isCalculating = true;
 
     // Le backend (HeirPartCalculatorService.java et EcrireBdService.java)
@@ -554,9 +605,12 @@ export class HeirReviewComponent implements OnInit {
       nom: p.nom,
       prenom: p.prenom,
       dateNaissance: p.dateNaissance,
+      dateDeces: p.dateDeces,
       sexe: p.sexe === 'M' ? 'ذكر' : 'أنثى', 
       numParente: p.numParente,
-      nin: p.nin
+      nin: p.nin,
+      pere: p.pere,
+      mere: p.mere
     });
 
     const payload = {

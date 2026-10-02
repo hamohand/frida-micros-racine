@@ -6,6 +6,11 @@ export interface Parametres {
   verificationPhonetique: boolean;
   /** IP ou nom d'hôte du poste sur le réseau local (sans schéma ni port), vide si non configurée. */
   adresseReseauLocale: string;
+  nomNotaireArabe?: string;
+  nomNotaireLatin?: string;
+  adresseEtude?: string;
+  wilayaEtude?: string;
+  communeEtude?: string;
 }
 
 @Injectable({

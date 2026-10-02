@@ -13,7 +13,39 @@ import { ParametresService } from '../../../services/parametres.service';
 
       <div *ngIf="chargement" class="info">Chargement...</div>
 
-
+      <div *ngIf="!chargement" class="option">
+        <span class="option-titre">Identité de l'étude notariale</span>
+        <p class="option-aide">
+          Ces informations apparaissent sur l'en-tête de chaque Frida générée.
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin: 0.75rem 0 0 1.95rem;">
+          <div>
+            <label style="font-size: 0.85rem; color: #94a3b8;">Nom du notaire (arabe)</label>
+            <input type="text" class="adresse-champ" style="max-width: 400px; direction: rtl;" [(ngModel)]="nomNotaireArabe" placeholder="مثال : الأستاذ(ة) بن علي محمد" />
+          </div>
+          <div>
+            <label style="font-size: 0.85rem; color: #94a3b8;">Nom du notaire (latin)</label>
+            <input type="text" class="adresse-champ" style="max-width: 400px;" [(ngModel)]="nomNotaireLatin" placeholder="ex: Maître BENALI Mohammed" />
+          </div>
+          <div>
+            <label style="font-size: 0.85rem; color: #94a3b8;">Adresse de l'étude</label>
+            <input type="text" class="adresse-champ" style="max-width: 400px;" [(ngModel)]="adresseEtude" placeholder="ex: 12 Rue Didouche Mourad" />
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <div style="flex: 1;">
+              <label style="font-size: 0.85rem; color: #94a3b8;">Commune</label>
+              <input type="text" class="adresse-champ" style="max-width: 200px;" [(ngModel)]="communeEtude" placeholder="ex: Azazga" />
+            </div>
+            <div style="flex: 1;">
+              <label style="font-size: 0.85rem; color: #94a3b8;">Wilaya</label>
+              <input type="text" class="adresse-champ" style="max-width: 200px;" [(ngModel)]="wilayaEtude" placeholder="ex: Tizi-Ouzou" />
+            </div>
+          </div>
+          <button class="btn-enregistrer" style="align-self: flex-start; margin-top: 5px;" (click)="enregistrerEtude()" [disabled]="enregistrementEtude">
+            Enregistrer l'identité de l'étude
+          </button>
+        </div>
+      </div>
 
       <div *ngIf="!chargement" class="option">
         <span class="option-titre">Adresse réseau locale du poste</span>
@@ -71,6 +103,12 @@ import { ParametresService } from '../../../services/parametres.service';
 export class ParametresComponent implements OnInit {
   verificationPhonetique = false;
   adresseReseauLocale = '';
+  nomNotaireArabe = '';
+  nomNotaireLatin = '';
+  adresseEtude = '';
+  wilayaEtude = '';
+  communeEtude = '';
+  enregistrementEtude = false;
   chargement = true;
   enregistrement = false;
   enregistrementAdresse = false;
@@ -84,6 +122,11 @@ export class ParametresComponent implements OnInit {
       next: (p) => {
         this.verificationPhonetique = p.verificationPhonetique;
         this.adresseReseauLocale = p.adresseReseauLocale || '';
+        this.nomNotaireArabe = p.nomNotaireArabe || '';
+        this.nomNotaireLatin = p.nomNotaireLatin || '';
+        this.adresseEtude = p.adresseEtude || '';
+        this.wilayaEtude = p.wilayaEtude || '';
+        this.communeEtude = p.communeEtude || '';
         this.chargement = false;
       },
       error: () => {
@@ -133,5 +176,30 @@ export class ParametresComponent implements OnInit {
   private afficher(message: string, erreur: boolean): void {
     this.message = message;
     this.erreur = erreur;
+  }
+
+  enregistrerEtude(): void {
+    this.enregistrementEtude = true;
+    this.parametresService.modifier({
+      nomNotaireArabe: this.nomNotaireArabe.trim(),
+      nomNotaireLatin: this.nomNotaireLatin.trim(),
+      adresseEtude: this.adresseEtude.trim(),
+      wilayaEtude: this.wilayaEtude.trim(),
+      communeEtude: this.communeEtude.trim()
+    }).subscribe({
+      next: (p) => {
+        this.nomNotaireArabe = p.nomNotaireArabe || '';
+        this.nomNotaireLatin = p.nomNotaireLatin || '';
+        this.adresseEtude = p.adresseEtude || '';
+        this.wilayaEtude = p.wilayaEtude || '';
+        this.communeEtude = p.communeEtude || '';
+        this.enregistrementEtude = false;
+        this.afficher('Identité de l\'étude enregistrée avec succès.', false);
+      },
+      error: () => {
+        this.enregistrementEtude = false;
+        this.afficher('Impossible d\'enregistrer l\'identité de l\'étude.', true);
+      }
+    });
   }
 }

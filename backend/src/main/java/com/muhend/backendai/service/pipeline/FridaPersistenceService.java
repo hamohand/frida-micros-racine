@@ -75,6 +75,32 @@ public class FridaPersistenceService {
         switch (heirCategory) {
             case DEFUNT -> {
                 DefuntEntity defunt = personneFactory.creerDefunt(ctx, identite);
+                // Extraire dateDeces depuis le JSON brut OCR (acte de décès)
+                try {
+                    String rawJson = identite.getRawOcrTextJson();
+                    if (rawJson != null && rawJson.contains("dateDeces")) {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        @SuppressWarnings("unchecked")
+                        java.util.Map<String, String> rawTexts = mapper.readValue(rawJson, java.util.Map.class);
+                        String dateDeces = rawTexts.get("dateDeces");
+                        if (dateDeces != null && !dateDeces.isBlank()) {
+                            // Essayer le format JJ/MM/AAAA puis AAAA-MM-JJ
+                            try {
+                                defunt.setDateDeces(java.time.LocalDate.parse(dateDeces,
+                                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+                            } catch (Exception e1) {
+                                try {
+                                    defunt.setDateDeces(java.time.LocalDate.parse(dateDeces));
+                                } catch (Exception e2) {
+                                    log.warn("Impossible de parser la date de décès: {}", dateDeces);
+                                }
+                            }
+                            log.info("Date de décès extraite du QR code: {}", defunt.getDateDeces());
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Erreur extraction dateDeces depuis OCR JSON: {}", e.getMessage());
+                }
                 defuntRepo.save(defunt);
                 ctx.getFicheFrida().setNumFrida(ctx.getNumFrida());
                 ctx.getFicheFrida().setDefunt(defunt);
@@ -154,6 +180,10 @@ public class FridaPersistenceService {
                 defunt.getIdentite().setPrenom(dto.getDefunt().getPrenom());
                 defunt.getIdentite().setDateNaissance(dto.getDefunt().getDateNaissance());
                 defunt.getIdentite().setSexe(dto.getDefunt().getSexe());
+                defunt.getIdentite().setNin(dto.getDefunt().getNin());
+                if (dto.getDefunt().getPere() != null) defunt.getIdentite().setPere(dto.getDefunt().getPere());
+                if (dto.getDefunt().getMere() != null) defunt.getIdentite().setMere(dto.getDefunt().getMere());
+                if (dto.getDefunt().getDateDeces() != null) defunt.setDateDeces(dto.getDefunt().getDateDeces());
                 identitesRepo.save(defunt.getIdentite());
             }
         }
@@ -179,6 +209,8 @@ public class FridaPersistenceService {
                 identite.setDateNaissance(p.getDateNaissance());
                 identite.setSexe(p.getSexe());
                 identite.setNin(p.getNin());
+                if (p.getPere() != null) identite.setPere(p.getPere());
+                if (p.getMere() != null) identite.setMere(p.getMere());
                 identite = identitesRepo.save(identite);
                 
                 HeritierEntity heritier = new HeritierEntity();

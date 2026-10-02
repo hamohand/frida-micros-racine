@@ -34,7 +34,12 @@ public class ParametreController {
     public Map<String, Object> lire() {
         return Map.of(
                 "verificationPhonetique", parametreService.isVerificationPhonetiqueActive(),
-                "adresseReseauLocale", parametreService.getAdresseReseauLocale());
+                "adresseReseauLocale", parametreService.getAdresseReseauLocale(),
+                "nomNotaireArabe", parametreService.getNomNotaireArabe(),
+                "nomNotaireLatin", parametreService.getNomNotaireLatin(),
+                "adresseEtude", parametreService.getAdresseEtude(),
+                "wilayaEtude", parametreService.getWilayaEtude(),
+                "communeEtude", parametreService.getCommuneEtude());
     }
 
     @PutMapping
@@ -58,6 +63,21 @@ public class ParametreController {
                         "Adresse invalide : ni « http:// », ni port, ni chemin — juste l'adresse IP ou le nom du poste, ex. 192.168.1.50."));
             }
             parametreService.setAdresseReseauLocale(nettoyee);
+        }
+        if (corps.containsKey("nomNotaireArabe")) {
+            parametreService.setNomNotaireArabe(((String) corps.get("nomNotaireArabe")).strip());
+        }
+        if (corps.containsKey("nomNotaireLatin")) {
+            parametreService.setNomNotaireLatin(((String) corps.get("nomNotaireLatin")).strip());
+        }
+        if (corps.containsKey("adresseEtude")) {
+            parametreService.setAdresseEtude(((String) corps.get("adresseEtude")).strip());
+        }
+        if (corps.containsKey("wilayaEtude")) {
+            parametreService.setWilayaEtude(((String) corps.get("wilayaEtude")).strip());
+        }
+        if (corps.containsKey("communeEtude")) {
+            parametreService.setCommuneEtude(((String) corps.get("communeEtude")).strip());
         }
         return ResponseEntity.ok(lire());
     }

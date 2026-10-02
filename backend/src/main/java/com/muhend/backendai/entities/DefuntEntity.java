@@ -21,6 +21,7 @@ public class DefuntEntity {
     private String adresse;
     private String profession;
     private LocalDate dateNaissance;
+    private LocalDate dateDeces;
 
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "identite_id")

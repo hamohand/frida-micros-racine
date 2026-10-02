@@ -8,7 +8,10 @@ public class PersonneUpdateDto {
     private String nom;
     private String prenom;
     private LocalDate dateNaissance;
+    private LocalDate dateDeces;
     private String sexe;
     private String numParente;
     private String nin;
+    private String pere;
+    private String mere;
 }

@@ -28,6 +28,21 @@ public class ParametreService {
      */
     public static final String ADRESSE_RESEAU_LOCALE = "reseau.adresse-locale";
 
+    /** Nom du notaire en arabe (ex: الأستاذ بن علي محمد) */
+    public static final String NOM_NOTAIRE_ARABE = "etude.nom-notaire-arabe";
+    
+    /** Nom du notaire en latin (ex: Maître BENALI Mohammed) */
+    public static final String NOM_NOTAIRE_LATIN = "etude.nom-notaire-latin";
+    
+    /** Adresse de l'étude notariale */
+    public static final String ADRESSE_ETUDE = "etude.adresse";
+    
+    /** Wilaya de l'étude */
+    public static final String WILAYA_ETUDE = "etude.wilaya";
+    
+    /** Commune de l'étude */
+    public static final String COMMUNE_ETUDE = "etude.commune";
+
     private final ParametreRepo parametreRepo;
 
     public ParametreService(ParametreRepo parametreRepo) {
@@ -66,5 +81,40 @@ public class ParametreService {
     public void setAdresseReseauLocale(String adresse) {
         parametreRepo.save(new ParametreEntity(ADRESSE_RESEAU_LOCALE, adresse));
         log.info("Adresse réseau locale enregistrée : {}", adresse);
+    }
+
+    public String getNomNotaireArabe() {
+        return parametreRepo.findById(NOM_NOTAIRE_ARABE).map(ParametreEntity::getValeur).orElse("");
+    }
+    public void setNomNotaireArabe(String val) {
+        parametreRepo.save(new ParametreEntity(NOM_NOTAIRE_ARABE, val));
+    }
+    
+    public String getNomNotaireLatin() {
+        return parametreRepo.findById(NOM_NOTAIRE_LATIN).map(ParametreEntity::getValeur).orElse("");
+    }
+    public void setNomNotaireLatin(String val) {
+        parametreRepo.save(new ParametreEntity(NOM_NOTAIRE_LATIN, val));
+    }
+    
+    public String getAdresseEtude() {
+        return parametreRepo.findById(ADRESSE_ETUDE).map(ParametreEntity::getValeur).orElse("");
+    }
+    public void setAdresseEtude(String val) {
+        parametreRepo.save(new ParametreEntity(ADRESSE_ETUDE, val));
+    }
+    
+    public String getWilayaEtude() {
+        return parametreRepo.findById(WILAYA_ETUDE).map(ParametreEntity::getValeur).orElse("");
+    }
+    public void setWilayaEtude(String val) {
+        parametreRepo.save(new ParametreEntity(WILAYA_ETUDE, val));
+    }
+    
+    public String getCommuneEtude() {
+        return parametreRepo.findById(COMMUNE_ETUDE).map(ParametreEntity::getValeur).orElse("");
+    }
+    public void setCommuneEtude(String val) {
+        parametreRepo.save(new ParametreEntity(COMMUNE_ETUDE, val));
     }
 }
