@@ -7,6 +7,9 @@ import {TraductionArabeService} from "../../services/traduction-arabe.service";
 import {MatCardModule} from "@angular/material/card";
 import {MatDividerModule} from "@angular/material/divider";
 import {MatButtonModule} from "@angular/material/button";
+import {ParametresService, Parametres} from "../../services/parametres.service";
+
+import {AuthService} from "../../services/auth.service";
 
 @Component({
   selector: 'app-frida',
@@ -17,6 +20,9 @@ import {MatButtonModule} from "@angular/material/button";
 })
 export class FridaComponent implements OnInit, AfterViewInit {
   private notif = inject(NotificationService);
+  private parametresService = inject(ParametresService);
+  public authService = inject(AuthService);
+  public params: Parametres | null = null;
   public frida: any = null;
   //numFrida: string = '1956010320250116';
   //numFrida: string = '19560103202501171733';
@@ -44,6 +50,7 @@ export class FridaComponent implements OnInit, AfterViewInit {
     this.route.queryParams.subscribe((params) => {
       this.numFrida = params['numFrida'] ?? 'Aucune donnée reçue';
     });
+    this.parametresService.lire().subscribe(p => this.params = p);
    // this.numFrida='19560103202501171733'
     console.log("numFrida ngOnInit: ",this.numFrida);
     this.afficherFrida();
@@ -295,6 +302,26 @@ export class FridaComponent implements OnInit, AfterViewInit {
     }
   }
 
+  downloadWord() {
+    if (!this.frida?.numFrida) {
+      this.notif.avertissement('Impossible de télécharger : numéro de document manquant.');
+      return;
+    }
+    
+    const url = `/api/frida/${this.frida.numFrida}/word`;
+    window.open(url, '_blank');
+  }
+
+  downloadPdf() {
+    if (!this.frida?.numFrida) {
+      this.notif.avertissement('Impossible de télécharger : numéro de document manquant.');
+      return;
+    }
+    
+    const url = `/api/frida/${this.frida.numFrida}/pdf`;
+    window.open(url, '_blank');
+  }
+
   printNgContainer() {
     if (!this.frida && this.temoins.length === 0 && this.heritiers.length === 0) {
       this.notif.avertissement('Le contenu est vide, impossible d\'imprimer.');
@@ -372,6 +399,17 @@ export class FridaComponent implements OnInit, AfterViewInit {
     } else {
       console.error('Référence au ng-container introuvable.');
     }
+  }
+
+  formatDateArab(dateStr?: string | null): string {
+    if (!dateStr) return '';
+    // if already formatted DD-MM-YYYY or DD/MM/YYYY
+    if (dateStr.indexOf('-') === 2 || dateStr.indexOf('/') === 2) return dateStr;
+    const parts = dateStr.split('-');
+    if (parts.length === 3) {
+      return `${parts[2]}-${parts[1]}-${parts[0]}`;
+    }
+    return dateStr;
   }
 
 }

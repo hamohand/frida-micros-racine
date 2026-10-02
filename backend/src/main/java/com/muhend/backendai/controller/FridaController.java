@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpStatus;
+import com.muhend.backendai.service.document.WordGenerationService;
 
 import java.util.List;
 import java.util.Map;
@@ -23,18 +27,22 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/api/frida")
 public class FridaController {
-    @Autowired
+
     private final FridaService fridaService;
+    private final WordGenerationService wordGenerationService;
+    private final HeritierService heritierService;
+    private final TemoinService temoinService;
+    private final DefuntService defuntService;
 
     @Autowired
-    private HeritierService heritierService;
-    @Autowired
-    private TemoinService temoinService;
-    @Autowired
-    private DefuntService defuntService;
-
-    public FridaController(FridaService fridaService) {
+    public FridaController(FridaService fridaService, WordGenerationService wordGenerationService, 
+                           HeritierService heritierService, TemoinService temoinService, 
+                           DefuntService defuntService) {
         this.fridaService = fridaService;
+        this.wordGenerationService = wordGenerationService;
+        this.heritierService = heritierService;
+        this.temoinService = temoinService;
+        this.defuntService = defuntService;
     }
 
     /**
@@ -158,6 +166,29 @@ public class FridaController {
             return ResponseEntity.noContent().build();
         } else {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/{numFrida}/word")
+    public ResponseEntity<byte[]> genererWord(@PathVariable String numFrida) {
+        Optional<FridaEntity> fridaOpt = fridaService.getFridaByNumFrida(numFrida);
+        if (fridaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            byte[] docx = wordGenerationService.genererFridaWord(fridaOpt.get());
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.wordprocessingml.document"));
+            headers.setContentDispositionFormData("attachment", "Frida_" + numFrida + ".docx");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            
+            return new ResponseEntity<>(docx, headers, HttpStatus.OK);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
