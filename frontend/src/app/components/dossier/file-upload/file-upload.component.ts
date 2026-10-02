@@ -329,7 +329,8 @@ export class FileUploadComponent implements OnInit {
 
   /** Entité OCR proposée par défaut, par type de document (sinon {type}_01). */
   private readonly entitesParDefaut: Record<string, string> = {
-    en: 'en_01_qrcode_01'
+    en: 'en_01_qrcode_01',
+    ad: 'adc_01'
   };
 
   entiteDefaut(docType: string): string {
@@ -413,7 +414,7 @@ export class FileUploadComponent implements OnInit {
     const validFiles = newFiles.filter(file => this.validateFile(file));
 
     validFiles.forEach(file => {
-      const docType = this.config.docTypes && this.config.docTypes.length > 0 ? this.config.docTypes[0].id : 'en';
+      const docType = this.config.defaultDocType || (this.config.docTypes && this.config.docTypes.length > 0 ? this.config.docTypes[0].id : 'en');
       this.uploadedFiles.push({
         file,
         id: uuidv4(),

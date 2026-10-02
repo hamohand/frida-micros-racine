@@ -19,6 +19,7 @@ export interface UploadConfig {
   uploadPath: string;
   title: string;
   docTypes: DocTypeOption[];
+  defaultDocType?: string;
   allowSkip?: boolean;
   skipText?: string;
   highlightSkip?: boolean;

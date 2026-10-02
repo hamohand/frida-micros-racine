@@ -260,7 +260,13 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   private setupMobileNfc() {
     this.parametresService.lire().subscribe({
       next: (p) => {
-        const adresse = (p.adresseReseauLocale || '').trim();
+        let adresse = (p.adresseReseauLocale || '').trim();
+        
+        // Auto-détection si on accède déjà via une IP réseau
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            adresse = window.location.hostname;
+        }
+
         if (!adresse) {
           this.adresseNonConfiguree = true;
           return;
@@ -284,6 +290,9 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
               if (mrz.documentNumber) this.mrzDoc = mrz.documentNumber;
               
               const formatDate = (d: any) => {
+                if (typeof d === 'string' && d.length === 6 && !d.includes('-')) {
+                  return d; // Déjà au format YYMMDD envoyé par l'app Flutter
+                }
                 if (Array.isArray(d)) {
                   // [year, month, day]
                   const y = String(d[0]).substring(2);
@@ -307,8 +316,15 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
               }
               
               // Switch to USB mode automatically and trigger read
+              this.mode = 'usb';
               this.forceManualEntry = true;
-              this.lireUsb();
+              
+              this.checkingUsb = true;
+              this.nfcService.checkUsbAgentAvailable().subscribe(isUsb => {
+                  this.checkingUsb = false;
+                  this.isUsbAvailable = isUsb;
+                  // On ne lance plus la lecture automatique. On attend que l'utilisateur clique.
+              });
             } else if (event.type === 'NFC_DATA') {
               this.handleSuccess(event.payload);
             }

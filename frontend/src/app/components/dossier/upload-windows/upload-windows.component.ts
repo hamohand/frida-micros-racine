@@ -71,9 +71,9 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <!-- Fenêtre Défunt -->
         <div class="window-section" *ngIf="isWindowActive('f1')" [class.active-slide]="windows['f1'].isVisible">
           <ng-container *ngIf="!windows['f1'].isUploading">
-            <h2 class="window-title">1. Document du Défunt</h2>
+            <h2 class="window-title">1. Acte de Décès du Défunt</h2>
             <app-file-upload #fileUploadF1
-                [config]="getUploadConfig('01', 'Défunt', false, '', 4)"
+                [config]="getUploadConfig('01', 'Défunt (Acte de décès)', false, '', 4, 'ad')"
                 [initialFiles]="windows['f1'].rawFiles || []"
                 (filesConfirmed)="onFilesConfirmed('f1', $event)"
                 (uploadCancelled)="onUploadCancelled('f1')"
@@ -937,13 +937,14 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
     ];
   }
 
-  getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = '', maxFiles: number = 10): UploadConfig & { allowPrevious?: boolean } {
+  getUploadConfig(path: string, title: string, allowPrevious: boolean = true, skipText: string = '', maxFiles: number = 10, defaultDocType: string = ''): UploadConfig & { allowPrevious?: boolean } {
     return {
       maxFileSize: 5 * 1024 * 1024,
       allowedTypes: ['image/jpeg', 'image/png', 'application/pdf'],
       uploadPath: path,
       title: title,
       docTypes: this.docTypeOptions,
+      defaultDocType: defaultDocType,
       allowPrevious: allowPrevious,
       allowSkip: skipText.length > 0 || this.brouillonId !== null,
       skipText: skipText || (this.brouillonId !== null ? 'Suivant' : ''),
