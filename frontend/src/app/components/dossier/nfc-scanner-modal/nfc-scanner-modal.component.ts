@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2 } from '@angular/core';
+import { Component, EventEmitter, Output, Input, OnInit, OnDestroy, ElementRef, Renderer2, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
@@ -14,7 +14,7 @@ import { Subscription } from 'rxjs';
   imports: [CommonModule, FormsModule, QRCodeModule],
   template: `
     <div class="modal-overlay" (click)="close()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-content" (click)="$event.stopPropagation()" [style.width]="mode === 'usb' ? '800px' : '400px'">
         <div class="modal-header">
           <h2>{{ mode === 'usb' ? '🪪 Scanner via USB' : '📱 Scanner via Mobile' }}</h2>
           <button class="close-btn" (click)="close()">✕</button>
@@ -27,43 +27,81 @@ import { Subscription } from 'rxjs';
         </div>
 
         <div class="modal-body" *ngIf="(!adresseNonConfiguree || mode === 'usb') && !successData">
+          
+          <!-- MODE USB -->
           <div *ngIf="mode === 'usb'">
-            <div *ngIf="!isUsbAvailable && !checkingUsb" style="color:#D16D6A; margin-bottom: 1rem;">
+            <div *ngIf="!isUsbAvailable && !checkingUsb" style="color:#D16D6A; margin-bottom: 1rem; text-align: center;">
               <span class="material-icons" style="font-size:3rem; display:block; margin-bottom:10px;">error</span>
               Agent Local non détecté. Assurez-vous d'avoir lancé le programme "Frida USB Agent" sur votre PC.
             </div>
 
-            <div *ngIf="isUsbAvailable">
-              <span class="material-icons usb-icon" style="font-size: 3rem; color: #4ecca3; margin-bottom: 10px; display: block;">usb</span>
-              <div *ngIf="!mrzDoc || !mrzDob || !mrzExp || forceManualEntry">
-                <p class="instructions" style="text-align:center;">Veuillez saisir les 3 informations de la zone MRZ pour déverrouiller la puce.</p>
-                <div class="manual-entry-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                  <input type="text" [(ngModel)]="mrzDoc" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-                  <input type="text" [(ngModel)]="mrzDob" placeholder="Date Naissance (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-                  <input type="text" [(ngModel)]="mrzExp" placeholder="Date Expiration (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+            <div *ngIf="isUsbAvailable" style="display: flex; gap: 20px; text-align: left; align-items: stretch;">
+              
+              <!-- Colonne Gauche : Saisie Manuelle ou Bouton USB -->
+              <div style="flex: 1; border-right: 1px solid rgba(255,255,255,0.1); padding-right: 20px; display: flex; flex-direction: column;">
+                <h3 style="color: #4ecca3; font-size: 1.1rem; margin-top: 0; text-align: center;">
+                  <span class="material-icons" style="vertical-align: middle;">keyboard</span> Saisie Manuelle
+                </h3>
+                
+                <div *ngIf="!mrzDoc || !mrzDob || !mrzExp || forceManualEntry" style="flex: 1;">
+                  <p class="instructions">Veuillez saisir les 3 informations de la zone MRZ pour déverrouiller la puce.</p>
+                  <div class="manual-entry-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" [(ngModel)]="mrzDoc" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                    <input type="text" [(ngModel)]="mrzDob" placeholder="Date Naissance (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                    <input type="text" [(ngModel)]="mrzExp" placeholder="Date Expiration (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                  </div>
+                  <button class="btn btn-primary" (click)="forceManualEntry = false" [disabled]="!mrzDoc || !mrzDob || !mrzExp" style="margin-top:auto; width:100%; padding: 10px;">
+                    Valider les clés
+                  </button>
                 </div>
-                <button class="btn btn-primary" (click)="forceManualEntry = false" [disabled]="!mrzDoc || !mrzDob || !mrzExp" style="margin-top:10px; width:100%;">
-                  Valider les clés
-                </button>
+
+                <div *ngIf="mrzDoc && mrzDob && mrzExp && !forceManualEntry" style="flex: 1; display: flex; flex-direction: column;">
+                  <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; position: relative;">
+                    <span class="material-icons" style="vertical-align:middle;">check_circle</span> Clés validées !<br>
+                    <small>{{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
+                    <button (click)="forceManualEntry = true" style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: #4ecca3; cursor: pointer;"><span class="material-icons" style="font-size: 1rem;">edit</span></button>
+                  </div>
+                  <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b>.</p>
+                  <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:auto; width: 100%; font-size: 1.1rem; padding: 12px;">
+                    <span class="spinner" *ngIf="isReadingUsb"></span> {{ isReadingUsb ? 'Lecture sans contact en cours...' : '💳 Lire la puce' }}
+                  </button>
+                  <div class="listening-state" *ngIf="usbError" style="margin-top: 15px; text-align: center;">
+                    <span class="material-icons" style="color:#D16D6A; vertical-align:middle;">error</span> <i style="color:#D16D6A;">{{ usbError }}</i>
+                  </div>
+                </div>
               </div>
 
-              <div *ngIf="mrzDoc && mrzDob && mrzExp && !forceManualEntry">
-                <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; text-align: left; position: relative;">
-                  <span class="material-icons" style="vertical-align:middle;">check_circle</span> Clés validées !<br>
-                  <small>{{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
-                  <button (click)="forceManualEntry = true" style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: #4ecca3; cursor: pointer;"><span class="material-icons" style="font-size: 1rem;">edit</span></button>
+              <!-- Colonne Droite : Scan Mobile -->
+              <div style="flex: 1; display: flex; flex-direction: column; text-align: center;">
+                <h3 style="color: #4ecca3; font-size: 1.1rem; margin-top: 0;">
+                  <span class="material-icons" style="vertical-align: middle;">qr_code_scanner</span> Saisie avec le Mobile
+                </h3>
+                
+                <div *ngIf="adresseNonConfiguree" style="margin-top: 2rem;">
+                  <span class="material-icons warning-icon" style="font-size: 2rem;">wifi_off</span>
+                  <p style="font-size: 0.9rem; color: #ffb84d;">Adresse réseau non configurée.</p>
                 </div>
-                <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b>.</p>
-                <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:10px; width: 100%; font-size: 1.1rem; padding: 12px;">
-                  <span class="spinner" *ngIf="isReadingUsb"></span> {{ isReadingUsb ? 'Lecture sans contact en cours...' : '💳 Lire la puce' }}
-                </button>
-                <div class="listening-state" *ngIf="usbError" style="margin-top: 15px;">
-                  <span class="material-icons" style="color:#D16D6A; vertical-align:middle;">error</span> <i style="color:#D16D6A;">{{ usbError }}</i>
+                
+                <div *ngIf="!adresseNonConfiguree" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                  <p class="instructions" style="width: 100%; text-align: center; margin-bottom: 15px;">
+                    Scannez ce QR Code avec <b>Frida Mobile</b> pour remplir automatiquement la MRZ.
+                  </p>
+                  <div class="qr-container" *ngIf="qrData">
+                    <qrcode [qrdata]="qrData" [width]="180" [errorCorrectionLevel]="'M'"></qrcode>
+                  </div>
+                  <div class="listening-state" *ngIf="qrData && (!mrzDoc || forceManualEntry)">
+                    <span class="spinner"></span> <i>En attente du scan mobile...</i>
+                  </div>
+                  <div class="listening-state" *ngIf="mrzDoc && !forceManualEntry" style="color: #4ecca3;">
+                    <span class="material-icons" style="vertical-align:middle;">check_circle</span> <i>MRZ reçue avec succès !</i>
+                  </div>
                 </div>
               </div>
+
             </div>
           </div>
 
+          <!-- MODE MOBILE (Autonome) -->
           <div *ngIf="mode === 'mobile' && !adresseNonConfiguree">
             <p class="instructions">
               <strong>1.</strong> Connectez votre mobile au même réseau Wi-Fi.<br>
@@ -138,7 +176,8 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private nfcService: NfcService,
     private el: ElementRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -151,10 +190,8 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
       this.nfcService.checkUsbAgentAvailable().subscribe(isUsb => {
         this.checkingUsb = false;
         this.isUsbAvailable = isUsb;
-        if (this.isUsbAvailable) {
-          this.startWebcam();
-        }
       });
+      this.setupMobileNfc();
     } else {
       this.setupMobileNfc();
     }
@@ -315,15 +352,17 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
                 this.mrzExp = formatDate(mrz.expiryDate);
               }
               
-              // Switch to USB mode automatically and trigger read
+              // Basculer en mode usb (si on venait du mode mobile pur)
               this.mode = 'usb';
-              this.forceManualEntry = true;
+              // Afficher le bouton de lecture (pas les champs manuels)
+              this.forceManualEntry = false;
+              this.cdr.detectChanges();
               
               this.checkingUsb = true;
               this.nfcService.checkUsbAgentAvailable().subscribe(isUsb => {
                   this.checkingUsb = false;
                   this.isUsbAvailable = isUsb;
-                  // On ne lance plus la lecture automatique. On attend que l'utilisateur clique.
+                  this.cdr.detectChanges();
               });
             } else if (event.type === 'NFC_DATA') {
               this.handleSuccess(event.payload);
@@ -338,6 +377,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
 
   private handleSuccess(data: NfcData) {
     this.successData = data;
+    this.cdr.detectChanges();
     setTimeout(() => {
       this.nfcDataReceived.emit(data);
       this.closeModal.emit();

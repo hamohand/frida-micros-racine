@@ -114,6 +114,7 @@ public class OcrMappingService {
         // 4. Mapper selon le type de document
         IdentitesEntity result = switch (docType) {
             case EXTRAIT_NAISSANCE -> mapExtraitNaissance(response);
+            case ACTE_DECES -> mapActeDeces(response);
             case CNI, PASSEPORT -> mapPieceIdentite(response, docType);
         };
 
@@ -229,29 +230,123 @@ public class OcrMappingService {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jsonFile.toFile());
 
-            String nom = rootNode.path("primaryIdentifier").asText("");
-            String prenom = rootNode.path("secondaryIdentifier").asText("");
-            // Utiliser le NIN extrait par DG11 en priorité, sinon le documentNumber
-            String nin = rootNode.path("nin_dg11").asText("");
-            if (nin.isEmpty()) {
-                nin = rootNode.path("personalNumber").asText("");
+            // 1. Noms Latins (MRZ)
+            // Python v1 utilisait "nom"/"prenom". Python v2 utilise "latines"/"prenomLatines". Mobile utilise "primaryIdentifier"/"secondaryIdentifier".
+            String latines = rootNode.path("latines").asText(""); 
+            if (latines.isEmpty()) latines = rootNode.path("nom").asText(""); 
+            if (latines.isEmpty()) latines = rootNode.path("primaryIdentifier").asText("");
+            
+            String prenomLatines = rootNode.path("prenomLatines").asText(""); 
+            if (prenomLatines.isEmpty()) prenomLatines = rootNode.path("prenom").asText(""); 
+            if (prenomLatines.isEmpty()) prenomLatines = rootNode.path("secondaryIdentifier").asText("");
+            
+            entity.setLatines(latines);
+            entity.setPrenomLatines(prenomLatines);
+            
+            // 2. Noms Arabes (Puce DG11 ou JMRTD)
+            // Python v1 utilisait "nomArabe"/"prenomArabe". Python v2 utilise "nom"/"prenom". Mobile utilise "fullName_dg11".
+            String nomArabe = rootNode.path("nom").asText("");
+            if (nomArabe.isEmpty() || nomArabe.equals(latines)) nomArabe = rootNode.path("nomArabe").asText(""); // Eviter de lire "nom" si c'est la version latine de la v1
+            
+            String prenomArabe = rootNode.path("prenom").asText("");
+            if (prenomArabe.isEmpty() || prenomArabe.equals(prenomLatines)) prenomArabe = rootNode.path("prenomArabe").asText("");
+
+            String dg11Hex = rootNode.path("dg11_hex").asText("");
+            if (nomArabe.isEmpty() && prenomArabe.isEmpty() && !dg11Hex.isEmpty()) {
+                try {
+                    byte[] dg11Bytes = new byte[dg11Hex.length() / 2];
+                    for (int i = 0; i < dg11Bytes.length; i++) {
+                        dg11Bytes[i] = (byte) Integer.parseInt(dg11Hex.substring(i * 2, i * 2 + 2), 16);
+                    }
+                    
+                    int idx = 0;
+                    if (idx < dg11Bytes.length && dg11Bytes[idx] == 0x6B) {
+                        idx++;
+                        if ((dg11Bytes[idx] & 0xFF) == 0x81) idx += 2;
+                        else if ((dg11Bytes[idx] & 0xFF) == 0x82) idx += 3;
+                        else idx += 1;
+                    }
+                    
+                    while (idx < dg11Bytes.length) {
+                        int b1 = dg11Bytes[idx] & 0xFF;
+                        int tag = b1;
+                        if (b1 == 0x5F || b1 == 0x7F || b1 == 0xA0) {
+                            if (idx + 1 >= dg11Bytes.length) break;
+                            tag = (b1 << 8) | (dg11Bytes[idx + 1] & 0xFF);
+                            idx += 2;
+                        } else {
+                            idx++;
+                        }
+                        
+                        if (idx >= dg11Bytes.length) break;
+                        int len = dg11Bytes[idx] & 0xFF;
+                        idx++;
+                        
+                        if (len == 0x81) {
+                            if (idx >= dg11Bytes.length) break;
+                            len = dg11Bytes[idx] & 0xFF;
+                            idx++;
+                        } else if (len == 0x82) {
+                            if (idx + 1 >= dg11Bytes.length) break;
+                            len = ((dg11Bytes[idx] & 0xFF) << 8) | (dg11Bytes[idx+1] & 0xFF);
+                            idx += 2;
+                        }
+                        
+                        if (tag == 0xA0) continue;
+                        
+                        if (idx + len > dg11Bytes.length) break;
+                        byte[] val = java.util.Arrays.copyOfRange(dg11Bytes, idx, idx + len);
+                        idx += len;
+                        
+                        if (tag == 0x5F0E || tag == 0x5F0F) {
+                            String strIso = new String(val, "ISO-8859-6");
+                            String[] split = strIso.split("<<");
+                            if (split.length > 0) {
+                                String arabe = split[split.length - 1].replace("<", "").trim();
+                                if (tag == 0x5F0E) nomArabe = arabe;
+                                if (tag == 0x5F0F) prenomArabe = arabe;
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    log.warn("Erreur parsing dg11_hex", e);
+                }
             }
 
-            entity.setLatines(nom);
-            entity.setPrenomLatines(prenom);
+            String fullNameDg11 = rootNode.path("fullName_dg11").asText("");
+            if (nomArabe.isEmpty() && prenomArabe.isEmpty() && !fullNameDg11.isEmpty()) {
+                String[] parts = fullNameDg11.split("<<|<|,| ");
+                java.util.List<String> arabicParts = new java.util.ArrayList<>();
+                for (String p : parts) {
+                    if (p.matches(".*[\\u0600-\\u06FF].*")) {
+                        arabicParts.add(p.trim());
+                    }
+                }
+                if (arabicParts.size() >= 2) {
+                    nomArabe = arabicParts.get(0);
+                    prenomArabe = arabicParts.get(1);
+                } else if (arabicParts.size() == 1) {
+                    nomArabe = arabicParts.get(0);
+                }
+            }
             
-            // Add Arabic names if present (support both camelCase and snake_case)
-            String nomArabe = rootNode.path("nomArabe").asText(rootNode.path("nom_arabe").asText(""));
-            String prenomArabe = rootNode.path("prenomArabe").asText(rootNode.path("prenom_arabe").asText(""));
             if (!nomArabe.isEmpty()) entity.setNom(nomArabe);
             if (!prenomArabe.isEmpty()) entity.setPrenom(prenomArabe);
-            
+
+            // 3. NIN
+            String nin = rootNode.path("nin").asText("");
+            if (nin.isEmpty()) nin = rootNode.path("nin_dg11").asText("");
             entity.setNin(nin);
-            entity.setSexe(rootNode.path("gender").asText("").startsWith("M") ? "M" : "F");
+            
+            String genderStr = rootNode.path("sexe").asText("").trim().toUpperCase();
+            if (genderStr.isEmpty()) genderStr = rootNode.path("gender").asText("").trim().toUpperCase();
+            entity.setSexe(genderStr.startsWith("M") ? "M" : "F");
+            
             entity.setNumeroPiece(rootNode.path("documentNumber").asText(""));
             
-            // Les dates dans le MRZ sont au format yyMMdd, il faudrait idéalement les convertir, mais gardons la logique existante :
-            parseDateNaissance(entity, rootNode.path("dateOfBirth").asText(""));
+            String mrzDob = rootNode.path("mrzDateOfBirth").asText("");
+            if (mrzDob.isEmpty()) mrzDob = rootNode.path("dateOfBirth").asText("");
+            parseDateNaissance(entity, mrzDob);
 
             entity.setNomPiece(docType == DocumentType.CNI ? "Carte Nationale d'Identité (NFC)" : "Passeport (NFC)");
             entity.setMrzValid(true);
@@ -342,6 +437,8 @@ public class OcrMappingService {
         if (nfcEntity.getDateNaissance() != null) ocrEntity.setDateNaissance(nfcEntity.getDateNaissance());
         if (nfcEntity.getSexe() != null && !nfcEntity.getSexe().isEmpty()) ocrEntity.setSexe(nfcEntity.getSexe());
         if (nfcEntity.getNumeroPiece() != null && !nfcEntity.getNumeroPiece().isEmpty()) ocrEntity.setNumeroPiece(nfcEntity.getNumeroPiece());
+        if (nfcEntity.getNom() != null && !nfcEntity.getNom().isEmpty()) ocrEntity.setNom(nfcEntity.getNom());
+        if (nfcEntity.getPrenom() != null && !nfcEntity.getPrenom().isEmpty()) ocrEntity.setPrenom(nfcEntity.getPrenom());
         
         ocrEntity.setMrzValid(true); // NFC implies 100% validity of MRZ data
 
@@ -447,6 +544,92 @@ public class OcrMappingService {
             entity.setRequiresCorrection(true);
             log.warn("Extrait de Naissance ({} {}) scanné avec confiance faible", prenom, nom);
         }
+
+        return entity;
+    }
+    /**
+     * Mappe un résultat OCR d'acte de décès vers une IdentitesEntity.
+     * Le QR code de l'acte de décès a un mapping de séquences différent
+     * de l'extrait de naissance (père, mère séparés, date/lieu de décès).
+     * Les champs dateDeces et lieuDeces sont stockés temporairement dans
+     * les métadonnées OCR brutes et récupérés par le service de persistance.
+     */
+    private IdentitesEntity mapActeDeces(OcrAnalysisResponseDto response) {
+        IdentitesEntity entity = new IdentitesEntity();
+        Map<String, OcrResultDto> results = response.getResultats();
+        if (results == null) return entity;
+
+        Function<String, String> getText = key ->
+                results.containsKey(key) ? results.get(key).getTexte_final() : "";
+
+        entity.setNom(getText.apply("nom"));
+        entity.setPrenom(getText.apply("prenom"));
+        entity.setLieuNaissance(getText.apply("lieuNaissance"));
+        entity.setNumeroPiece(getText.apply("numeroPiece"));
+        entity.setLatines(getText.apply("latines"));
+        entity.setPrenomLatines(getText.apply("prenomLatines"));
+        entity.setPere(getText.apply("pere"));
+
+        // Mère : 2 champs séparés dans l'acte de décès
+        String merePrenom = getText.apply("mere_prenom");
+        String mereNom = getText.apply("mere_nom");
+        String mere = (merePrenom + " " + mereNom).trim();
+        if (!mere.isEmpty()) {
+            entity.setMere(mere);
+        } else {
+            entity.setMere(getText.apply("mere"));
+        }
+
+        parseDateNaissance(entity, getText.apply("dateNaissance"));
+
+        // Stocker dateDeces et lieuDeces dans le JSON brut pour récupération ultérieure
+        Map<String, Double> confiances = new HashMap<>();
+        Map<String, String> rawTexts = new HashMap<>();
+        boolean hasLowConfidence = false;
+        final double SEUIL = 0.75;
+
+        for (Map.Entry<String, OcrResultDto> entry : results.entrySet()) {
+            OcrResultDto res = entry.getValue();
+            if (res == null) continue;
+            double score = res.getConfiance_auto() != null ? res.getConfiance_auto() : 1.0;
+
+            if ("nin".equals(entry.getKey())) {
+                String brutNin = res.getTexte_final() != null ? res.getTexte_final() : "";
+                String validatedNin = ninValidationService.cleanAndValidate(brutNin);
+                if (validatedNin != null) {
+                    res.setTexte_final(validatedNin);
+                    entity.setNin(validatedNin);
+                } else if (!brutNin.trim().isEmpty()) {
+                    score = 0.0;
+                    entity.setNin(brutNin);
+                }
+            }
+
+            if (score < SEUIL || "faible_confiance".equals(res.getStatut()) || "echec".equals(res.getStatut())) {
+                hasLowConfidence = true;
+                score = 0.0;
+            }
+
+            confiances.put(entry.getKey(), score);
+            rawTexts.put(entry.getKey(), res.getTexte_final() != null ? res.getTexte_final() : "");
+        }
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            entity.setConfidencesJson(mapper.writeValueAsString(confiances));
+            entity.setRawOcrTextJson(mapper.writeValueAsString(rawTexts));
+        } catch (Exception e) {
+            log.error("Erreur sérialisation json ocr", e);
+        }
+
+        if (hasLowConfidence) {
+            entity.setRequiresCorrection(true);
+        }
+
+        String dateDeces = getText.apply("dateDeces");
+        String lieuDeces = getText.apply("lieuDeces");
+        log.info("Acte de décès : {} {} - Date décès: {} - Lieu: {}",
+                entity.getNom(), entity.getPrenom(), dateDeces, lieuDeces);
 
         return entity;
     }

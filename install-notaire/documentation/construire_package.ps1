@@ -30,7 +30,7 @@ $ErrorActionPreference = "Stop"
 
 # install-notaire/documentation/construire_package.ps1 -> racine du depot = deux niveaux au-dessus
 $depot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$source = Join-Path $depot "install-notaire\docker-installation"
+$source = Join-Path $depot "install-notaire\windows"
 $fichiersLivres = @("Installer-Frida.bat", "Installer-Frida.ps1", "LISEZMOI.txt", "desinstaller.bat",
                      "frida-micros.zip", "restaurer.bat", "sauvegarder.bat")
 

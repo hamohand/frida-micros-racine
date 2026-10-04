@@ -24,7 +24,7 @@ import { ConstitutionService } from '../../../services/constitution.service';
       <div class="qr-action-container">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,.pdf" style="display: none;" />
         <button type="button" class="btn btn-secondary qr-btn" (click)="fileInput.click()" [disabled]="isScanningQr">
-          <span class="icon">📷</span> {{ isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Extrait/Acte)' }}
+          <span class="icon">📷</span> {{ isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Acte de décès)' }}
         </button>
         <div *ngIf="qrError" class="error-message" style="margin-top: 5px;">{{ qrError }}</div>
       </div>
@@ -209,6 +209,8 @@ export class CreatePersonComponent {
   
   isScanningQr = false;
   qrError = '';
+  
+  selectedFile: File | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -233,6 +235,7 @@ export class CreatePersonComponent {
     const file = event.target.files[0];
     if (!file) return;
     
+    this.selectedFile = file;
     this.isScanningQr = true;
     this.qrError = '';
     
@@ -281,14 +284,41 @@ export class CreatePersonComponent {
       this.folderService.createFolder(request).subscribe({
         next: (response) => {
           this.submitSuccess = true;
-          this.personForm.reset();
           this.isSubmitting = false;
           // Nettoyer la mémoire de l'ancien dossier
           this.uploadStateService.clearState();
           this.uploadStateService.demarrerDossier(`${request.nom} ${request.prenom}`.trim());
+          
+          if (this.selectedFile) {
+             const state = this.uploadStateService.getState();
+             if (state && state.windows && state.windows['f1']) {
+                state.windows['f1'].hasFiles = true;
+                
+                const uploadedFile = {
+                   file: this.selectedFile,
+                   id: Math.random().toString(36).substring(2, 9),
+                   progress: 100,
+                   docType: 'ad'
+                };
+                
+                state.windows['f1'].rawFiles = [uploadedFile];
+                state.windows['f1'].groupedFiles = [{
+                   files: [this.selectedFile],
+                   docType: 'ad',
+                   entityName: ''
+                }];
+                this.uploadStateService.saveState(state.windows, state.ocrMode || 'rapide');
+             }
+          }
+          
           this.constitutionService.resetFiche();
+          this.personForm.reset();
           setTimeout(() => {
-            this.router.navigate(['/upload']);
+            if (this.selectedFile) {
+               this.router.navigate(['/upload'], { state: { preloadedDefuntFile: this.selectedFile } });
+            } else {
+               this.router.navigate(['/upload']);
+            }
           }, 1500);
         },
         error: (error) => {

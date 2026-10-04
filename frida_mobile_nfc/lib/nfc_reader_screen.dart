@@ -120,8 +120,10 @@ class _NfcReaderScreenState extends State<NfcReaderScreen> {
         if (response.statusCode == 200) {
           setState(() {
             _isReading = false;
-            _status = "✅ Données transmises avec succès au poste de travail !\nVous pouvez fermer l'application sur le téléphone.";
+            _status = "✅ Données transmises avec succès !";
           });
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ Données transmises avec succès !"), backgroundColor: Colors.green));
+          // Pas de redirection automatique, l'utilisateur a le choix avec les boutons en bas
         } else {
           setState(() {
             _isReading = false;

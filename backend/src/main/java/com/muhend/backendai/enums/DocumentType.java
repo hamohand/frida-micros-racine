@@ -10,6 +10,7 @@ import lombok.Getter;
 public enum DocumentType {
     // Entité dédiée au QR code (même zone que en_01, nom explicite)
     EXTRAIT_NAISSANCE("en", "en_01_qrcode_01"),
+    ACTE_DECES("ad", "adc_01"),
     CNI("cni", "cni_01"),
     PASSEPORT("pp", "pp_01");
 

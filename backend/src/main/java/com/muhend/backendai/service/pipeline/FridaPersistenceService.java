@@ -74,7 +74,15 @@ public class FridaPersistenceService {
 
         switch (heirCategory) {
             case DEFUNT -> {
-                DefuntEntity defunt = personneFactory.creerDefunt(ctx, identite);
+                DefuntEntity defunt = ctx.getFicheFrida().getDefunt();
+                if (defunt == null) {
+                    defunt = personneFactory.creerDefunt(ctx, identite);
+                    ctx.getFicheFrida().setDefunt(defunt);
+                } else {
+                    mergeIdentites(defunt.getIdentite(), identite);
+                    identitesRepo.save(defunt.getIdentite());
+                }
+
                 // Extraire dateDeces depuis le JSON brut OCR (acte de décès)
                 try {
                     String rawJson = identite.getRawOcrTextJson();
@@ -103,7 +111,6 @@ public class FridaPersistenceService {
                 }
                 defuntRepo.save(defunt);
                 ctx.getFicheFrida().setNumFrida(ctx.getNumFrida());
-                ctx.getFicheFrida().setDefunt(defunt);
             }
             case TEMOIN -> {
                 TemoinEntity temoin = personneFactory.creerTemoin(ctx, identite, numParente);
@@ -115,6 +122,27 @@ public class FridaPersistenceService {
                 heritierRepo.save(heritier);
                 ctx.getListeHeritiers().add(heritier);
             }
+        }
+    }
+
+    private void mergeIdentites(IdentitesEntity target, IdentitesEntity source) {
+        if (target == null || source == null) return;
+        
+        if (source.getNin() != null && !source.getNin().isBlank()) target.setNin(source.getNin());
+        if (source.getNom() != null && !source.getNom().isBlank()) target.setNom(source.getNom());
+        if (source.getPrenom() != null && !source.getPrenom().isBlank()) target.setPrenom(source.getPrenom());
+        if (source.getLatines() != null && !source.getLatines().isBlank()) target.setLatines(source.getLatines());
+        if (source.getPrenomLatines() != null && !source.getPrenomLatines().isBlank()) target.setPrenomLatines(source.getPrenomLatines());
+        if (source.getDateNaissance() != null) target.setDateNaissance(source.getDateNaissance());
+        if (source.getLieuNaissance() != null && !source.getLieuNaissance().isBlank()) target.setLieuNaissance(source.getLieuNaissance());
+        if (source.getSexe() != null && !source.getSexe().isBlank()) target.setSexe(source.getSexe());
+        if (source.getPere() != null && !source.getPere().isBlank()) target.setPere(source.getPere());
+        if (source.getMere() != null && !source.getMere().isBlank()) target.setMere(source.getMere());
+        if (source.getImagePath() != null && !source.getImagePath().isBlank()) target.setImagePath(source.getImagePath());
+        
+        // Update requiresCorrection flag
+        if (source.getRequiresCorrection() != null && source.getRequiresCorrection()) {
+            target.setRequiresCorrection(true);
         }
     }
 

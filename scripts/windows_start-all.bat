@@ -33,7 +33,7 @@ if not exist backend\uploads (
 )
 
 echo [1/3] Arret des conteneurs existants...
-docker-compose down
+docker compose down
 
 echo.
 echo [2/3] Nettoyage des processus fantomes (Ghosting) sur les ports %FRONT_PORT%, %BACK_PORT%, 8082...
@@ -49,7 +49,7 @@ FOR %%p IN (%FRONT_PORT% %BACK_PORT% 8082) DO (
 echo.
 echo [3/3] Démarrage des services Docker...
 echo (Base de donnees, Backend Spring, Frontend Angular, Calculs API)
-docker-compose up -d
+docker compose up -d
 
 echo.
 echo Démarrage du micro-service OCR en local...
@@ -70,8 +70,8 @@ echo    Swagger UI       : http://localhost:%BACK_PORT%/swagger-ui.html
 echo    Service OCR      : http://localhost:8082 (Dans l'autre fenetre)
 echo.
 echo 📝 Commandes utiles :
-echo    Arreter Docker   : docker-compose down
+echo    Arreter Docker   : docker compose down
 echo    Arreter l'OCR    : Fermer la fenetre de commande OCR
-echo    Voir les logs    : docker-compose logs -f
+echo    Voir les logs    : docker compose logs -f
 echo ==============================================================
 pause

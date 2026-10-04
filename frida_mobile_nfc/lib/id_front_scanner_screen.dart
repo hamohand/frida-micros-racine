@@ -228,9 +228,16 @@ class _IdFrontScannerScreenState extends State<IdFrontScannerScreen> {
                       : const Icon(Icons.camera_alt, color: Colors.black),
                 ),
                 const SizedBox(height: 10),
-                TextButton(
+                OutlinedButton.icon(
                   onPressed: _isScanning ? null : () => _goToNfcScreen(),
-                  child: const Text('Ignorer (Passer au NFC)', style: TextStyle(color: Colors.white70)),
+                  icon: const Icon(Icons.skip_next),
+                  label: const Text('Ignorer la photo (Passer au NFC)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white70,
+                    side: const BorderSide(color: Colors.white54),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                 ),
               ],
             ),

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
 import 'nfc_reader_screen.dart';
 import 'id_front_scanner_screen.dart';
+import 'qr_scanner_screen.dart';
 
 class MrzScannerScreen extends StatefulWidget {
   final List<CameraDescription> cameras;
@@ -128,9 +129,11 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
 
   @override
   void dispose() {
-    _controller.stopImageStream();
-    _controller.dispose();
-    _textRecognizer.close();
+    try {
+      _controller.stopImageStream();
+      _controller.dispose();
+    } catch(e) {}
+    try { _textRecognizer.close(); } catch(e) {}
     super.dispose();
   }
 
@@ -145,97 +148,170 @@ class _MrzScannerScreenState extends State<MrzScannerScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text("Vérifiez le MRZ"),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text("Vérifiez la MRZ", textAlign: TextAlign.center),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Corrigez manuellement (ex: 0 au lieu de O) si l'appareil photo s'est trompé. Une seule erreur bloquera le NFC !"),
+              const Text("Corrigez manuellement (ex: 0 au lieu de O) si nécessaire. Une erreur bloquera le NFC !"),
               const SizedBox(height: 10),
               TextField(
                 controller: mrzController,
                 maxLines: 3,
-                style: const TextStyle(fontFamily: 'monospace'),
+                style: const TextStyle(fontFamily: 'monospace', fontSize: 13),
                 decoration: const InputDecoration(border: OutlineInputBorder()),
               ),
+              const SizedBox(height: 15),
+              const Text("Que souhaitez-vous faire ensuite ?", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
             ],
           ),
+          actionsPadding: const EdgeInsets.only(bottom: 20, left: 15, right: 15),
           actions: [
-            TextButton(
-              child: const Text("Refaire le scan"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                setState(() {
-                  _isLocked = false;
-                  _mrzResult = "Pointez la caméra vers la MRZ";
-                });
-                _controller.startImageStream(_processCameraImage);
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Scanner via USB (PC)", style: TextStyle(color: Colors.white)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.blueGrey),
-              onPressed: () async {
-                String doc = "";
-                String dob = "";
-                String exp = "";
-                List<String> lines = mrzController.text.split('\n');
-                if (lines.length >= 2) {
-                   if (lines[0].length >= 30) {
-                      doc = lines[0].substring(5, 14).replaceAll('<', '');
-                      dob = lines[1].substring(0, 6);
-                      exp = lines[1].substring(8, 14);
-                   } else if (lines.length >= 2 && lines[1].length >= 44) {
-                      doc = lines[1].substring(0, 9).replaceAll('<', '');
-                      dob = lines[1].substring(13, 19);
-                      exp = lines[1].substring(21, 27);
-                   }
-                }
-                var payload = {
-                   "documentNumber": doc,
-                   "dateOfBirth": dob,
-                   "expiryDate": exp
-                };
-                
-                String targetUrl = widget.uploadUrl.replaceAll('/upload', '/mrz-only');
-                Navigator.of(context).pop(); // Fermer la modale immédiatement
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Envoi au PC en cours...")));
-                
-                try {
-                  final response = await http.post(
-                    Uri.parse(targetUrl),
-                    headers: {"Content-Type": "application/json"},
-                    body: jsonEncode({"type": "MRZ_DATA", "data": payload})
-                  ).timeout(const Duration(seconds: 5));
-                  
-                  if(response.statusCode == 200) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("✅ MRZ reçue par le PC !"), backgroundColor: Colors.green));
-                  } else {
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Erreur HTTP ${response.statusCode}"), backgroundColor: Colors.red));
-                  }
-                } catch(e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Timeout : Vérifiez l'adresse IP ($targetUrl)"), backgroundColor: Colors.red));
-                }
-              },
-            ),
-            ElevatedButton(
-              child: const Text("Continuer sur Mobile"),
-              onPressed: () {
-                Navigator.of(context).pop();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return IdFrontScannerScreen(
-                          mrzText: _mrzResult, 
-                          cameras: widget.cameras, 
-                          uploadUrl: widget.uploadUrl
-                        );
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.phone_android),
+                  label: const Text("Continuer avec le Mobile"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.teal,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) {
+                          return IdFrontScannerScreen(
+                            mrzText: _mrzResult, 
+                            cameras: widget.cameras, 
+                            uploadUrl: widget.uploadUrl
+                          );
+                        }
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 8),
+                ElevatedButton.icon(
+                  icon: const Icon(Icons.usb),
+                  label: const Text("Envoyer au lecteur USB du PC"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueGrey,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () async {
+                    String doc = "";
+                    String dob = "";
+                    String exp = "";
+                    List<String> lines = mrzController.text.split('\n');
+                    if (lines.length >= 2) {
+                       if (lines[0].length >= 30) {
+                          doc = lines[0].substring(5, 14).replaceAll('<', '');
+                          dob = lines[1].substring(0, 6);
+                          exp = lines[1].substring(8, 14);
+                       } else if (lines.length >= 2 && lines[1].length >= 44) {
+                          doc = lines[1].substring(0, 9).replaceAll('<', '');
+                          dob = lines[1].substring(13, 19);
+                          exp = lines[1].substring(21, 27);
+                       }
+                    }
+                    var payload = {
+                       "documentNumber": doc,
+                       "dateOfBirth": dob,
+                       "expiryDate": exp
+                    };
+                    
+                    String targetUrl = widget.uploadUrl.replaceAll('/upload', '/mrz-only');
+                    Navigator.of(dialogContext).pop(); // Fermer la modale immédiatement
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Envoi au PC en cours...")));
+                    
+                    try {
+                      final response = await http.post(
+                        Uri.parse(targetUrl),
+                        headers: {"Content-Type": "application/json"},
+                        body: jsonEncode({"type": "MRZ_DATA", "data": payload})
+                      ).timeout(const Duration(seconds: 5));
+                      
+                      if(response.statusCode == 200) {
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (BuildContext successCtx) {
+                              return AlertDialog(
+                                title: const Text("✅ Envoi réussi"),
+                                content: const Text("La MRZ a été reçue par le PC.\nQue voulez-vous faire pour la suite ?"),
+                                actions: [
+                                  TextButton(
+                                    child: const Text("Scanner une autre MRZ"),
+                                    onPressed: () {
+                                      Navigator.of(successCtx).pop();
+                                      if (mounted) {
+                                        setState(() {
+                                          _isLocked = false;
+                                          _mrzResult = "Pointez la caméra vers la MRZ";
+                                        });
+                                        _controller.startImageStream(_processCameraImage);
+                                      }
+                                    },
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(backgroundColor: Colors.teal, foregroundColor: Colors.white),
+                                    child: const Text("Scanner un nouveau QR Code"),
+                                    onPressed: () async {
+                                      Navigator.of(successCtx).pop();
+                                      try {
+                                        _controller.stopImageStream();
+                                        await _controller.dispose();
+                                      } catch(e) {}
+                                      await Future.delayed(const Duration(milliseconds: 300));
+                                      if (mounted) {
+                                        Navigator.of(context).pushAndRemoveUntil(
+                                          MaterialPageRoute(builder: (context) => QRScannerScreen(cameras: widget.cameras)),
+                                          (route) => false
+                                        );
+                                      }
+                                    },
+                                  )
+                                ]
+                              );
+                            }
+                          );
+                      } else {
+                          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Erreur HTTP ${response.statusCode}"), backgroundColor: Colors.red));
                       }
-                    ),
-                  );
-              },
+                    } catch(e) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("❌ Timeout : Vérifiez l'adresse IP ($targetUrl)"), backgroundColor: Colors.red));
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Refaire le scan MRZ"),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.redAccent,
+                    side: const BorderSide(color: Colors.redAccent),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    setState(() {
+                      _isLocked = false;
+                      _mrzResult = "Pointez la caméra vers la MRZ";
+                    });
+                    _controller.startImageStream(_processCameraImage);
+                  },
+                ),
+              ],
             )
           ],
         );

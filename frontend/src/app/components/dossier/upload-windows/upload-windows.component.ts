@@ -94,6 +94,34 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
           </div>
         </div>
 
+        <!-- Fenêtre Acte de Naissance du Défunt -->
+        <div class="window-section" *ngIf="isWindowActive('f1_naissance')" [class.active-slide]="windows['f1_naissance'].isVisible">
+          <ng-container *ngIf="!windows['f1_naissance'].isUploading">
+            <h2 class="window-title">Acte de Naissance du Défunt</h2>
+            <app-file-upload #fileUploadF1Naissance
+                [config]="getUploadConfig('01', 'Défunt (Acte de naissance)', false, '', 4, 'en')"
+                [initialFiles]="windows['f1_naissance'].rawFiles || []"
+                (filesConfirmed)="onFilesConfirmed('f1_naissance', $event)"
+                (previousClicked)="moveToPreviousWindow('f1_naissance')"
+                (uploadCancelled)="onUploadCancelled('f1_naissance')"
+                (pendingFilesChanged)="onPendingFilesChanged('f1_naissance', $event)"
+                (skipClicked)="continueToNext('f1_naissance')"
+            >
+              <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
+                  Il n'y a plus d'héritiers
+                </button>
+                <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                </button>
+              </div>
+            </app-file-upload>
+          </ng-container>
+          <div *ngIf="windows['f1_naissance'].isUploading" class="drop-zone loading-zone">
+            <span class="spinner"></span> Sauvegarde en cours...
+          </div>
+        </div>
+
         <!-- Fenêtre Conjoint -->
         <div class="window-section" *ngIf="isWindowActive('f2')" [class.active-slide]="windows['f2'].isVisible">
           <ng-container *ngIf="!windows['f2'].isUploading">
@@ -679,6 +707,7 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
   windows: { [key: string]: UploadWindowState } = {
     // Défunt
     f1: { isVisible: true, hasFiles: false, isUploading: false, path: '01' },
+    f1_naissance: { isVisible: false, hasFiles: false, isUploading: false, path: '01' },
     // Héritiers
     f2: { isVisible: false, hasFiles: false, isUploading: false, path: '02' },  // Conjoint
     f_garcons: { isVisible: false, hasFiles: false, isUploading: false, path: '03' }, // Fils
@@ -756,7 +785,7 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
 
   getActiveWindowKeys(): string[] {
     const fiche = this.constitutionService.currentFiche;
-    const keys = ['f1', 'f2', 'f_garcons', 'f_filles', 'f_tombes_declare'];
+    const keys = ['f1', 'f1_naissance', 'f2', 'f_garcons', 'f_filles', 'f_tombes_declare'];
 
     for (let i = 1; i <= this.nbFilsDecedes; i++) keys.push(`tombe_M_${i}`);
     for (let i = 1; i <= this.nbFillesDecedees; i++) keys.push(`tombe_F_${i}`);
@@ -847,6 +876,31 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
            this.updateConstitutionState(key, this.windows[key].hasFiles, this.windows[key].rawFiles?.length || 0);
         }
       });
+    }
+
+    // Si on vient de créer le dossier via un scan QR, injecter ce fichier dans f1
+    const nav = this.router.getCurrentNavigation();
+    const preloadedFile = history.state.preloadedDefuntFile;
+    if (preloadedFile && this.windows['f1'] && !this.windows['f1'].hasFiles) {
+      const uploadedFile: UploadedFile = {
+        file: preloadedFile,
+        id: Math.random().toString(36).substring(2, 9),
+        progress: 100,
+        docType: 'ad'
+      };
+      
+      this.windows['f1'].hasFiles = true;
+      this.windows['f1'].rawFiles = [uploadedFile];
+      this.windows['f1'].groupedFiles = [{
+        files: [preloadedFile],
+        docType: 'ad',
+        entityName: ''
+      }];
+      
+      // Passer automatiquement à la fenêtre suivante (f1_naissance)
+      setTimeout(() => {
+        this.moveToNextWindow('f1');
+      }, 500);
     }
   }
 

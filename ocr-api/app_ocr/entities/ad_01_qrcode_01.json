@@ -1,0 +1,43 @@
+{
+  "nom": "ad_01_qrcode_01",
+  "description": "Acte de décès numérique algérien - lecture du QR code",
+  "zones": [
+    {
+      "coords": [
+        0.017,
+        0.7285,
+        0.3814,
+        0.9849
+      ],
+      "nom": "Zone_qrc",
+      "id": 1790800000000,
+      "type": "qrcode",
+      "mapping_sequences": {
+        "2": "numeroPiece",
+        "3": "nom",
+        "4": "prenom",
+        "5": "dateNaissance",
+        "7": "lieuNaissance",
+        "10": "latines",
+        "11": "prenomLatines",
+        "14": "pere",
+        "16": "mere_prenom",
+        "17": "mere_nom",
+        "19": "dateDeces",
+        "20": "heureDeces",
+        "21": "lieuDeces"
+      }
+    }
+  ],
+  "cadre_reference": {
+    "image_base_dimensions": {
+      "width": 2481,
+      "height": 3508
+    },
+    "haut": { "labels": [], "position_base": [0.5, 0] },
+    "droite": { "labels": [], "position_base": [1, 0.5] },
+    "gauche": { "labels": [], "position_base": [0, 0.5] },
+    "bas": { "labels": [], "position_base": [0.5, 1] },
+    "dimensions_absolues": { "largeur": 2481, "hauteur": 3508, "angle": 0 }
+  }
+}

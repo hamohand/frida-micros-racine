@@ -71,4 +71,4 @@ logs_*.txt
 /backend/uploads/
 
 # Backups
-/db_backups/
+/db_backups/frida_mobile_nfc.apk

@@ -1,6 +1,6 @@
 # Préparation du package d'installation — Composante 1 (local notaire)
 
-Ce document décrit comment **préparer** l'archive à envoyer au notaire. Il s'adresse au développeur qui prépare le livrable, pas au notaire lui-même (voir `install-notaire/docker-installation/LISEZMOI.txt` pour le notaire).
+Ce document décrit comment **préparer** l'archive à envoyer au notaire. Il s'adresse au développeur qui prépare le livrable, pas au notaire lui-même (voir `install-notaire/windows/LISEZMOI.txt` pour le notaire).
 
 ---
 
@@ -18,7 +18,7 @@ Le notaire reçoit un dossier contenant 7 fichiers :
 └── LISEZMOI.txt                ← notice utilisateur
 ```
 
-Ces 7 fichiers sont dans `install-notaire/docker-installation/` du dépôt.
+Ces 7 fichiers sont dans `install-notaire/windows/` du dépôt.
 
 ### PostgreSQL tourne sur un volume Docker, pas sur un dossier Windows
 
@@ -109,7 +109,7 @@ install-notaire\documentation\construire_package.ps1 -Destination C:\Livraisons
 
 Le zip des sources fait ~0,6 Mo (compressé) pour ~2 Mo de sources.
 
-### Ne pas compresser tout le dossier `docker-installation/`
+### Ne pas compresser tout le dossier `windows/`
 
 Ce dossier contient aussi `docker-compose.local.yml` et `.env.local`, qui ne
 vont **pas** dans le livrable : ils sont déjà recopiés à la racine de
