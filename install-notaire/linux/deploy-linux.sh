@@ -5,7 +5,7 @@ echo '============================================'
 
 # Vérification de Docker
 if ! command -v docker &> /dev/null; then
-    echo 'Docker n\'est pas installé. Veuillez l\'installer en premier.'
+    echo "Docker n'est pas installé. Veuillez l'installer en premier."
     exit 1
 fi
 
