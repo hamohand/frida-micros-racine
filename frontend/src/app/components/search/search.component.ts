@@ -50,18 +50,18 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
               <thead>
                 <tr>
                   <th (click)="sort('numFrida')" class="sortable">
-                    <app-bilabel fr="Numéro de Dossier" ar="رقم الملف" />
+                    <app-bilabel fr="Numéro de Dossier" ar="رقم الملف" [wrap]="true" />
                     <span class="sort-icon">{{ getSortIcon('numFrida') }}</span>
                   </th>
                   <th (click)="sort('nom')" class="sortable">
-                    <app-bilabel fr="Défunt (Nom Prénom)" ar="المتوفى (اللقب الاسم)" />
+                    <app-bilabel fr="Défunt (Nom Prénom)" ar="المتوفى (اللقب الاسم)" [wrap]="true" />
                     <span class="sort-icon">{{ getSortIcon('nom') }}</span>
                   </th>
                   <th (click)="sort('dateCreation')" class="sortable">
-                    <app-bilabel fr="Date de Création" ar="تاريخ الإنشاء" />
+                    <app-bilabel fr="Date de Création" ar="تاريخ الإنشاء" [wrap]="true" />
                     <span class="sort-icon">{{ getSortIcon('dateCreation') }}</span>
                   </th>
-                  <th><app-bilabel fr="Action" ar="إجراء" /></th>
+                  <th><app-bilabel fr="Action" ar="إجراء" [wrap]="true" /></th>
                 </tr>
               </thead>
               <tbody>
