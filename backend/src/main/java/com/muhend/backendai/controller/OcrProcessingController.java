@@ -46,43 +46,69 @@ public class OcrProcessingController {
 
             String filename = uploadResponse.getSaved_filename() != null ? uploadResponse.getSaved_filename() : uploadResponse.getFilename();
 
-            // 2. Analyser le QR code
             String ocrApiUrl = ocrApiClient.getOcrApiUrl();
             org.springframework.web.client.RestTemplate rt = new org.springframework.web.client.RestTemplate();
 
-            java.util.Map<String, Object> body = new java.util.HashMap<>();
-            body.put("filename", filename);
-            java.util.Map<String, Object> zones = new java.util.HashMap<>();
-            java.util.Map<String, Object> qrZone = new java.util.HashMap<>();
-            qrZone.put("type", "qrcode");
-            qrZone.put("coords", new double[]{0.0, 0.0, 1.0, 1.0});
-            zones.put("qr_zone", qrZone);
-            body.put("zones", zones);
+            // 2. Passe générique (extrait de naissance et actes détectés auto par le moteur)
+            String nomLatines = "";
+            String prenomLatines = "";
 
-            @SuppressWarnings("unchecked")
-            java.util.Map<String, Object> ocrResult = rt.postForObject(ocrApiUrl + "/api/analyser", body, java.util.Map.class);
+            {
+                java.util.Map<String, Object> body = new java.util.HashMap<>();
+                body.put("filename", filename);
+                java.util.Map<String, Object> zones = new java.util.HashMap<>();
+                java.util.Map<String, Object> qrZone = new java.util.HashMap<>();
+                qrZone.put("type", "qrcode");
+                qrZone.put("coords", new double[]{0.0, 0.0, 1.0, 1.0});
+                zones.put("qr_zone", qrZone);
+                body.put("zones", zones);
 
-            if (ocrResult != null && ocrResult.containsKey("resultats")) {
                 @SuppressWarnings("unchecked")
-                java.util.Map<String, Object> resultats = (java.util.Map<String, Object>) ocrResult.get("resultats");
-                
-                String nomLatines = "";
-                String prenomLatines = "";
-                
-                if (resultats.containsKey("latines")) {
+                java.util.Map<String, Object> ocrResult = rt.postForObject(ocrApiUrl + "/api/analyser", body, java.util.Map.class);
+                if (ocrResult != null && ocrResult.containsKey("resultats")) {
                     @SuppressWarnings("unchecked")
-                    java.util.Map<String, Object> latObj = (java.util.Map<String, Object>) resultats.get("latines");
-                    if (latObj.containsKey("texte_final")) nomLatines = latObj.get("texte_final").toString();
+                    java.util.Map<String, Object> resultats = (java.util.Map<String, Object>) ocrResult.get("resultats");
+                    nomLatines    = extraireTexte(resultats, "latines");
+                    prenomLatines = extraireTexte(resultats, "prenomLatines");
                 }
-                if (resultats.containsKey("prenomLatines")) {
-                    @SuppressWarnings("unchecked")
-                    java.util.Map<String, Object> prenomObj = (java.util.Map<String, Object>) resultats.get("prenomLatines");
-                    if (prenomObj.containsKey("texte_final")) prenomLatines = prenomObj.get("texte_final").toString();
-                }
+            }
 
-                if (!nomLatines.isEmpty() || !prenomLatines.isEmpty()) {
-                    return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "nom", nomLatines, "prenom", prenomLatines));
+            // 3. Fallback avec l'entité adc_01 si la passe générique n'a pas retourné de noms latins
+            if (!estLatin(nomLatines) || !estLatin(prenomLatines)) {
+                try {
+                    com.muhend.backendai.client.ocr.dto.OcrEntityDefinitionDto entityDef =
+                            ocrApiClient.getEntityDefinition("adc_01");
+                    if (entityDef != null && entityDef.getZones() != null && !entityDef.getZones().isEmpty()) {
+                        java.util.Map<String, Object> body = new java.util.HashMap<>();
+                        body.put("filename", filename);
+                        java.util.Map<String, Object> zones = new java.util.HashMap<>();
+                        for (com.muhend.backendai.client.ocr.dto.OcrEntityZoneDto z : entityDef.getZones()) {
+                            java.util.Map<String, Object> zone = new java.util.HashMap<>();
+                            zone.put("type", z.getType());
+                            zone.put("coords", z.getCoords());
+                            if (z.getMappingSequences() != null) zone.put("mapping_sequences", z.getMappingSequences());
+                            zones.put(z.getNom(), zone);
+                        }
+                        body.put("zones", zones);
+
+                        @SuppressWarnings("unchecked")
+                        java.util.Map<String, Object> ocrResult2 = rt.postForObject(ocrApiUrl + "/api/analyser", body, java.util.Map.class);
+                        if (ocrResult2 != null && ocrResult2.containsKey("resultats")) {
+                            @SuppressWarnings("unchecked")
+                            java.util.Map<String, Object> resultats2 = (java.util.Map<String, Object>) ocrResult2.get("resultats");
+                            String nom2    = extraireTexte(resultats2, "latines");
+                            String prenom2 = extraireTexte(resultats2, "prenomLatines");
+                            if (estLatin(nom2))    nomLatines    = nom2;
+                            if (estLatin(prenom2)) prenomLatines = prenom2;
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.warn("Fallback adc_01 échoué : {}", ex.getMessage());
                 }
+            }
+
+            if (!nomLatines.isEmpty() || !prenomLatines.isEmpty()) {
+                return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "nom", nomLatines, "prenom", prenomLatines));
             }
 
             return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "Aucun nom en lettres latines extrait depuis le QR code"));
@@ -91,6 +117,19 @@ public class OcrProcessingController {
             log.error("Erreur extraction QR: {}", e.getMessage(), e);
             return org.springframework.http.ResponseEntity.status(500).body(java.util.Map.of("success", false, "message", "Erreur serveur: " + e.getMessage()));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private String extraireTexte(java.util.Map<String, Object> resultats, String cle) {
+        if (resultats == null || !resultats.containsKey(cle)) return "";
+        Object obj = resultats.get(cle);
+        if (!(obj instanceof java.util.Map)) return "";
+        Object val = ((java.util.Map<String, Object>) obj).get("texte_final");
+        return val != null ? val.toString().trim() : "";
+    }
+
+    private boolean estLatin(String s) {
+        return s != null && !s.isEmpty() && s.matches("[A-Za-z ]+");
     }
 
     /**

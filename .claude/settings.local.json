@@ -23,7 +23,8 @@
       "Bash(unzip -l install-notaire/wsl-installation/frida-micros.zip)",
       "Bash(unzip -l install-notaire/docker-installation/frida-micros.zip)",
       "Bash(awk '/^\\\\s+[0-9]/{print}')",
-      "Bash(awk '{print $NF}')"
+      "Bash(awk '{print $NF}')",
+      "Bash(python *)"
     ]
   }
 }
