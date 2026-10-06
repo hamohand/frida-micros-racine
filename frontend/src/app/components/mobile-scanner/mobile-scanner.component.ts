@@ -2,11 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-mobile-scanner',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BilabelComponent],
   templateUrl: './mobile-scanner.component.html',
   styleUrls: ['./mobile-scanner.component.scss']
 })

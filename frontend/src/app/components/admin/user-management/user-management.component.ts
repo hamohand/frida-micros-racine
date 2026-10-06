@@ -2,22 +2,23 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   template: `
     <div class="users-wrapper">
       <div class="glass-panel">
         <div class="header-section">
-          <h2>Gestion des Utilisateurs</h2>
-          <p class="subtitle">Créez et gérez les comptes pour les clercs et collaborateurs.</p>
+          <h2><app-bilabel fr="Gestion des Utilisateurs" ar="إدارة المستخدمين" /></h2>
+          <p class="subtitle"><app-bilabel fr="Créez et gérez les comptes pour les clercs et collaborateurs." ar="أنشئ حسابات الكتّاب والمتعاونين وأدِرها." /></p>
         </div>
 
         <!-- Formulaire de création -->
         <div class="create-card">
-          <h3>Créer un nouvel utilisateur</h3>
+          <h3><app-bilabel fr="Créer un nouvel utilisateur" ar="إنشاء مستخدم جديد" /></h3>
           <form (ngSubmit)="onCreateUser()" #createForm="ngForm" class="create-form">
             <div class="form-row">
               <div class="form-group">
@@ -41,7 +42,7 @@ import { AuthService } from '../../../services/auth.service';
                 >
               </div>
               <button type="submit" class="btn-create" [disabled]="!createForm.form.valid || isCreating">
-                <span *ngIf="!isCreating">Créer le compte (USER)</span>
+                <span *ngIf="!isCreating"><app-bilabel fr="Créer le compte (USER)" ar="إنشاء الحساب (مستخدم)" /></span>
                 <span *ngIf="isCreating" class="spinner"></span>
               </button>
             </div>
@@ -53,7 +54,7 @@ import { AuthService } from '../../../services/auth.service';
 
         <!-- Liste des utilisateurs -->
         <div class="users-list-card">
-          <h3>Comptes existants</h3>
+          <h3><app-bilabel fr="Comptes existants" ar="الحسابات الموجودة" /></h3>
           <div *ngIf="isLoading" class="loading-state">
             <span class="spinner"></span> Chargement...
           </div>
@@ -61,8 +62,8 @@ import { AuthService } from '../../../services/auth.service';
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Nom d'utilisateur</th>
-                <th>Rôle</th>
+                <th><app-bilabel fr="Nom d'utilisateur" ar="اسم المستخدم" /></th>
+                <th><app-bilabel fr="Rôle" ar="الدور" /></th>
               </tr>
             </thead>
             <tbody>

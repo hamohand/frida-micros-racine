@@ -1,19 +1,20 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { BilabelComponent } from '../bilabel/bilabel.component';
 
 /** Étapes du parcours de création d'un dossier, dans l'ordre. */
 export const ETAPES_DOSSIER = [
-  { route: 'create', libelle: 'Défunt' },
-  { route: 'upload', libelle: 'Documents' },
-  { route: 'correction', libelle: 'Vérification' },
-  { route: 'review-family', libelle: 'Héritiers' },
-  { route: 'frida', libelle: 'Fiche' },
+  { route: 'create', libelle: 'Défunt', arabe: 'المتوفى' },
+  { route: 'upload', libelle: 'Documents', arabe: 'الوثائق' },
+  { route: 'correction', libelle: 'Vérification', arabe: 'التحقق' },
+  { route: 'review-family', libelle: 'Héritiers', arabe: 'الورثة' },
+  { route: 'frida', libelle: 'Fiche', arabe: 'البطاقة' },
 ];
 
 @Component({
   selector: 'app-dossier-stepper',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BilabelComponent],
   template: `
     <ol class="stepper" aria-label="Étapes du dossier">
       <li *ngFor="let e of etapes; let i = index"
@@ -22,7 +23,7 @@ export const ETAPES_DOSSIER = [
           [class.active]="i === indexActif"
           [attr.aria-current]="i === indexActif ? 'step' : null">
         <span class="pastille">{{ i < indexActif ? '✓' : i + 1 }}</span>
-        <span class="libelle">{{ e.libelle }}</span>
+        <span class="libelle"><app-bilabel [fr]="e.libelle" [ar]="e.arabe" /></span>
       </li>
     </ol>
   `,

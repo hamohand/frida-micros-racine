@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, FormArray, ReactiveFormsModule, Validators, AbstractControl } from '@angular/forms';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil, switchMap, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
@@ -9,7 +10,7 @@ import { SimulateurService, HeritageResponse } from '../../services/simulateur.s
 @Component({
   selector: 'app-simulateur',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, BilabelComponent],
   templateUrl: './simulateur.component.html',
   styleUrls: ['./simulateur.component.css']
 })

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   template: `
     <div class="login-wrapper">
       <div class="login-card">
@@ -15,8 +16,8 @@ import { AuthService } from '../../../services/auth.service';
           <div class="logo">
             <span class="logo-text">Frida</span><span class="logo-dot">.</span>
           </div>
-          <h2>Connexion</h2>
-          <p>Veuillez vous authentifier pour accéder à l'application.</p>
+          <h2><app-bilabel fr="Connexion" ar="تسجيل الدخول" /></h2>
+          <p><app-bilabel fr="Veuillez vous authentifier pour accéder à l'application." ar="أدخل بيانات تسجيل الدخول." /></p>
         </div>
 
         <div *ngIf="errorMessage" class="error-banner">
@@ -25,7 +26,7 @@ import { AuthService } from '../../../services/auth.service';
 
         <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
           <div class="form-group">
-            <label for="username">Nom d'utilisateur</label>
+            <label for="username"><app-bilabel fr="Nom d'utilisateur" ar="اسم المستخدم" /></label>
             <input 
               type="text" 
               id="username" 
@@ -38,7 +39,7 @@ import { AuthService } from '../../../services/auth.service';
           </div>
 
           <div class="form-group">
-            <label for="password">Mot de passe</label>
+            <label for="password"><app-bilabel fr="Mot de passe" ar="كلمة المرور" /></label>
             <input 
               type="password" 
               id="password" 
@@ -51,7 +52,7 @@ import { AuthService } from '../../../services/auth.service';
           </div>
 
           <button type="submit" [disabled]="!loginForm.form.valid || isLoading" class="btn-login">
-            <span *ngIf="!isLoading">Se connecter</span>
+            <span *ngIf="!isLoading"><app-bilabel fr="Se connecter" ar="دخول" /></span>
             <span *ngIf="isLoading" class="spinner"></span>
           </button>
 

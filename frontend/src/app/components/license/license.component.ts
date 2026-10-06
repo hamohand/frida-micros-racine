@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-license',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   templateUrl: './license.component.html',
   styleUrls: ['./license.component.css']
 })

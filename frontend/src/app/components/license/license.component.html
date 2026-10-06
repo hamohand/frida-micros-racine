@@ -1,8 +1,8 @@
 <div class="license-container">
   <div class="license-card">
     <div class="header">
-      <h2>🛡️ Activation de Frida</h2>
-      <p>Une licence valide est requise pour utiliser cette installation de Frida.</p>
+      <h2>🛡️ <app-bilabel fr="Activation de Frida" ar="تفعيل فريدا" /></h2>
+      <p><app-bilabel fr="Une licence valide est requise pour utiliser cette installation de Frida." ar="مطلوب ترخيص صالح لاستخدام هذا التثبيت من فريدا." /></p>
     </div>
 
     <div *ngIf="isLoading" class="loading">
@@ -22,7 +22,7 @@
       </div>
 
       <div class="form-group" *ngIf="!isValid">
-        <label>Saisissez votre clé de licence</label>
+        <label><app-bilabel fr="Saisissez votre clé de licence" ar="أدخل مفتاح الترخيص" /></label>
         <input type="text" [(ngModel)]="licenseKey" placeholder="FRIDA-XXXX-YYYY" class="form-control" />
       </div>
 
@@ -35,11 +35,11 @@
       </div>
 
       <button class="btn btn-primary" (click)="activate()" *ngIf="!isValid" [disabled]="!licenseKey || isLoading">
-        Activer ma licence
+        <app-bilabel fr="Activer ma licence" ar="تفعيل الترخيص" />
       </button>
 
       <button class="btn btn-outline" routerLink="/" *ngIf="isValid">
-        Accéder à l'application
+        <app-bilabel fr="Accéder à l'application" ar="الدخول إلى التطبيق" />
       </button>
     </div>
   </div>

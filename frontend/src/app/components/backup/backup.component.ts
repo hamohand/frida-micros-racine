@@ -2,6 +2,7 @@ import { NotificationService } from '../../services/notification.service';
 import { Component, HostListener, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Observable } from 'rxjs';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 import {
   BackupService,
   BackupInfo,
@@ -14,7 +15,7 @@ import { AuthService } from '../../services/auth.service';
 @Component({
   selector: 'app-backup',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BilabelComponent],
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.css']
 })

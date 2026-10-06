@@ -1,4 +1,5 @@
 import { NotificationService } from '../../../services/notification.service';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 import { Component, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -16,7 +17,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
 @Component({
   selector: 'app-upload-windows',
   standalone: true,
-  imports: [CommonModule, FormsModule, FileUploadComponent],
+  imports: [CommonModule, FormsModule, FileUploadComponent, BilabelComponent],
   template: `
     <div class="windows-container carousel-viewport">
 
@@ -24,7 +25,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
       <div *ngIf="showBrouillonRecap" class="brouillon-recap" style="max-width: 700px; margin: 0 auto; padding: 20px;">
         <h2 style="text-align: center; color: #4ecca3; margin-bottom: 8px;">
           <span class="material-icons" style="vertical-align: middle; font-size: 2rem;">folder_open</span>
-          Reprise du brouillon
+          <app-bilabel fr="Reprise du brouillon" ar="متابعة المسودة" />
         </h2>
         <p style="text-align: center; color: #94a3b8; margin-bottom: 24px;">
           {{ brouillonFolderName }}
@@ -33,7 +34,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(78,204,163,0.2); border-radius: 12px; padding: 16px; margin-bottom: 24px;">
           <h3 style="color: #e2e8f0; margin-bottom: 12px; font-size: 1rem;">
             <span class="material-icons" style="vertical-align: middle; font-size: 1.2rem; color: #4ecca3;">inventory_2</span>
-            Documents déjà enregistrés ({{ getTotalExistingFiles() }})
+            <app-bilabel fr="Documents déjà enregistrés" ar="الوثائق المحفوظة مسبقاً" /> ({{ getTotalExistingFiles() }})
           </h3>
           <div *ngIf="recapCategories.length === 0" style="color: #64748b; text-align: center; padding: 12px;">
             Aucun document enregistré pour le moment.
@@ -51,14 +52,14 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
 
         <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
           <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
-            <span class="material-icons">person_add</span> Ajouter des héritiers
+            <span class="material-icons">person_add</span> <app-bilabel fr="Ajouter des héritiers" ar="إضافة الورثة" />
           </button>
           <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: #f59e0b; border-color: #f59e0b;" 
             (click)="showBrouillonRecap = false; launchOcrAndReview()" [disabled]="getTotalExistingFiles() === 0">
-            <span class="material-icons">play_arrow</span> Créer le document Frida
+            <span class="material-icons">play_arrow</span> <app-bilabel fr="Créer le document Frida" ar="إنشاء وثيقة فريدة" />
           </button>
           <button class="btn btn-secondary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="router.navigate(['/search'])">
-            <span class="material-icons">close</span> Fermer
+            <span class="material-icons">close</span> <app-bilabel fr="Fermer" ar="إغلاق" />
           </button>
         </div>
       </div>
@@ -71,7 +72,6 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <!-- Fenêtre Défunt -->
         <div class="window-section" *ngIf="isWindowActive('f1')" [class.active-slide]="windows['f1'].isVisible">
           <ng-container *ngIf="!windows['f1'].isUploading">
-            <h2 class="window-title">1. Acte de Décès du Défunt</h2>
             <app-file-upload #fileUploadF1
                 [config]="getUploadConfig('01', 'Défunt (Acte de décès)', false, '', 4, 'ad')"
                 [initialFiles]="windows['f1'].rawFiles || []"
@@ -81,23 +81,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f1'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Acte de Naissance du Défunt -->
         <div class="window-section" *ngIf="isWindowActive('f1_naissance')" [class.active-slide]="windows['f1_naissance'].isVisible">
           <ng-container *ngIf="!windows['f1_naissance'].isUploading">
-            <h2 class="window-title">Acte de Naissance du Défunt</h2>
             <app-file-upload #fileUploadF1Naissance
                 [config]="getUploadConfig('01', 'Défunt (Acte de naissance)', false, '', 4, 'en')"
                 [initialFiles]="windows['f1_naissance'].rawFiles || []"
@@ -109,23 +108,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f1_naissance'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Conjoint -->
         <div class="window-section" *ngIf="isWindowActive('f2')" [class.active-slide]="windows['f2'].isVisible">
           <ng-container *ngIf="!windows['f2'].isUploading">
-            <h2 class="window-title">2. Document du Conjoint</h2>
             <app-file-upload #fileUploadF2
                 [config]="getUploadConfig('02', 'Conjoint', true, 'Continuer s\\'il n\\'y a pas de conjoint', 4)"
                 [initialFiles]="windows['f2'].rawFiles || []"
@@ -137,23 +135,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f2'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Fils (Garçons) -->
         <div class="window-section" *ngIf="isWindowActive('f_garcons')" [class.active-slide]="windows['f_garcons'].isVisible">
           <ng-container *ngIf="!windows['f_garcons'].isUploading">
-            <h2 class="window-title">3. Documents des Fils</h2>
             <app-file-upload #fileUploadFGarcons
                 [config]="getUploadConfig('03', 'Fils (Garçons)', true, 'Continuer s\\'il n\\'y a pas de fils', 10)"
                 [initialFiles]="windows['f_garcons'].rawFiles || []"
@@ -165,23 +162,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_garcons'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Filles -->
         <div class="window-section" *ngIf="isWindowActive('f_filles')" [class.active-slide]="windows['f_filles'].isVisible">
           <ng-container *ngIf="!windows['f_filles'].isUploading">
-            <h2 class="window-title">4. Documents des Filles</h2>
             <app-file-upload #fileUploadFFilles
                 [config]="getUploadConfig('03', 'Filles', true, 'Continuer s\\'il n\\'y a pas de filles', 10)"
                 [initialFiles]="windows['f_filles'].rawFiles || []"
@@ -193,28 +189,28 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_filles'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Déclaration Tombes -->
         <div class="window-section" *ngIf="isWindowActive('f_tombes_declare')" [class.active-slide]="windows['f_tombes_declare'].isVisible">
           <div class="upload-container" style="max-width: 600px; margin: 0 auto; text-align: center;">
-            <h2 class="window-title">Enfants prédécédés (Tombes)</h2>
+            <h2 class="window-title"><app-bilabel fr="Enfants prédécédés (Tombes)" ar="الأبناء المتوفون قبل المورث" /></h2>
             <p style="color: #64748b; margin-bottom: 2rem;">Avez-vous des enfants décédés avant le défunt (laissant des descendants) ?</p>
             
             <div style="display: flex; justify-content: center; gap: 3rem; margin-bottom: 2rem;">
               <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                <label style="font-weight: bold; color: #475569;">Fils décédés</label>
+                <label style="font-weight: bold; color: #475569;"><app-bilabel fr="Fils décédés" ar="الأبناء المتوفون" /></label>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                   <button type="button" (click)="nbFilsDecedes = Math.max(0, nbFilsDecedes - 1)" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">-</button>
                   <span style="font-size: 1.5rem; font-weight: bold; min-width: 30px;">{{ nbFilsDecedes }}</span>
@@ -223,7 +219,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
               </div>
               
               <div style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-                <label style="font-weight: bold; color: #475569;">Filles décédées</label>
+                <label style="font-weight: bold; color: #475569;"><app-bilabel fr="Filles décédées" ar="البنات المتوفيات" /></label>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                   <button type="button" (click)="nbFillesDecedees = Math.max(0, nbFillesDecedees - 1)" style="width: 40px; height: 40px; border-radius: 50%; border: none; background: #e2e8f0; font-size: 1.5rem; cursor: pointer; color: #475569;">-</button>
                   <span style="font-size: 1.5rem; font-weight: bold; min-width: 30px;">{{ nbFillesDecedees }}</span>
@@ -233,8 +229,8 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             </div>
 
             <div style="display: flex; justify-content: center; gap: 1rem; margin-top: 2rem;">
-              <button class="btn btn-outline" (click)="moveToPreviousWindow('f_tombes_declare')">Précédent</button>
-              <button class="btn btn-primary" (click)="continueToNext('f_tombes_declare')">Continuer</button>
+              <button class="btn btn-outline" (click)="moveToPreviousWindow('f_tombes_declare')"><app-bilabel fr="Précédent" ar="السابق" /></button>
+              <button class="btn btn-primary" (click)="continueToNext('f_tombes_declare')"><app-bilabel fr="Continuer" ar="متابعة" /></button>
             </div>
           </div>
         </div>
@@ -243,7 +239,6 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <ng-container *ngFor="let idx of getRange(nbFilsDecedes)">
           <div class="window-section" *ngIf="isWindowActive('tombe_M_' + (idx + 1))" [class.active-slide]="getWindow('tombe_M_' + (idx + 1)).isVisible">
             <ng-container *ngIf="!getWindow('tombe_M_' + (idx + 1)).isUploading">
-              <h2 class="window-title">Tombe {{ idx + 1 }} (Fils prédécédé)</h2>
               <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
               <app-file-upload 
                   [config]="getUploadConfig('09', 'Tombe ' + (idx + 1) + ' (Fils)', true, 'Continuer s\\'il n\\'y a pas de documents', 10)"
@@ -256,16 +251,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
               >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
             </ng-container>
             <div *ngIf="getWindow('tombe_M_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
-              <span class="spinner"></span> Sauvegarde en cours...
+              <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
             </div>
           </div>
         </ng-container>
@@ -274,7 +269,6 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <ng-container *ngFor="let idx of getRange(nbFillesDecedees)">
           <div class="window-section" *ngIf="isWindowActive('tombe_F_' + (idx + 1))" [class.active-slide]="getWindow('tombe_F_' + (idx + 1)).isVisible">
             <ng-container *ngIf="!getWindow('tombe_F_' + (idx + 1)).isUploading">
-              <h2 class="window-title">Tombe {{ idx + 1 }} (Fille prédécédée)</h2>
               <p style="text-align: center; color: #64748b; margin-bottom: 1rem;">Uploadez son acte de décès et les actes de naissance de ses enfants.</p>
               <app-file-upload 
                   [config]="getUploadConfig('10', 'Tombe ' + (idx + 1) + ' (Fille)', true, 'Continuer s\\'il n\\'y a pas de documents', 10)"
@@ -287,16 +281,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
               >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
             </ng-container>
             <div *ngIf="getWindow('tombe_F_' + (idx + 1)).isUploading" class="drop-zone loading-zone">
-              <span class="spinner"></span> Sauvegarde en cours...
+              <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
             </div>
           </div>
         </ng-container>
@@ -304,7 +298,6 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         <!-- Fenêtre Père -->
         <div class="window-section" *ngIf="isWindowActive('f_pere')" [class.active-slide]="windows['f_pere'].isVisible">
           <ng-container *ngIf="!windows['f_pere'].isUploading">
-            <h2 class="window-title">Le Défunt a-t-il un Père vivant ?</h2>
             <app-file-upload #fileUploadFPere
                 [config]="getUploadConfig('04', 'Père', true, 'Continuer s\\'il n\\'y a pas de père', 2)"
                 [initialFiles]="windows['f_pere'].rawFiles || []"
@@ -316,23 +309,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_pere'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Grand-père paternel -->
         <div class="window-section" *ngIf="isWindowActive('f_grand_pere')" [class.active-slide]="windows['f_grand_pere'].isVisible">
           <ng-container *ngIf="!windows['f_grand_pere'].isUploading">
-            <h2 class="window-title">Le Défunt a-t-il un Grand-père paternel vivant ?</h2>
             <app-file-upload #fileUploadFGrandPere
                 [config]="getUploadConfig('08', 'Grand-père paternel', true, 'Continuer s\\'il n\\'y a pas de grand-père paternel', 2)"
                 [initialFiles]="windows['f_grand_pere'].rawFiles || []"
@@ -344,23 +336,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_grand_pere'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Mère -->
         <div class="window-section" *ngIf="isWindowActive('f_mere')" [class.active-slide]="windows['f_mere'].isVisible">
           <ng-container *ngIf="!windows['f_mere'].isUploading">
-            <h2 class="window-title">Le Défunt a-t-il une Mère vivante ?</h2>
             <app-file-upload #fileUploadFMere
                 [config]="getUploadConfig('04', 'Mère', true, 'Continuer s\\'il n\\'y a pas de mère', 2)"
                 [initialFiles]="windows['f_mere'].rawFiles || []"
@@ -372,23 +363,22 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_mere'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
         <!-- Fenêtre Grand-mère paternelle -->
         <div class="window-section" *ngIf="isWindowActive('f_grand_mere_paternelle')" [class.active-slide]="windows['f_grand_mere_paternelle'].isVisible">
           <ng-container *ngIf="!windows['f_grand_mere_paternelle'].isUploading">
-            <h2 class="window-title">Le Défunt a-t-il une Grand-mère paternelle vivante ?</h2>
             <app-file-upload #fileUploadFGrandMerePaternelle
                 [config]="getUploadConfig('11', 'Grand-mère paternelle', true, 'Continuer s\\'il n\\'y a pas de grand-mère paternelle', 2)"
                 [initialFiles]="windows['f_grand_mere_paternelle'].rawFiles || []"
@@ -400,16 +390,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_grand_mere_paternelle'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
@@ -427,16 +417,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f5'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
@@ -454,16 +444,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f6'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
@@ -481,16 +471,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f7'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 
@@ -508,16 +498,16 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
             >
               <div global-actions style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                 <button *ngIf="isHeirWindowActive()" class="btn btn-secondary" style="border-color: #ffb84d; color: #ffb84d; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="skipToTemoins()">
-                  Il n'y a plus d'héritiers
+                  <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> Sauvegarder brouillon ✓
+                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
           </ng-container>
           <div *ngIf="windows['f_temoins'].isUploading" class="drop-zone loading-zone">
-            <span class="spinner"></span> Sauvegarde en cours...
+            <span class="spinner"></span> <app-bilabel fr="Sauvegarde en cours..." ar="جارٍ الحفظ..." />
           </div>
         </div>
 

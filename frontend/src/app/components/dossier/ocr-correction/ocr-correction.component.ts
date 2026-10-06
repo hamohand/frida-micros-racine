@@ -2,6 +2,7 @@ import { NotificationService } from '../../../services/notification.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OcrPipelineService } from '../../../services/ocr-pipeline.service';
 
@@ -26,12 +27,12 @@ interface ChampSuspect {
 @Component({
   selector: 'app-ocr-correction',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   template: `
     <div class="correction-container">
       <div class="correction-header">
         <div class="header-icon">⚠️</div>
-        <h2>Vérification requise</h2>
+        <h2><app-bilabel fr="Vérification requise" ar="مطلوب التحقق" /></h2>
         <p class="subtitle">
           L'IA a lu <strong>{{ champsSuspects.length }} champ(s)</strong> avec un niveau de confiance inférieur à 75% ou nécessitant une correction.
           <br>Veuillez vérifier et corriger si nécessaire avant de continuer.
@@ -44,8 +45,8 @@ interface ChampSuspect {
 
       <div *ngIf="!isLoading && champsSuspects.length === 0" class="empty-state">
         <span class="check-icon">✅</span>
-        <p>Tous les champs ont été reconnus avec une confiance suffisante.</p>
-        <button class="btn btn-primary" (click)="continuer()">Continuer vers la validation →</button>
+        <p><app-bilabel fr="Tous les champs ont été reconnus avec une confiance suffisante." ar="تمت قراءة جميع الحقول بدقة كافية." /></p>
+        <button class="btn btn-primary" (click)="continuer()"><app-bilabel fr="Continuer vers la validation →" ar="المتابعة نحو التحقق ←" /></button>
       </div>
 
       <div class="champs-list" *ngIf="!isLoading && champsSuspects.length > 0">
@@ -80,7 +81,7 @@ interface ChampSuspect {
           <!-- Valeur OCR et correction -->
           <div class="correction-row">
             <div class="ocr-value">
-              <label>Lu par l'IA :</label>
+              <label><app-bilabel fr="Lu par l'IA :" ar="قرأه الذكاء الاصطناعي :" /></label>
               <span class="ocr-text" [class.suspicious]="true">{{ c.valeurOcr || '(vide)' }}</span>
               <div *ngIf="c.valeurReference" class="reference-value mt-2">
                 <label>Valeur de référence (MRZ/NFC) :</label>
@@ -88,7 +89,7 @@ interface ChampSuspect {
               </div>
             </div>
             <div class="correction-input">
-              <label>Correction :</label>
+              <label><app-bilabel fr="Correction :" ar="التصحيح :" /></label>
               <input
                 type="text"
                 [(ngModel)]="c.valeurCorrigee"
@@ -128,17 +129,17 @@ interface ChampSuspect {
 
       <div class="actions" *ngIf="!isLoading && champsSuspects.length > 0">
         <button class="btn btn-secondary" (click)="retourAvant()" [disabled]="isSubmitting">
-          ⬅️ Précédent
+          ⬅️ <app-bilabel fr="Précédent" ar="السابق" />
         </button>
         <button class="btn btn-secondary" (click)="toutAccepter()" [disabled]="isSubmitting">
-          Tout accepter tel quel
+          <app-bilabel fr="Tout accepter tel quel" ar="قبول الكل كما هو" />
         </button>
         <button class="btn btn-secondary" (click)="mettreEnAttente()" [disabled]="isSubmitting" style="border-color: #ecc94b; color: #ecc94b;">
-          ⏳ Mettre en attente
+          ⏳ <app-bilabel fr="Mettre en attente" ar="وضع في الانتظار" />
         </button>
         <button class="btn btn-primary" (click)="validerCorrections()" [disabled]="isSubmitting">
-          <span *ngIf="!isSubmitting">✅ Valider les corrections</span>
-          <span *ngIf="isSubmitting"><span class="spinner"></span> Sauvegarde...</span>
+          <span *ngIf="!isSubmitting">✅ <app-bilabel fr="Valider les corrections" ar="تأكيد التصحيحات" /></span>
+          <span *ngIf="isSubmitting"><span class="spinner"></span> <app-bilabel fr="Sauvegarde..." ar="جارٍ الحفظ..." /></span>
         </button>
       </div>
     </div>

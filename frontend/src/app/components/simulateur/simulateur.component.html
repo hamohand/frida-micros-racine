@@ -1,7 +1,7 @@
 <div class="simulateur-container">
   <header class="sim-header">
-    <h1>Simulateur d'Héritage</h1>
-    <p>Calculez instantanément les parts d'héritage en renseignant la composition de la famille.</p>
+    <h1><app-bilabel fr="Simulateur d'Héritage" ar="محاكي الحصص" /></h1>
+    <p><app-bilabel fr="Calculez instantanément les parts d'héritage en renseignant la composition de la famille." ar="احسب فوراً حصص الإرث بإدخال تركيبة الأسرة." /></p>
   </header>
 
   <div class="sim-layout">
@@ -11,26 +11,26 @@
         
         <!-- SECTION 1 : LE DÉFUNT -->
         <section class="form-section section-defunt">
-          <h2>1. Informations sur le Défunt</h2>
+          <h2><app-bilabel fr="1. Informations sur le Défunt" ar="١. معلومات المتوفى" /></h2>
           <div class="gender-selector">
             <button type="button" 
                     class="gender-btn" 
                     [class.active]="simForm.get('sexeDefunt')?.value === 'M'"
                     (click)="setSexeDefunt('M')">
-              <span class="icon">👨</span> Homme
+              <span class="icon">👨</span> <app-bilabel fr="Homme" ar="ذكر" />
             </button>
             <button type="button" 
                     class="gender-btn" 
                     [class.active]="simForm.get('sexeDefunt')?.value === 'F'"
                     (click)="setSexeDefunt('F')">
-              <span class="icon">👩</span> Femme
+              <span class="icon">👩</span> <app-bilabel fr="Femme" ar="أنثى" />
             </button>
           </div>
         </section>
 
         <!-- SECTION 2 : CONJOINTS -->
         <section class="form-section section-conjoints">
-          <h2>2. Conjoints (Époux / Épouses)</h2>
+          <h2><app-bilabel fr="2. Conjoints (Époux / Épouses)" ar="٢. الأزواج" /></h2>
           <div class="counter-group">
             <label>{{ simForm.get('sexeDefunt')?.value === 'M' ? 'Épouse(s)' : 'Époux' }}</label>
             <div class="counter-controls">
@@ -45,10 +45,10 @@
 
         <!-- SECTION 3 : DESCENDANTS -->
         <section class="form-section section-descendants">
-          <h2>3. Descendants (Enfants & Petits-enfants)</h2>
+          <h2><app-bilabel fr="3. Descendants (Enfants & Petits-enfants)" ar="٣. الفروع (الأبناء والأحفاد)" /></h2>
           <div class="counter-grid">
             <div class="counter-group">
-              <label>Fils</label>
+              <label><app-bilabel fr="Fils" ar="أبناء" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbGarcons')">-</button>
                 <input type="number" formControlName="nbGarcons" readonly>
@@ -56,7 +56,7 @@
               </div>
             </div>
             <div class="counter-group">
-              <label>Filles</label>
+              <label><app-bilabel fr="Filles" ar="بنات" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbFilles')">-</button>
                 <input type="number" formControlName="nbFilles" readonly>
@@ -80,7 +80,7 @@
             
             <div class="counter-grid" style="margin-bottom: 1rem;">
               <div class="counter-group">
-                <label style="color: #475569; font-size: 0.9rem;">Fils décédés</label>
+                <label style="color: #475569; font-size: 0.9rem;"><app-bilabel fr="Fils décédés" ar="أبناء متوفون" /></label>
                 <div class="counter-controls">
                   <button type="button" class="btn-circle" (click)="decrementDecede('enfant', 'M')">-</button>
                   <input type="number" formControlName="nbFilsDecedes" readonly>
@@ -88,7 +88,7 @@
                 </div>
               </div>
               <div class="counter-group">
-                <label style="color: #475569; font-size: 0.9rem;">Filles décédées</label>
+                <label style="color: #475569; font-size: 0.9rem;"><app-bilabel fr="Filles décédées" ar="بنات متوفيات" /></label>
                 <div class="counter-controls">
                   <button type="button" class="btn-circle" (click)="decrementDecede('enfant', 'F')">-</button>
                   <input type="number" formControlName="nbFillesDecedees" readonly>
@@ -107,7 +107,7 @@
                 <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Petits-enfants du défunt) :</label>
                 <div class="counter-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                   <div class="counter-group" style="padding: 0.5rem;">
-                    <label style="font-size: 0.85rem;">Petits-fils</label>
+                    <label style="font-size: 0.85rem;"><app-bilabel fr="Petits-fils" ar="أحفاد ذكور" /></label>
                     <div class="counter-controls">
                       <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesEnfants, i, 'nbDescendantsMales')">-</button>
                       <input type="number" formControlName="nbDescendantsMales" readonly>
@@ -115,7 +115,7 @@
                     </div>
                   </div>
                   <div class="counter-group" style="padding: 0.5rem;">
-                    <label style="font-size: 0.85rem;">Petites-filles</label>
+                    <label style="font-size: 0.85rem;"><app-bilabel fr="Petites-filles" ar="أحفاد إناث" /></label>
                     <div class="counter-controls">
                       <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesEnfants, i, 'nbDescendantesFemelles')">-</button>
                       <input type="number" formControlName="nbDescendantesFemelles" readonly>
@@ -131,33 +131,33 @@
 
         <!-- SECTION 4 : ASCENDANTS -->
         <section class="form-section section-ascendants">
-          <h2>4. Ascendants (Parents & Grands-parents)</h2>
+          <h2><app-bilabel fr="4. Ascendants (Parents & Grands-parents)" ar="٤. الأصول (الوالدان والأجداد)" /></h2>
           <div class="toggle-grid">
             <label class="toggle-label">
               <input type="checkbox" formControlName="pereVivant">
-              <span class="toggle-text">Père vivant</span>
+              <span class="toggle-text"><app-bilabel fr="Père vivant" ar="الأب حي" /></span>
             </label>
             <label class="toggle-label">
               <input type="checkbox" formControlName="mereVivante">
-              <span class="toggle-text">Mère vivante</span>
+              <span class="toggle-text"><app-bilabel fr="Mère vivante" ar="الأم حية" /></span>
             </label>
             <label class="toggle-label" [class.disabled-item]="simForm.get('grandPerePaternelVivant')?.disabled">
               <input type="checkbox" formControlName="grandPerePaternelVivant">
-              <span class="toggle-text">Grand-père paternel vivant</span>
+              <span class="toggle-text"><app-bilabel fr="Grand-père paternel vivant" ar="الجد الأب حي" /></span>
             </label>
             <label class="toggle-label" [class.disabled-item]="simForm.get('grandMerePaternelleVivante')?.disabled">
               <input type="checkbox" formControlName="grandMerePaternelleVivante">
-              <span class="toggle-text">Grand-mère paternelle vivante</span>
+              <span class="toggle-text"><app-bilabel fr="Grand-mère paternelle vivante" ar="الجدة الأب حية" /></span>
             </label>
           </div>
         </section>
 
         <!-- SECTION 5 : COLLATÉRAUX -->
         <section class="form-section section-collateraux">
-          <h2>5. Collatéraux (Frères & Sœurs)</h2>
+          <h2><app-bilabel fr="5. Collatéraux (Frères & Sœurs)" ar="٥. الحواشي (الإخوة والأخوات)" /></h2>
           <div class="counter-grid">
             <div class="counter-group" [class.disabled-item]="simForm.get('nbFreres')?.disabled">
-              <label>Frères</label>
+              <label><app-bilabel fr="Frères" ar="إخوة" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbFreres')">-</button>
                 <input type="number" formControlName="nbFreres" readonly>
@@ -165,7 +165,7 @@
               </div>
             </div>
             <div class="counter-group" [class.disabled-item]="simForm.get('nbSoeurs')?.disabled">
-              <label>Sœurs</label>
+              <label><app-bilabel fr="Sœurs" ar="أخوات" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbSoeurs')">-</button>
                 <input type="number" formControlName="nbSoeurs" readonly>
@@ -173,7 +173,7 @@
               </div>
             </div>
             <div class="counter-group" [class.disabled-item]="simForm.get('nbOncles')?.disabled">
-              <label>Oncles paternels</label>
+              <label><app-bilabel fr="Oncles paternels" ar="أعمام" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbOncles')">-</button>
                 <input type="number" formControlName="nbOncles" readonly>
@@ -181,7 +181,7 @@
               </div>
             </div>
             <div class="counter-group" [class.disabled-item]="simForm.get('nbCousins')?.disabled">
-              <label>Cousins paternels</label>
+              <label><app-bilabel fr="Cousins paternels" ar="أبناء الأعمام" /></label>
               <div class="counter-controls">
                 <button type="button" class="btn-circle" (click)="decrement('nbCousins')">-</button>
                 <input type="number" formControlName="nbCousins" readonly>
@@ -205,7 +205,7 @@
             
             <div class="counter-grid" style="margin-bottom: 1rem;">
               <div class="counter-group">
-                <label style="color: #475569; font-size: 0.9rem;">Frères décédés</label>
+                <label style="color: #475569; font-size: 0.9rem;"><app-bilabel fr="Frères décédés" ar="إخوة متوفون" /></label>
                 <div class="counter-controls">
                   <button type="button" class="btn-circle" (click)="decrementDecede('frere_soeur', 'M')">-</button>
                   <input type="number" formControlName="nbFreresDecedes" readonly>
@@ -213,7 +213,7 @@
                 </div>
               </div>
               <div class="counter-group">
-                <label style="color: #475569; font-size: 0.9rem;">Sœurs décédées</label>
+                <label style="color: #475569; font-size: 0.9rem;"><app-bilabel fr="Sœurs décédées" ar="أخوات متوفيات" /></label>
                 <div class="counter-controls">
                   <button type="button" class="btn-circle" (click)="decrementDecede('frere_soeur', 'F')">-</button>
                   <input type="number" formControlName="nbSoeursDecedees" readonly>
@@ -232,7 +232,7 @@
                 <label style="display: block; font-weight: 500; font-size: 0.9rem; color: #475569; margin-bottom: 0.25rem;">Ses enfants (Neveux/Nièces) :</label>
                 <div class="counter-grid" style="grid-template-columns: 1fr 1fr; gap: 0.5rem;">
                   <div class="counter-group" style="padding: 0.5rem;">
-                    <label style="font-size: 0.85rem;">Neveux</label>
+                    <label style="font-size: 0.85rem;"><app-bilabel fr="Neveux" ar="أبناء الإخوة" /></label>
                     <div class="counter-controls">
                       <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesFratrie, i, 'nbDescendantsMales')">-</button>
                       <input type="number" formControlName="nbDescendantsMales" readonly>
@@ -240,7 +240,7 @@
                     </div>
                   </div>
                   <div class="counter-group" style="padding: 0.5rem;">
-                    <label style="font-size: 0.85rem;">Nièces</label>
+                    <label style="font-size: 0.85rem;"><app-bilabel fr="Nièces" ar="بنات الإخوة" /></label>
                     <div class="counter-controls">
                       <button type="button" class="btn-circle" style="width: 24px; height: 24px; font-size: 0.9rem;" (click)="decrementTombe(tombesFratrie, i, 'nbDescendantesFemelles')">-</button>
                       <input type="number" formControlName="nbDescendantesFemelles" readonly>
@@ -280,7 +280,7 @@
 
       <div class="results-card" [class.loading]="enChargement">
         
-        <h2>Résultats de la répartition</h2>
+        <h2><app-bilabel fr="Résultats de la répartition" ar="نتائج التقسيم" /></h2>
 
         <div *ngIf="erreur" class="alert alert-danger">
           {{ erreur }}
@@ -300,9 +300,9 @@
           <table class="results-table">
             <thead>
               <tr>
-                <th>Héritier</th>
-                <th>Part (individuelle)</th>
-                <th>Pourcentage</th>
+                <th><app-bilabel fr="Héritier" ar="الوارث" /></th>
+                <th><app-bilabel fr="Part (individuelle)" ar="الحصة (الفردية)" /></th>
+                <th><app-bilabel fr="Pourcentage" ar="النسبة المئوية" /></th>
               </tr>
             </thead>
             <tbody>

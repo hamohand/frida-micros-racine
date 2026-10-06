@@ -2,6 +2,7 @@ import { Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 import { forkJoin, of, catchError } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { FridaService } from '../../../services/frida.service';
@@ -20,15 +21,15 @@ interface DossierResume {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, CommonModule],
+  imports: [RouterLink, CommonModule, BilabelComponent],
   template: `
     <!-- Visiteur non connecté -->
     <section *ngIf="!authService.isLoggedIn(); else tableauDeBord" class="accueil-public">
       <h1 class="hero-title">Ustadh-a</h1>
-      <p class="hero-subtitle">Système Avancé de Gestion Notariale</p>
+      <p class="hero-subtitle"><app-bilabel fr="Système Avancé de Gestion Notariale" ar="نظام متقدم للإدارة التوثيقية" /></p>
       <div class="actions-publiques">
-        <a routerLink="/login" class="btn btn-primary">Se connecter</a>
-        <a routerLink="/simulateur" class="btn btn-secondary">Simulateur de parts</a>
+        <a routerLink="/login" class="btn btn-primary"><app-bilabel fr="Se connecter" ar="تسجيل الدخول" /></a>
+        <a routerLink="/simulateur" class="btn btn-secondary"><app-bilabel fr="Simulateur de parts" ar="محاكي الحصص" /></a>
       </div>
     </section>
 
@@ -44,7 +45,7 @@ interface DossierResume {
               <svg viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
               <input #champ type="search" placeholder="N° de dossier, nom du défunt…" aria-label="Rechercher un dossier" />
             </form>
-            <a routerLink="/create" class="btn btn-primary bouton-nouveau">+ Nouveau dossier</a>
+            <a routerLink="/create" class="btn btn-primary bouton-nouveau"><app-bilabel fr="+ Nouveau dossier" ar="+ ملف جديد" /></a>
           </div>
         </header>
 
@@ -52,27 +53,27 @@ interface DossierResume {
         <div class="tuiles">
           <a routerLink="/search" class="tuile">
             <span class="tuile-valeur">{{ chargement ? '–' : dossiers.length }}</span>
-            <span class="tuile-libelle">Dossiers actifs</span>
+            <span class="tuile-libelle"><app-bilabel fr="Dossiers actifs" ar="الملفات النشطة" /></span>
           </a>
           <a routerLink="/search" class="tuile">
             <span class="tuile-valeur">{{ chargement ? '–' : dossiersDuMois }}</span>
-            <span class="tuile-libelle">Créés ce mois-ci</span>
+            <span class="tuile-libelle"><app-bilabel fr="Créés ce mois-ci" ar="أُنشئت هذا الشهر" /></span>
           </a>
           <a routerLink="/search" class="tuile" [class.tuile-attention]="brouillons.length > 0">
             <span class="tuile-valeur">{{ chargement ? '–' : brouillons.length }}</span>
-            <span class="tuile-libelle">Brouillons en cours</span>
+            <span class="tuile-libelle"><app-bilabel fr="Brouillons en cours" ar="المسودات الجارية" /></span>
           </a>
           <a *ngIf="batchAReviser > 0" routerLink="/batch-review" class="tuile tuile-attention">
             <span class="tuile-valeur">{{ batchAReviser }}</span>
-            <span class="tuile-libelle">Dossiers à réviser</span>
+            <span class="tuile-libelle"><app-bilabel fr="Dossiers à réviser" ar="ملفات للمراجعة" /></span>
           </a>
         </div>
 
         <!-- Dossier en cours de création -->
         <button *ngIf="uploadState.dossierEnCours() as d" type="button" class="bandeau-reprise" (click)="router.navigateByUrl(d.url)">
           <span class="bandeau-icone">▶</span>
-          <span>Dossier en cours : <strong class="demo-blur">{{ d.libelle }}</strong></span>
-          <span class="bandeau-lien">Reprendre ›</span>
+          <span><app-bilabel fr="Dossier en cours :" ar="الملف الجاري :" /> <strong class="demo-blur">{{ d.libelle }}</strong></span>
+          <span class="bandeau-lien"><app-bilabel fr="Reprendre" ar="متابعة" /> ›</span>
         </button>
 
         <!-- Alerte sauvegarde (Maître) -->
@@ -80,15 +81,15 @@ interface DossierResume {
            class="bandeau-sauvegarde" [class.en-retard]="s.enRetard">
           <span class="bandeau-icone">{{ s.enRetard ? '⚠' : '✓' }}</span>
           <span>{{ s.texte }}</span>
-          <span class="bandeau-lien">Sauvegardes ›</span>
+          <span class="bandeau-lien"><app-bilabel fr="Sauvegardes" ar="النسخ الاحتياطية" /> ›</span>
         </a>
 
         <div class="colonnes">
           <!-- Brouillons -->
           <section class="panneau">
             <div class="panneau-entete">
-              <h2>Reprendre un brouillon</h2>
-              <a *ngIf="brouillons.length > 5" routerLink="/search" class="voir-tout">Tout voir ({{ brouillons.length }})</a>
+              <h2><app-bilabel fr="Reprendre un brouillon" ar="متابعة مسودة" /></h2>
+              <a *ngIf="brouillons.length > 5" routerLink="/search" class="voir-tout"><app-bilabel fr="Tout voir" ar="رؤية الكل" /> ({{ brouillons.length }})</a>
             </div>
             <div *ngIf="chargement" class="squelette-liste">
               <div class="squelette" *ngFor="let i of [1,2,3]"></div>
@@ -98,20 +99,20 @@ interface DossierResume {
                 <button type="button" class="ligne" (click)="reprendreBrouillon(b)">
                   <span class="ligne-principal demo-blur">{{ b.nomDefunt }} {{ b.prenomDefunt }}</span>
                   <span class="ligne-secondaire">Commencé le {{ formaterDate(b.dateCreation) }}</span>
-                  <span class="ligne-action">Reprendre ›</span>
+                  <span class="ligne-action"><app-bilabel fr="Reprendre" ar="متابعة" /> ›</span>
                 </button>
               </li>
             </ul>
             <p *ngIf="!chargement && !brouillons.length" class="vide">
-              Aucun brouillon en attente. Un dossier interrompu à l'étape Documents apparaîtra ici.
+              <app-bilabel fr="Aucun brouillon en attente." ar="لا توجد مسودات في الانتظار." />
             </p>
           </section>
 
           <!-- Derniers dossiers -->
           <section class="panneau">
             <div class="panneau-entete">
-              <h2>Derniers dossiers</h2>
-              <a routerLink="/search" class="voir-tout">Tout voir</a>
+              <h2><app-bilabel fr="Derniers dossiers" ar="آخر الملفات" /></h2>
+              <a routerLink="/search" class="voir-tout"><app-bilabel fr="Tout voir" ar="رؤية الكل" /></a>
             </div>
             <div *ngIf="chargement" class="squelette-liste">
               <div class="squelette" *ngFor="let i of [1,2,3]"></div>
@@ -124,13 +125,13 @@ interface DossierResume {
                     <span class="demo-blur">{{ d.nom }} {{ d.prenom }}</span>
                   </span>
                   <span class="ligne-secondaire">{{ formaterDate(d.dateCreation) }}</span>
-                  <span *ngIf="d.requiresCorrection" class="badge-correction">À corriger</span>
+                  <span *ngIf="d.requiresCorrection" class="badge-correction"><app-bilabel fr="À corriger" ar="للتصحيح" /></span>
                 </button>
               </li>
             </ul>
             <div *ngIf="!chargement && !derniersDossiers.length" class="vide">
-              <p>Aucun dossier pour l'instant.</p>
-              <a routerLink="/create" class="btn btn-secondary">Créer le premier dossier</a>
+              <p><app-bilabel fr="Aucun dossier pour l'instant." ar="لا يوجد ملف حتى الآن." /></p>
+              <a routerLink="/create" class="btn btn-secondary"><app-bilabel fr="Créer le premier dossier" ar="إنشاء الملف الأول" /></a>
             </div>
           </section>
         </div>

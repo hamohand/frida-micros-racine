@@ -2,13 +2,14 @@ import { NotificationService } from '../../services/notification.service';
 import { Component, OnInit, inject } from '@angular/core';
 import { FridaService } from '../../services/frida.service';
 import { CommonModule } from '@angular/common';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BrouillonService, Brouillon } from '../../services/brouillon.service';
 
 @Component({
   selector: 'app-search',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BilabelComponent],
   template: `
     <div class="list-wrapper">
       <div class="glass-panel">
@@ -17,19 +18,19 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
             [style.background]="activeTab === 'fridas' ? '#4ecca3' : 'transparent'"
             [style.color]="activeTab === 'fridas' ? '#1e293b' : '#a0aec0'"
             style="padding: 8px 20px; border: 1px solid #4ecca3; border-radius: 8px 0 0 8px; cursor: pointer; font-weight: 600;">
-            Fridas validées
+            <app-bilabel fr="Fridas validées" ar="الملفات المعتمدة" />
           </button>
-          <button (click)="activeTab = 'brouillons'" 
+          <button (click)="activeTab = 'brouillons'"
             [style.background]="activeTab === 'brouillons' ? '#4ecca3' : 'transparent'"
             [style.color]="activeTab === 'brouillons' ? '#1e293b' : '#a0aec0'"
             style="padding: 8px 20px; border: 1px solid #4ecca3; border-radius: 0 8px 8px 0; cursor: pointer; font-weight: 600;">
-            Brouillons ({{ brouillons.length }})
+            <app-bilabel fr="Brouillons" ar="المسودات" /> ({{ brouillons.length }})
           </button>
         </div>
 
         <div *ngIf="activeTab === 'fridas'">
           <div class="header-section">
-            <h2>Rechercher</h2>
+            <h2><app-bilabel fr="Rechercher" ar="بحث" /></h2>
             <div class="search-box">
               <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></svg>
               <input type="text" placeholder="Rechercher par nom, numéro ou date..." [value]="termeRecherche" (input)="onSearch($event)" />
@@ -49,18 +50,18 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
               <thead>
                 <tr>
                   <th (click)="sort('numFrida')" class="sortable">
-                    Numéro de Dossier
+                    <app-bilabel fr="Numéro de Dossier" ar="رقم الملف" />
                     <span class="sort-icon">{{ getSortIcon('numFrida') }}</span>
                   </th>
                   <th (click)="sort('nom')" class="sortable">
-                    Défunt (Nom Prénom)
+                    <app-bilabel fr="Défunt (Nom Prénom)" ar="المتوفى (اللقب الاسم)" />
                     <span class="sort-icon">{{ getSortIcon('nom') }}</span>
                   </th>
                   <th (click)="sort('dateCreation')" class="sortable">
-                    Date de Création
+                    <app-bilabel fr="Date de Création" ar="تاريخ الإنشاء" />
                     <span class="sort-icon">{{ getSortIcon('dateCreation') }}</span>
                   </th>
-                  <th>Action</th>
+                  <th><app-bilabel fr="Action" ar="إجراء" /></th>
                 </tr>
               </thead>
               <tbody>
@@ -80,7 +81,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
                               [title]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger les données' : 'Consulter l\\'acte'">
                         <svg *ngIf="!(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON'))" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg>
                         <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
-                        <span>{{ (frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir' }}</span>
+                        <app-bilabel [fr]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir'" [ar]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'تصحيح' : 'فتح'" />
                       </button>
                       <button class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
                         <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
@@ -90,7 +91,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
                 </tr>
                 <tr *ngIf="filteredList.length === 0">
                   <td colspan="4" class="empty-state">
-                    Aucun document trouvé pour cette recherche.
+                    <app-bilabel fr="Aucun document trouvé pour cette recherche." ar="لم يُعثر على أي وثيقة." />
                   </td>
                 </tr>
               </tbody>
@@ -102,10 +103,10 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
           <table *ngIf="brouillons.length > 0" style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 2px solid rgba(78,204,163,0.3);">
-                <th style="padding: 10px; text-align: left; color: #4ecca3;">Nom</th>
-                <th style="padding: 10px; text-align: left; color: #4ecca3;">Prénom</th>
-                <th style="padding: 10px; text-align: left; color: #4ecca3;">Date création</th>
-                <th style="padding: 10px; text-align: left; color: #4ecca3;">Actions</th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;"><app-bilabel fr="Nom" ar="اللقب" /></th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;"><app-bilabel fr="Prénom" ar="الاسم" /></th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;"><app-bilabel fr="Date création" ar="تاريخ الإنشاء" /></th>
+                <th style="padding: 10px; text-align: left; color: #4ecca3;"><app-bilabel fr="Actions" ar="إجراءات" /></th>
               </tr>
             </thead>
             <tbody>
@@ -114,13 +115,13 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
                 <td style="padding: 10px;">{{ b.prenomDefunt }}</td>
                 <td style="padding: 10px;">{{ b.dateCreation }}</td>
                 <td style="padding: 10px;">
-                  <button (click)="reprendreBrouillon(b)" style="padding: 5px 15px; background: #4ecca3; color: #1e293b; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 8px;">Reprendre</button>
-                  <button (click)="supprimerBrouillon(b)" style="padding: 5px 15px; background: transparent; color: #D16D6A; border: 1px solid #D16D6A; border-radius: 6px; cursor: pointer;">Supprimer</button>
+                  <button (click)="reprendreBrouillon(b)" style="padding: 5px 15px; background: #4ecca3; color: #1e293b; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 8px;"><app-bilabel fr="Reprendre" ar="متابعة" /></button>
+                  <button (click)="supprimerBrouillon(b)" style="padding: 5px 15px; background: transparent; color: #D16D6A; border: 1px solid #D16D6A; border-radius: 6px; cursor: pointer;"><app-bilabel fr="Supprimer" ar="حذف" /></button>
                 </td>
               </tr>
             </tbody>
           </table>
-          <p *ngIf="brouillons.length === 0" style="text-align: center; color: #a0aec0; padding: 2rem;">Aucun brouillon en cours</p>
+          <p *ngIf="brouillons.length === 0" style="text-align: center; color: #a0aec0; padding: 2rem;"><app-bilabel fr="Aucun brouillon en cours" ar="لا توجد مسودات جارية" /></p>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { FolderService } from '../../../services/folder.service';
@@ -10,30 +11,30 @@ import { ConstitutionService } from '../../../services/constitution.service';
 @Component({
   selector: 'app-create-person',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, BilabelComponent],
   template: `
     <div class="container form-container">
-      <h1 class="form-title">Création du dossier</h1>
-      <cite style="color: #2eaf7d">Tapez le nom de famille et le prénom du défunt en lettres latines</cite>
+      <h1 class="form-title"><app-bilabel fr="Création du dossier" ar="إنشاء الملف" /></h1>
+      <cite style="color: #2eaf7d"><app-bilabel fr="Tapez le nom de famille et le prénom du défunt en lettres latines" ar="أدخل لقب المتوفى واسمه بالحروف اللاتينية" /></cite>
       
       <div *ngIf="uploadStateService.dossierEnCours() as d" class="avis-en-cours">
         <span>Le dossier <strong>{{ d.libelle }}</strong> est en cours. En créer un nouveau l'abandonnera.</span>
-        <button type="button" class="btn btn-secondary" (click)="router.navigateByUrl(d.url)">Reprendre ce dossier</button>
+        <button type="button" class="btn btn-secondary" (click)="router.navigateByUrl(d.url)"><app-bilabel fr="Reprendre ce dossier" ar="متابعة هذا الملف" /></button>
       </div>
 
       <div class="qr-action-container">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,.pdf" style="display: none;" />
         <button type="button" class="btn btn-secondary qr-btn" (click)="fileInput.click()" [disabled]="isScanningQr">
-          <span class="icon">📷</span> {{ isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Acte de décès)' }}
+          <span class="icon">📷</span> <app-bilabel [fr]="isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Acte de décès)'" [ar]="isScanningQr ? 'جارٍ تحليل رمز QR...' : 'ملء عبر رمز QR (عقد الوفاة)'" />
         </button>
         <div *ngIf="qrError" class="error-message" style="margin-top: 5px;">{{ qrError }}</div>
       </div>
       
-      <div class="divider">ou saisie manuelle</div>
+      <div class="divider"><app-bilabel fr="ou saisie manuelle" ar="أو إدخال يدوي" /></div>
 
       <form [formGroup]="personForm" (ngSubmit)="onSubmit()" class="person-form">
         <div class="form-group">
-          <label for="lastName">Nom</label>
+          <label for="lastName"><app-bilabel fr="Nom" ar="اللقب" /></label>
           <input
             id="lastName"
             type="text"
@@ -43,12 +44,12 @@ import { ConstitutionService } from '../../../services/constitution.service';
             [class.error]="isFieldInvalid('lastName')"
           />
           <span class="error-message" *ngIf="isFieldInvalid('lastName')">
-            Le nom est requis et doit contenir uniquement des lettres
+            <app-bilabel fr="Le nom est requis et doit contenir uniquement des lettres" ar="اللقب مطلوب ويجب أن يحتوي على حروف فقط" />
           </span>
         </div>
 
         <div class="form-group">
-          <label for="firstName">Prénom</label>
+          <label for="firstName"><app-bilabel fr="Prénom" ar="الاسم" /></label>
           <input
             id="firstName"
             type="text"
@@ -58,19 +59,19 @@ import { ConstitutionService } from '../../../services/constitution.service';
             [class.error]="isFieldInvalid('firstName')"
           />
           <span class="error-message" *ngIf="isFieldInvalid('firstName')">
-            Le prénom est requis et doit contenir uniquement des lettres
+            <app-bilabel fr="Le prénom est requis et doit contenir uniquement des lettres" ar="الاسم مطلوب ويجب أن يحتوي على حروف فقط" />
           </span>
         </div>
 
         <div class="form-feedback" *ngIf="submitSuccess">
-          Dossier créé avec succès !
+          <app-bilabel fr="Dossier créé avec succès !" ar="تم إنشاء الملف بنجاح!" />
         </div>
         <div class="form-error" *ngIf="submitError">
           {{ errorMessage }}
         </div>
 
         <button type="submit" class="btn btn-primary" [disabled]="personForm.invalid || isSubmitting">
-          {{ isSubmitting ? 'Création...' : 'Enregistrer' }}
+          <app-bilabel [fr]="isSubmitting ? 'Création...' : 'Enregistrer'" [ar]="isSubmitting ? 'جارٍ الإنشاء...' : 'حفظ'" />
         </button>
       </form>
     </div>

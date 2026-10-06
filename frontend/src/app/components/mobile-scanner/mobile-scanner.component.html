@@ -1,7 +1,7 @@
 <div class="mobile-scanner-container">
   <div class="header">
     <h1><span class="icon">📷</span> Frida Scanner</h1>
-    <p>Scan compagnon pour poste fixe</p>
+    <p><app-bilabel fr="Scan compagnon pour poste fixe" ar="مرافق المسح للحاسوب المكتبي" /></p>
   </div>
 
   <div class="content" *ngIf="status === 'idle' || status === 'error'">
@@ -10,7 +10,7 @@
     </div>
 
     <label class="scan-btn">
-      <span>Prendre la photo</span>
+      <span><app-bilabel fr="Prendre la photo" ar="التقاط الصورة" /></span>
       <input type="file" accept="image/*" capture="environment" (change)="onFileSelected($event)" />
     </label>
 
@@ -21,14 +21,14 @@
 
   <div class="content loading" *ngIf="status === 'uploading'">
     <div class="spinner"></div>
-    <p>Analyse de la carte en cours...</p>
-    <small>Veuillez patienter.</small>
+    <p><app-bilabel fr="Analyse de la carte en cours..." ar="جارٍ تحليل البطاقة..." /></p>
+    <small><app-bilabel fr="Veuillez patienter." ar="يرجى الانتظار." /></small>
   </div>
 
   <div class="content success" *ngIf="status === 'success'">
     <div class="check-icon">✅</div>
-    <h2>Succès !</h2>
-    <p>La carte a été analysée avec succès.</p>
-    <p>Vous pouvez retourner sur votre ordinateur, la lecture va se lancer automatiquement.</p>
+    <h2><app-bilabel fr="Succès !" ar="نجاح!" /></h2>
+    <p><app-bilabel fr="La carte a été analysée avec succès." ar="تم تحليل البطاقة بنجاح." /></p>
+    <p><app-bilabel fr="Vous pouvez retourner sur votre ordinateur, la lecture va se lancer automatiquement." ar="يمكنك العودة إلى حاسوبك، ستنطلق القراءة تلقائياً." /></p>
   </div>
 </div>

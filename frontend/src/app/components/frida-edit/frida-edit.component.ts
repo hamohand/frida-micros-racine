@@ -4,11 +4,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-frida-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   templateUrl: './frida-edit.component.html',
   styleUrl: './frida-edit.component.css'
 })

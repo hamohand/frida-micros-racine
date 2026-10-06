@@ -7,6 +7,7 @@ import { FridaService } from '../../../services/frida.service';
 import { OcrPipelineService } from '../../../services/ocr-pipeline.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { AuthService } from '../../../services/auth.service';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 
 interface Personne {
   id?: number;
@@ -27,20 +28,20 @@ interface Personne {
 @Component({
   selector: 'app-heir-review',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   template: `
     <div class="review-container">
-      <h2>Fiche Familiale Interactive</h2>
-      <p class="subtitle">Complétez ou corrigez les informations de la famille avant de lancer le calcul définitif.</p>
-      
+      <h2><app-bilabel fr="Fiche Familiale Interactive" ar="الملف العائلي التفاعلي" /></h2>
+      <p class="subtitle"><app-bilabel fr="Complétez ou corrigez les informations de la famille avant de lancer le calcul définitif." ar="أكمل أو صحح المعلومات العائلية…" /></p>
+
       <div *ngIf="isLoading" class="loading-state">
-        <span class="spinner"></span> Chargement du dossier...
+        <span class="spinner"></span> <app-bilabel fr="Chargement du dossier..." ar="جارٍ تحميل الملف..." />
       </div>
 
       <div class="form-card" *ngIf="!isLoading && frida">
         <!-- Section Défunt -->
         <div class="section-header">
-          <h3>Le Défunt</h3>
+          <h3><app-bilabel fr="Le Défunt" ar="المتوفى" /></h3>
         </div>
         <div class="person-card defunt">
           <div class="info">
@@ -62,7 +63,7 @@ interface Personne {
 
         <!-- Mode Édition Défunt -->
         <div class="edit-form" *ngIf="editingDefunt">
-          <h4>Modifier le Défunt</h4>
+          <h4><app-bilabel fr="Modifier le Défunt" ar="تعديل المتوفى" /></h4>
           <div class="edit-container" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             <div class="form-grid" style="flex: 1; min-width: 300px;">
               <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
@@ -74,11 +75,11 @@ interface Personne {
               <input type="text" [(ngModel)]="defunt.pere" placeholder="Nom et prénom du père">
               <input type="text" [(ngModel)]="defunt.mere" placeholder="Nom et prénom de la mère">
               <select [(ngModel)]="defunt.sexe">
-                <option value="M">Homme</option>
-                <option value="F">Femme</option>
+                <option value="M">Homme · ذكر</option>
+                <option value="F">Femme · أنثى</option>
               </select>
             </div>
-            
+
             <div class="scan-preview" *ngIf="frida?.defunt?.identite?.imagePath" style="flex: 1; min-width: 300px; border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9;">
               <h5 style="margin-top: 0; margin-bottom: 10px; color: #555;">Document source (sélectionnez le texte si besoin)</h5>
               <img [src]="'/api/files/view?path=' + encodeURIComponent(frida.defunt.identite.imagePath)" 
@@ -87,19 +88,19 @@ interface Personne {
             </div>
           </div>
           <div class="form-actions" style="margin-top: 15px;">
-            <button class="btn btn-sm btn-primary" (click)="saveDefuntEdit()">Valider</button>
+            <button class="btn btn-sm btn-primary" (click)="saveDefuntEdit()"><app-bilabel fr="Valider" ar="تأكيد" /></button>
           </div>
         </div>
 
         <!-- Section Héritiers -->
         <div class="section-header mt-4">
-          <h3>Les Héritiers</h3>
-          <button class="btn btn-sm btn-outline" (click)="startAddingHeir()">+ Ajouter manuellement</button>
+          <h3><app-bilabel fr="Les Héritiers" ar="الورثة" /></h3>
+          <button class="btn btn-sm btn-outline" (click)="startAddingHeir()"><app-bilabel fr="+ Ajouter manuellement" ar="+ إضافة يدوية" /></button>
         </div>
 
         <!-- Formulaire Ajout/Modif Héritier -->
         <div class="edit-form highlight" *ngIf="isAddingHeir || editingIndex !== null">
-          <h4>{{ isAddingHeir ? 'Nouvel Héritier' : 'Modifier Héritier' }}</h4>
+          <h4><app-bilabel [fr]="isAddingHeir ? 'Nouvel Héritier' : 'Modifier Héritier'" [ar]="isAddingHeir ? 'وارث جديد' : 'تعديل الوارث'" /></h4>
           <div class="edit-container" style="display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap;">
             <div class="form-grid" style="flex: 1; min-width: 300px;">
               <input type="text" [(ngModel)]="currentHeir.nom" placeholder="Nom">
@@ -109,8 +110,8 @@ interface Personne {
               <input type="text" [(ngModel)]="currentHeir.pere" placeholder="Nom et prénom du père">
               <input type="text" [(ngModel)]="currentHeir.mere" placeholder="Nom et prénom de la mère">
               <select [(ngModel)]="currentHeir.sexe">
-                <option value="M">Homme</option>
-                <option value="F">Femme</option>
+                <option value="M">Homme · ذكر</option>
+                <option value="F">Femme · أنثى</option>
               </select>
               <select [(ngModel)]="currentHeir.numParente">
                 <option value="02">Conjoint (Époux/Épouse)</option>
@@ -206,7 +207,7 @@ interface Personne {
           <div class="validation-wrapper" style="display: flex; flex-direction: column; align-items: flex-end; gap: 5px;">
             <button class="btn btn-primary" (click)="validateAndCalculate()" 
                     [disabled]="isCalculating || isAddingHeir || editingIndex !== null || editingDefunt || !authService.isMaitre() || getDoublonsNin().length > 0">
-               <span *ngIf="!isCalculating">💾 Sauvegarder et Calculer les Parts</span>
+               <span *ngIf="!isCalculating">💾 <app-bilabel fr="Sauvegarder et Calculer les Parts" ar="إطلاق الحساب" /></span>
                <span *ngIf="isCalculating"><span class="spinner"></span> Sauvegarde et calcul en cours...</span>
             </button>
             <span *ngIf="!authService.isMaitre()" style="font-size: 0.8rem; color: #ffb84d;">

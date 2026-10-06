@@ -10,29 +10,29 @@
   </div>
 
   <div class="content-body">
-    <p class="subtitle">Veuillez vérifier et corriger les champs extraits pour garantir le calcul correct des parts.</p>
+    <p class="subtitle"><app-bilabel fr="Veuillez vérifier et corriger les champs extraits pour garantir le calcul correct des parts." ar="يرجى التحقق من الحقول المستخرجة وتصحيحها لضمان صحة الحساب." /></p>
 
     <!-- SECTION DÉFUNT -->
     <div class="card" *ngIf="frida.defunt">
-      <h3>Informations du Défunt</h3>
+      <h3><app-bilabel fr="Informations du Défunt" ar="معلومات المتوفى" /></h3>
       <div class="form-grid">
         <div class="form-group">
-          <label>Nom</label>
+          <label><app-bilabel fr="Nom" ar="اللقب" /></label>
           <input type="text" [(ngModel)]="frida.defunt.identite.nom" class="form-control" />
         </div>
         <div class="form-group">
-          <label>Prénom</label>
+          <label><app-bilabel fr="Prénom" ar="الاسم" /></label>
           <input type="text" [(ngModel)]="frida.defunt.identite.prenom" class="form-control" />
         </div>
         <div class="form-group">
-          <label>Sexe <span class="calc-impact" title="Impacte le calcul !">🧮</span></label>
+          <label><app-bilabel fr="Sexe" ar="الجنس" /> <span class="calc-impact" title="Impacte le calcul !">🧮</span></label>
           <select [(ngModel)]="frida.defunt.identite.sexe" class="form-control">
             <option value="ذكر">ذكر (Masculin)</option>
             <option value="أنثى">أنثى (Féminin)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Date de Naissance</label>
+          <label><app-bilabel fr="Date de Naissance" ar="تاريخ الميلاد" /></label>
           <input type="date" [(ngModel)]="frida.defunt.identite.dateNaissance" class="form-control" />
         </div>
       </div>
@@ -40,21 +40,21 @@
 
     <!-- SECTION HÉRITIERS -->
     <div class="card" *ngIf="frida.heritiers && frida.heritiers.length > 0">
-      <h3>Héritiers Reconnnus ({{ frida.heritiers.length }})</h3>
-      
+      <h3><app-bilabel fr="Héritiers Reconnus" ar="الورثة المعترف بهم" /> ({{ frida.heritiers.length }})</h3>
+
       <div class="heir-item" *ngFor="let heritier of frida.heritiers; let i = index">
-        <h4>{{ i + 1 }}. Héritier (Parenté : {{ heritier.numParente }})</h4>
+        <h4>{{ i + 1 }}. <app-bilabel fr="Héritier (Parenté :" ar="الوارث (صلة القرابة :" /> {{ heritier.numParente }})</h4>
         <div class="form-grid">
           <div class="form-group">
-            <label>Nom</label>
+            <label><app-bilabel fr="Nom" ar="اللقب" /></label>
             <input type="text" [(ngModel)]="heritier.identite.nom" class="form-control" />
           </div>
           <div class="form-group">
-            <label>Prénom</label>
+            <label><app-bilabel fr="Prénom" ar="الاسم" /></label>
             <input type="text" [(ngModel)]="heritier.identite.prenom" class="form-control" />
           </div>
           <div class="form-group">
-            <label>Sexe <span class="calc-impact" title="Impacte le calcul !">🧮</span></label>
+            <label><app-bilabel fr="Sexe" ar="الجنس" /> <span class="calc-impact" title="Impacte le calcul !">🧮</span></label>
             <select [(ngModel)]="heritier.identite.sexe" class="form-control">
               <option value="ذكر">ذكر (Masculin)</option>
               <option value="أنثى">أنثى (Féminin)</option>
@@ -67,15 +67,15 @@
   </div>
 
   <div class="actions-footer">
-    <button class="btn btn-secondary" (click)="annuler()" [disabled]="saving">Annuler</button>
+    <button class="btn btn-secondary" (click)="annuler()" [disabled]="saving"><app-bilabel fr="Annuler" ar="إلغاء" /></button>
     <button class="btn btn-primary" (click)="sauvegarderCorrections()" [disabled]="saving">
-      <span *ngIf="saving">Recalcul en cours...</span>
-      <span *ngIf="!saving">Valider et relancer le calcul</span>
+      <span *ngIf="saving"><app-bilabel fr="Recalcul en cours..." ar="جارٍ إعادة الحساب..." /></span>
+      <span *ngIf="!saving"><app-bilabel fr="Valider et relancer le calcul" ar="تأكيد وإعادة تشغيل الحساب" /></span>
     </button>
   </div>
 </div>
 
 <div class="loading-state" *ngIf="loading">
   <div class="spinner"></div>
-  <p>Chargement du dossier...</p>
+  <p><app-bilabel fr="Chargement du dossier..." ar="جارٍ تحميل الملف..." /></p>
 </div>

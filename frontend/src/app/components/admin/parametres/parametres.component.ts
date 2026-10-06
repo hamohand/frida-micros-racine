@@ -2,53 +2,54 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ParametresService } from '../../../services/parametres.service';
+import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 
 @Component({
   selector: 'app-parametres',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, BilabelComponent],
   template: `
     <div class="parametres-container">
-      <h2>Paramètres</h2>
+      <h2><app-bilabel fr="Paramètres" ar="الإعدادات" /></h2>
 
-      <div *ngIf="chargement" class="info">Chargement...</div>
+      <div *ngIf="chargement" class="info"><app-bilabel fr="Chargement..." ar="جارٍ التحميل..." /></div>
 
       <div *ngIf="!chargement" class="option">
-        <span class="option-titre">Identité de l'étude notariale</span>
+        <span class="option-titre"><app-bilabel fr="Identité de l'étude notariale" ar="هوية مكتب التوثيق" /></span>
         <p class="option-aide">
           Ces informations apparaissent sur l'en-tête de chaque Frida générée.
         </p>
         <div style="display: flex; flex-direction: column; gap: 10px; margin: 0.75rem 0 0 1.95rem;">
           <div>
-            <label style="font-size: 0.85rem; color: #94a3b8;">Nom du notaire (arabe)</label>
+            <label style="font-size: 0.85rem; color: #94a3b8;"><app-bilabel fr="Nom du notaire (arabe)" ar="اسم الموثق (عربي)" /></label>
             <input type="text" class="adresse-champ" style="max-width: 400px; direction: rtl;" [(ngModel)]="nomNotaireArabe" placeholder="مثال : الأستاذ(ة) بن علي محمد" />
           </div>
           <div>
-            <label style="font-size: 0.85rem; color: #94a3b8;">Nom du notaire (latin)</label>
+            <label style="font-size: 0.85rem; color: #94a3b8;"><app-bilabel fr="Nom du notaire (latin)" ar="اسم الموثق (لاتيني)" /></label>
             <input type="text" class="adresse-champ" style="max-width: 400px;" [(ngModel)]="nomNotaireLatin" placeholder="ex: Maître BENALI Mohammed" />
           </div>
           <div>
-            <label style="font-size: 0.85rem; color: #94a3b8;">Adresse de l'étude</label>
+            <label style="font-size: 0.85rem; color: #94a3b8;"><app-bilabel fr="Adresse de l'étude" ar="عنوان المكتب" /></label>
             <input type="text" class="adresse-champ" style="max-width: 400px;" [(ngModel)]="adresseEtude" placeholder="ex: 12 Rue Didouche Mourad" />
           </div>
           <div style="display: flex; gap: 10px;">
             <div style="flex: 1;">
-              <label style="font-size: 0.85rem; color: #94a3b8;">Commune</label>
+              <label style="font-size: 0.85rem; color: #94a3b8;"><app-bilabel fr="Commune" ar="البلدية" /></label>
               <input type="text" class="adresse-champ" style="max-width: 200px;" [(ngModel)]="communeEtude" placeholder="ex: Azazga" />
             </div>
             <div style="flex: 1;">
-              <label style="font-size: 0.85rem; color: #94a3b8;">Wilaya</label>
+              <label style="font-size: 0.85rem; color: #94a3b8;"><app-bilabel fr="Wilaya" ar="الولاية" /></label>
               <input type="text" class="adresse-champ" style="max-width: 200px;" [(ngModel)]="wilayaEtude" placeholder="ex: Tizi-Ouzou" />
             </div>
           </div>
           <button class="btn-enregistrer" style="align-self: flex-start; margin-top: 5px;" (click)="enregistrerEtude()" [disabled]="enregistrementEtude">
-            Enregistrer l'identité de l'étude
+            <app-bilabel fr="Enregistrer l'identité de l'étude" ar="حفظ هوية المكتب" />
           </button>
         </div>
       </div>
 
       <div *ngIf="!chargement" class="option">
-        <span class="option-titre">Adresse réseau locale du poste</span>
+        <span class="option-titre"><app-bilabel fr="Adresse réseau locale du poste" ar="عنوان الشبكة المحلية للجهاز" /></span>
         <p class="option-aide">
           Pour que le scan d'une pièce d'identité par smartphone (bouton « Scanner via Mobile ») fonctionne :
           le téléphone, sur le même Wi-Fi que ce poste, ne peut pas le joindre via « localhost », qui ne désigne
@@ -66,7 +67,7 @@ import { ParametresService } from '../../../services/parametres.service';
                  placeholder="ex. 192.168.1.50"
                  (keydown.enter)="enregistrerAdresseReseauLocale()" />
           <button class="btn-enregistrer" (click)="enregistrerAdresseReseauLocale()" [disabled]="enregistrementAdresse">
-            Enregistrer
+            <app-bilabel fr="Enregistrer" ar="حفظ" />
           </button>
         </div>
         <p class="option-aide" *ngIf="!adresseReseauLocale">

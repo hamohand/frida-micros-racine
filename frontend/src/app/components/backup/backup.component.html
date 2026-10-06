@@ -1,20 +1,20 @@
 <div class="backup-page">
   <!-- En-tête -->
   <div class="page-header">
-    <h1>Sauvegardes & Archives</h1>
-    <p class="subtitle">Protégez et organisez vos données</p>
+    <h1><app-bilabel fr="Sauvegardes & Archives" ar="النسخ الاحتياطية والأرشيف" /></h1>
+    <p class="subtitle"><app-bilabel fr="Protégez et organisez vos données" ar="احمِ بياناتك ونظّمها" /></p>
   </div>
 
   <!-- Onglets -->
   <div class="tabs">
     <button class="tab" [class.active]="activeTab === 'backups'" (click)="switchTab('backups')">
       <span class="tab-icon">💾</span>
-      <span class="tab-label">Sauvegardes</span>
+      <span class="tab-label"><app-bilabel fr="Sauvegardes" ar="النسخ الاحتياطية" /></span>
       <span class="tab-badge" *ngIf="backups.length">{{ backups.length }}</span>
     </button>
     <button class="tab" [class.active]="activeTab === 'archives'" (click)="switchTab('archives')">
       <span class="tab-icon">📦</span>
-      <span class="tab-label">Archives</span>
+      <span class="tab-label"><app-bilabel fr="Archives" ar="الأرشيف" /></span>
       <span class="tab-badge" *ngIf="archives.length">{{ archives.length }}</span>
     </button>
   </div>
@@ -57,11 +57,11 @@
   <div class="tab-content" *ngIf="activeTab === 'backups'">
     <div class="section-header">
       <div class="section-info">
-        <h2>Sauvegardes</h2>
-        <p>Chaque sauvegarde contient la base de données et les documents scannés</p>
+        <h2><app-bilabel fr="Sauvegardes" ar="النسخ الاحتياطية" /></h2>
+        <p><app-bilabel fr="Chaque sauvegarde contient la base de données et les documents scannés" ar="كل نسخة تحتوي على قاعدة البيانات والمستندات الممسوحة" /></p>
       </div>
       <button class="btn-primary" (click)="createBackup()" [disabled]="loading">
-        <span>➕</span> Nouvelle sauvegarde
+        <span>➕</span> <app-bilabel fr="Nouvelle sauvegarde" ar="نسخة احتياطية جديدة" />
       </button>
     </div>
 
@@ -99,8 +99,8 @@
 
     <div class="empty-state" *ngIf="backups.length === 0 && !loading">
       <div class="empty-icon">📭</div>
-      <h3>Aucune sauvegarde</h3>
-      <p>Créez votre première sauvegarde pour protéger vos données.</p>
+      <h3><app-bilabel fr="Aucune sauvegarde" ar="لا توجد نسخ احتياطية" /></h3>
+      <p><app-bilabel fr="Créez votre première sauvegarde pour protéger vos données." ar="أنشئ أول نسخة احتياطية لحماية بياناتك." /></p>
     </div>
   </div>
 
@@ -108,15 +108,15 @@
   <div class="tab-content" *ngIf="activeTab === 'archives'">
     <div class="section-header">
       <div class="section-info">
-        <h2>Dossiers archivés</h2>
-        <p>Dossiers Frida retirés de la base active, conservés avec leurs fichiers</p>
+        <h2><app-bilabel fr="Dossiers archivés" ar="الملفات المؤرشفة" /></h2>
+        <p><app-bilabel fr="Dossiers Frida retirés de la base active, conservés avec leurs fichiers" ar="ملفات فريدة مسحوبة من القاعدة النشطة، محفوظة مع وثائقها" /></p>
       </div>
       <div class="btn-group" *ngIf="estMaitre">
         <button class="btn-secondary" (click)="loadArchivableFridas()" [disabled]="loading">
-          <span>📋</span> {{ showArchivableList ? 'Masquer' : 'Archiver un dossier' }}
+          <span>📋</span> <app-bilabel [fr]="showArchivableList ? 'Masquer' : 'Archiver un dossier'" [ar]="showArchivableList ? 'إخفاء' : 'أرشفة ملف'" />
         </button>
         <button class="btn-accent" (click)="autoArchive()" [disabled]="loading">
-          <span>⚡</span> Archiver les dossiers éligibles
+          <span>⚡</span> <app-bilabel fr="Archiver les dossiers éligibles" ar="أرشفة الملفات المؤهلة" />
         </button>
       </div>
     </div>
@@ -136,7 +136,7 @@
             <span class="archivable-date">{{ formatDate(frida.dateCreation) }}</span>
           </div>
           <button class="btn-archive" (click)="archiveFrida(frida.numFrida, frida.nom)" [disabled]="loading">
-            📦 Archiver
+            📦 <app-bilabel fr="Archiver" ar="أرشفة" />
           </button>
         </div>
       </div>
@@ -181,8 +181,8 @@
 
     <div class="empty-state" *ngIf="archives.length === 0 && !loading && !showArchivableList">
       <div class="empty-icon">📦</div>
-      <h3>Aucune archive</h3>
-      <p>Archivez les anciens dossiers pour alléger votre base de données.</p>
+      <h3><app-bilabel fr="Aucune archive" ar="لا يوجد أرشيف" /></h3>
+      <p><app-bilabel fr="Archivez les anciens dossiers pour alléger votre base de données." ar="أرشفوا الملفات القديمة لتخفيف قاعدة البيانات." /></p>
     </div>
   </div>
 </div>

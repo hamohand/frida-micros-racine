@@ -7,10 +7,12 @@ import { AuthService } from '../../services/auth.service';
 import { UploadStateService } from '../../services/upload-state.service';
 import { NotificationsComponent } from '../../shared/notifications/notifications.component';
 import { DossierStepperComponent, ETAPES_DOSSIER } from '../../shared/dossier-stepper/dossier-stepper.component';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 
 interface LienNav {
   route: string;
   libelle: string;
+  arabe?: string;
   icone: string;
   exact?: boolean;
 }
@@ -18,6 +20,7 @@ interface LienNav {
 interface Miette {
   libelle: string;
   route?: string;
+  arabe?: string;
 }
 
 /** Tracés d'icônes Material Symbols (viewBox 0 -960 960 960). */
@@ -55,10 +58,28 @@ const LIBELLES: Record<string, string> = {
   'edit': 'Modification',
 };
 
+const LIBELLES_AR: Record<string, string> = {
+  'simulateur': 'محاكي الحصص',
+  'batch-review': 'ملفات للمراجعة',
+  'search': 'بحث',
+  'users': 'المستخدمون',
+  'backups': 'النسخ الاحتياطية',
+  'parametres': 'الإعدادات',
+  'license': 'الترخيص',
+  'login': 'تسجيل الدخول',
+  'about': 'حول التطبيق',
+  'create': 'المتوفى',
+  'upload': 'الوثائق',
+  'correction': 'التحقق',
+  'review-family': 'الورثة',
+  'frida': 'البطاقة',
+  'edit': 'تعديل',
+};
+
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, NotificationsComponent, DossierStepperComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, NotificationsComponent, DossierStepperComponent, BilabelComponent],
   template: `
     <div class="app-shell"
          [class.avec-sidebar]="afficherSidebar"
@@ -76,21 +97,21 @@ const LIBELLES: Record<string, string> = {
         <nav class="fil-ariane" aria-label="Fil d'Ariane" *ngIf="miettes.length">
           <ng-container *ngFor="let m of miettes; let dernier = last">
             <span class="separateur">›</span>
-            <a *ngIf="m.route && !dernier; else texte" [routerLink]="m.route">{{ m.libelle }}</a>
-            <ng-template #texte><span [class.courant]="dernier">{{ m.libelle }}</span></ng-template>
+            <a *ngIf="m.route && !dernier; else texte" [routerLink]="m.route"><app-bilabel [fr]="m.libelle" [ar]="m.arabe ?? ''" /></a>
+            <ng-template #texte><span [class.courant]="dernier"><app-bilabel [fr]="m.libelle" [ar]="m.arabe ?? ''" /></span></ng-template>
           </ng-container>
         </nav>
 
         <div class="topbar-droite" *ngIf="authService.isLoggedIn()">
           <button type="button" class="pastille-demo" [class.actif]="isDemoMode" (click)="toggleDemoMode()"
                   title="Flouter les données personnelles pour une présentation">
-            Démo {{ isDemoMode ? 'activée' : 'désactivée' }}
+            <app-bilabel [fr]="'Démo ' + (isDemoMode ? 'activée' : 'désactivée')" [ar]="isDemoMode ? 'العرض مفعّل' : 'العرض معطّل'" />
           </button>
           <div class="utilisateur">
             <span class="avatar">{{ initiale }}</span>
             <span class="utilisateur-texte">
               <span class="utilisateur-nom">{{ nomUtilisateur }}</span>
-              <span class="utilisateur-role">{{ authService.isMaitre() ? 'Maître' : 'Collaborateur' }}</span>
+              <span class="utilisateur-role"><app-bilabel [fr]="authService.isMaitre() ? 'Maître' : 'Collaborateur'" [ar]="authService.isMaitre() ? 'أستاذ' : 'متعاون'" /></span>
             </span>
           </div>
           <button type="button" class="icone-btn bouton-deconnexion" (click)="logout()" title="Déconnexion" aria-label="Déconnexion">
@@ -106,28 +127,28 @@ const LIBELLES: Record<string, string> = {
              [title]="'Reprendre le dossier en cours : ' + d.libelle">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="icones.reprendre"/></svg>
             <span class="sidebar-libelle">
-              <span class="reprise-titre">Reprendre</span>
+              <span class="reprise-titre"><app-bilabel fr="Reprendre" ar="متابعة" /></span>
               <span class="reprise-nom">{{ d.libelle }}</span>
             </span>
           </a>
           <a *ngFor="let l of liensPrincipaux" [routerLink]="l.route" routerLinkActive="actif"
              [routerLinkActiveOptions]="{ exact: !!l.exact }" class="sidebar-lien" [title]="l.libelle">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="l.icone"/></svg>
-            <span class="sidebar-libelle">{{ l.libelle }}</span>
+            <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" /></span>
           </a>
 
           <!-- Fiches issues de l'ancien mode batch : le lien disparaît une fois toutes révisées -->
           <a *ngIf="nbARevoir > 0" routerLink="/batch-review" routerLinkActive="actif" class="sidebar-lien" title="Dossiers à réviser">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="icones.batch"/></svg>
-            <span class="sidebar-libelle">À réviser</span>
+            <span class="sidebar-libelle"><app-bilabel fr="À réviser" ar="للمراجعة" /></span>
             <span class="sidebar-compteur">{{ nbARevoir }}</span>
           </a>
 
           <ng-container *ngIf="authService.isMaitre()">
-            <div class="sidebar-section">Administration</div>
+            <div class="sidebar-section"><app-bilabel fr="Administration" ar="الإدارة" /></div>
             <a *ngFor="let l of liensAdmin" [routerLink]="l.route" routerLinkActive="actif" class="sidebar-lien" [title]="l.libelle">
               <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="l.icone"/></svg>
-              <span class="sidebar-libelle">{{ l.libelle }}</span>
+              <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" /></span>
             </a>
           </ng-container>
         </nav>
@@ -135,7 +156,7 @@ const LIBELLES: Record<string, string> = {
         <button type="button" class="sidebar-replier" (click)="basculerReduction()"
                 [attr.aria-label]="sidebarReduite ? 'Déplier le menu' : 'Replier le menu'">
           <svg viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path [attr.d]="icones.replier"/></svg>
-          <span class="sidebar-libelle">Replier</span>
+          <span class="sidebar-libelle"><app-bilabel fr="Replier" ar="طيّ القائمة" /></span>
         </button>
       </aside>
       <div class="sidebar-voile" *ngIf="afficherSidebar" (click)="menuMobileOuvert = false"></div>
@@ -164,16 +185,16 @@ export class AdminComponent {
   etapeDossier: string | null = null;
 
   liensPrincipaux: LienNav[] = [
-    { route: '/', libelle: 'Accueil', icone: ICONES.accueil, exact: true },
-    { route: '/create', libelle: 'Nouveau dossier', icone: ICONES.nouveau },
-    { route: '/search', libelle: 'Rechercher', icone: ICONES.recherche },
-    { route: '/simulateur', libelle: 'Simulateur', icone: ICONES.simulateur },
+    { route: '/', libelle: 'Accueil', arabe: 'الرئيسية', icone: ICONES.accueil, exact: true },
+    { route: '/create', libelle: 'Nouveau dossier', arabe: 'ملف جديد', icone: ICONES.nouveau },
+    { route: '/search', libelle: 'Rechercher', arabe: 'بحث', icone: ICONES.recherche },
+    { route: '/simulateur', libelle: 'Simulateur', arabe: 'المحاكي', icone: ICONES.simulateur },
   ];
 
   liensAdmin: LienNav[] = [
-    { route: '/users', libelle: 'Utilisateurs', icone: ICONES.utilisateurs },
-    { route: '/backups', libelle: 'Sauvegardes', icone: ICONES.sauvegardes },
-    { route: '/parametres', libelle: 'Paramètres', icone: ICONES.parametres },
+    { route: '/users', libelle: 'Utilisateurs', arabe: 'المستخدمون', icone: ICONES.utilisateurs },
+    { route: '/backups', libelle: 'Sauvegardes', arabe: 'النسخ الاحتياطية', icone: ICONES.sauvegardes },
+    { route: '/parametres', libelle: 'Paramètres', arabe: 'الإعدادات', icone: ICONES.parametres },
   ];
 
   private routePrecedente = '';
@@ -286,9 +307,9 @@ export class AdminComponent {
     if (!page) return;
     if (estEtape || page === 'edit') {
       this.miettes.push(numFrida
-        ? { libelle: 'Dossier n° ' + numFrida }
-        : { libelle: 'Nouveau dossier', route: '/create' });
+        ? { libelle: 'Dossier n° ' + numFrida, arabe: 'ملف رقم ' + numFrida }
+        : { libelle: 'Nouveau dossier', route: '/create', arabe: 'ملف جديد' });
     }
-    this.miettes.push({ libelle: LIBELLES[page] ?? page });
+    this.miettes.push({ libelle: LIBELLES[page] ?? page, arabe: LIBELLES_AR[page] ?? '' });
   }
 }

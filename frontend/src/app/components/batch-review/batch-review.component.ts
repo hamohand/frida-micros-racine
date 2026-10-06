@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FridaService } from '../../services/frida.service';
 import { forkJoin } from 'rxjs';
+import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 
 interface DossierEnAttente {
   numFrida: string;
@@ -15,7 +16,7 @@ interface DossierEnAttente {
 @Component({
   selector: 'app-batch-review',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, BilabelComponent],
   template: `
     <div class="batch-wrapper">
       <div class="glass-panel">
@@ -25,9 +26,9 @@ interface DossierEnAttente {
           <div class="header-left">
             <span class="header-icon">📝</span>
             <div>
-              <h2>Dossiers à réviser</h2>
+              <h2><app-bilabel fr="Dossiers à réviser" ar="الملفات للمراجعة" /></h2>
               <p class="subtitle">
-                Dossiers traités par l'ancien mode batch, en attente de correction ou de validation familiale.
+                <app-bilabel fr="Dossiers traités par l'ancien mode batch, en attente de correction ou de validation familiale." ar="ملفات معالجة بالوضع الدفعي القديم، في انتظار التصحيح أو التحقق العائلي." />
               </p>
             </div>
           </div>
@@ -35,24 +36,24 @@ interface DossierEnAttente {
 
         <!-- Chargement -->
         <div *ngIf="isLoading" class="loading-state">
-          <span class="spinner"></span> Chargement des dossiers...
+          <span class="spinner"></span> <app-bilabel fr="Chargement des dossiers..." ar="جارٍ تحميل الملفات..." />
         </div>
 
         <div *ngIf="!isLoading">
           <!-- 2. Révisions -->
           <div class="section-container">
-            <h3><span class="section-icon">⚠️</span> Révisions <span class="badge-count" *ngIf="revisions.length > 0">{{ revisions.length }}</span></h3>
+            <h3><span class="section-icon">⚠️</span> <app-bilabel fr="Révisions" ar="المراجعات" /> <span class="badge-count" *ngIf="revisions.length > 0">{{ revisions.length }}</span></h3>
             <div *ngIf="revisions.length === 0" class="empty-state">
-              <p>Aucune révision OCR requise pour le moment.</p>
+              <p><app-bilabel fr="Aucune révision OCR requise pour le moment." ar="لا توجد مراجعات OCR مطلوبة حالياً." /></p>
             </div>
             <div class="table-container" *ngIf="revisions.length > 0">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>N° Dossier</th>
-                    <th>Défunt</th>
-                    <th>Date</th>
-                    <th>Action</th>
+                    <th><app-bilabel fr="N° Dossier" ar="رقم الملف" /></th>
+                    <th><app-bilabel fr="Défunt" ar="المتوفى" /></th>
+                    <th><app-bilabel fr="Date" ar="التاريخ" /></th>
+                    <th><app-bilabel fr="Action" ar="الإجراء" /></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -61,7 +62,7 @@ interface DossierEnAttente {
                     <td>{{ d.nom }} {{ d.prenom }}</td>
                     <td><span class="badge-date">{{ d.dateCreation }}</span></td>
                     <td>
-                      <button class="btn-reviser" (click)="reviser(d)">Réviser OCR</button>
+                      <button class="btn-reviser" (click)="reviser(d)"><app-bilabel fr="Réviser OCR" ar="مراجعة OCR" /></button>
                     </td>
                   </tr>
                 </tbody>
@@ -71,18 +72,18 @@ interface DossierEnAttente {
 
           <!-- 3. Validations -->
           <div class="section-container">
-            <h3><span class="section-icon">✅</span> Validations <span class="badge-count" *ngIf="validations.length > 0">{{ validations.length }}</span></h3>
+            <h3><span class="section-icon">✅</span> <app-bilabel fr="Validations" ar="التحققات" /> <span class="badge-count" *ngIf="validations.length > 0">{{ validations.length }}</span></h3>
             <div *ngIf="validations.length === 0" class="empty-state">
-              <p>Aucun dossier en attente de validation familiale.</p>
+              <p><app-bilabel fr="Aucun dossier en attente de validation familiale." ar="لا يوجد ملف في انتظار التحقق العائلي." /></p>
             </div>
             <div class="table-container" *ngIf="validations.length > 0">
               <table class="table">
                 <thead>
                   <tr>
-                    <th>N° Dossier</th>
-                    <th>Défunt</th>
-                    <th>Date</th>
-                    <th>Action</th>
+                    <th><app-bilabel fr="N° Dossier" ar="رقم الملف" /></th>
+                    <th><app-bilabel fr="Défunt" ar="المتوفى" /></th>
+                    <th><app-bilabel fr="Date" ar="التاريخ" /></th>
+                    <th><app-bilabel fr="Action" ar="الإجراء" /></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -91,7 +92,7 @@ interface DossierEnAttente {
                     <td>{{ d.nom }} {{ d.prenom }}</td>
                     <td><span class="badge-date">{{ d.dateCreation }}</span></td>
                     <td>
-                      <button class="btn-valider" (click)="reviser(d)">Valider la Famille</button>
+                      <button class="btn-valider" (click)="reviser(d)"><app-bilabel fr="Valider la Famille" ar="التحقق العائلي" /></button>
                     </td>
                   </tr>
                 </tbody>
