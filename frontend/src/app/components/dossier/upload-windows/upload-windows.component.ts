@@ -84,7 +84,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -111,7 +111,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -138,7 +138,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -165,7 +165,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -192,7 +192,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -254,7 +254,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -284,7 +284,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -312,7 +312,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -339,7 +339,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -366,7 +366,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -393,7 +393,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -420,7 +420,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -447,7 +447,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -474,7 +474,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>
@@ -501,7 +501,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
                   <app-bilabel fr="Il n'y a plus d'héritiers" ar="لا يوجد مزيد من الورثة" />
                 </button>
                 <button class="btn btn-outline" style="border-color: #4ecca3; color: #4ecca3; width: 100%; justify-content: center; padding: 12px; display: flex; align-items: center;" (click)="sauvegarderBrouillon()">
-                  <span class="material-icons" style="font-size: 1.2rem; margin-right: 6px;">save</span> <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
+                  <app-bilabel fr="Sauvegarder brouillon ✓" ar="حفظ المسودة ✓" />
                 </button>
               </div>
             </app-file-upload>

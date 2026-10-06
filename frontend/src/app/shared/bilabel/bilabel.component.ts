@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 
 @Component({
   selector: 'app-bilabel',
@@ -6,7 +6,9 @@ import { Component, Input } from '@angular/core';
   template: `
     <span class="bl-fr">{{ fr }}</span>
     @if (ar) {
-      <span class="bl-sep" aria-hidden="true"> · </span>
+      @if (!wrap) {
+        <span class="bl-sep" aria-hidden="true"> · </span>
+      }
       <span class="bl-ar" dir="rtl">{{ ar }}</span>
     }
   `,
@@ -14,6 +16,13 @@ import { Component, Input } from '@angular/core';
     :host {
       display: inline;
       white-space: nowrap;
+    }
+    :host.bl-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      white-space: normal;
+      gap: 0.1em;
     }
     .bl-sep {
       color: var(--text-muted, #7f9c88);
@@ -30,4 +39,7 @@ import { Component, Input } from '@angular/core';
 export class BilabelComponent {
   @Input() fr = '';
   @Input() ar = '';
+  @Input() wrap = false;
+
+  @HostBinding('class.bl-stack') get isStack() { return this.wrap; }
 }

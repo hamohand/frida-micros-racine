@@ -127,28 +127,28 @@ const LIBELLES_AR: Record<string, string> = {
              [title]="'Reprendre le dossier en cours : ' + d.libelle">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="icones.reprendre"/></svg>
             <span class="sidebar-libelle">
-              <span class="reprise-titre"><app-bilabel fr="Reprendre" ar="متابعة" /></span>
+              <span class="reprise-titre"><app-bilabel fr="Reprendre" ar="متابعة" [wrap]="true" /></span>
               <span class="reprise-nom">{{ d.libelle }}</span>
             </span>
           </a>
           <a *ngFor="let l of liensPrincipaux" [routerLink]="l.route" routerLinkActive="actif"
              [routerLinkActiveOptions]="{ exact: !!l.exact }" class="sidebar-lien" [title]="l.libelle">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="l.icone"/></svg>
-            <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" /></span>
+            <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" [wrap]="true" /></span>
           </a>
 
           <!-- Fiches issues de l'ancien mode batch : le lien disparaît une fois toutes révisées -->
           <a *ngIf="nbARevoir > 0" routerLink="/batch-review" routerLinkActive="actif" class="sidebar-lien" title="Dossiers à réviser">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="icones.batch"/></svg>
-            <span class="sidebar-libelle"><app-bilabel fr="À réviser" ar="للمراجعة" /></span>
+            <span class="sidebar-libelle"><app-bilabel fr="À réviser" ar="للمراجعة" [wrap]="true" /></span>
             <span class="sidebar-compteur">{{ nbARevoir }}</span>
           </a>
 
           <ng-container *ngIf="authService.isMaitre()">
-            <div class="sidebar-section"><app-bilabel fr="Administration" ar="الإدارة" /></div>
+            <div class="sidebar-section"><app-bilabel fr="Administration" ar="الإدارة" [wrap]="true" /></div>
             <a *ngFor="let l of liensAdmin" [routerLink]="l.route" routerLinkActive="actif" class="sidebar-lien" [title]="l.libelle">
               <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="l.icone"/></svg>
-              <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" /></span>
+              <span class="sidebar-libelle"><app-bilabel [fr]="l.libelle" [ar]="l.arabe ?? ''" [wrap]="true" /></span>
             </a>
           </ng-container>
         </nav>
@@ -156,7 +156,7 @@ const LIBELLES_AR: Record<string, string> = {
         <button type="button" class="sidebar-replier" (click)="basculerReduction()"
                 [attr.aria-label]="sidebarReduite ? 'Déplier le menu' : 'Replier le menu'">
           <svg viewBox="0 -960 960 960" width="20" height="20" fill="currentColor"><path [attr.d]="icones.replier"/></svg>
-          <span class="sidebar-libelle"><app-bilabel fr="Replier" ar="طيّ القائمة" /></span>
+          <span class="sidebar-libelle"><app-bilabel fr="Replier" ar="طيّ القائمة" [wrap]="true" /></span>
         </button>
       </aside>
       <div class="sidebar-voile" *ngIf="afficherSidebar" (click)="menuMobileOuvert = false"></div>

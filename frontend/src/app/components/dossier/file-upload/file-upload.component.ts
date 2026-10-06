@@ -93,7 +93,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
       </div>
 
       <!-- Colonne de droite : Boutons de navigation empilés -->
-      <div class="nav-sidebar" style="display: flex; flex-direction: column; gap: 12px; width: 250px; padding-top: 55px;" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip || !isBeta">
+      <div class="nav-sidebar" style="display: flex; flex-direction: column; gap: 12px; width: 300px; padding-top: 55px;" *ngIf="uploadedFiles.length > 0 || config.allowPrevious || config.allowSkip || !isBeta">
         
         <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 12px;" (click)="onUpload()" *ngIf="uploadedFiles.length > 0">
           Suivant
