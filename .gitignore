@@ -32,6 +32,7 @@ node_modules/
 # Environment and secret files
 # ========================
 .env
+.env.*
 ../tci/tarif-essais250912/demo/.env
 /sql
 
