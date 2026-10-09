@@ -1,0 +1,11 @@
+{
+  "HOME": {
+    "BONJOUR": "Bonjour, {{name}}",
+    "BONJOUR_ANON": "Bonjour",
+    "BACKUP_LATE": "Dernière sauvegarde le {{date}}, il y a plus de deux jours.",
+    "BACKUP_OK": "Dernière sauvegarde le {{date}}.",
+    "NO_BACKUP": "Aucune sauvegarde n'a encore été faite.",
+    "STARTED_ON": "Commencé le {{date}}",
+    "CREATED_ON": "Créé le {{date}}"
+  }
+}

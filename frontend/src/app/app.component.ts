@@ -1,7 +1,8 @@
-import { Component } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import {AdminComponent} from "./components/admin/admin.component";
 import {NgIf} from "@angular/common";
 import {FridaComponent} from "./components/frida/frida.component";
+import {LanguageService} from "./services/language.service";
 
 @Component({
   selector: 'app-root',
@@ -10,15 +11,13 @@ import {FridaComponent} from "./components/frida/frida.component";
     AdminComponent,
     NgIf,
     FridaComponent
-
   ],
-  template: `
-<!--    <app-admin *ngIf="!fridaCreee"></app-admin>-->
-<!--    <app-frida *ngIf="fridaCreee"></app-frida>-->
-<app-admin></app-admin>
-  `
-
+  template: '<app-admin></app-admin>'
 })
-export class AppComponent {
-  //fridaCreee = false;
+export class AppComponent implements OnInit {
+  constructor(private languageService: LanguageService) {}
+
+  ngOnInit() {
+    this.languageService.init();
+  }
 }

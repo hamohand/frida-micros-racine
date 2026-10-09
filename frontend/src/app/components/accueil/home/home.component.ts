@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
+import { TranslatePipe } from '@ngx-translate/core';
+import { LanguageService } from '../../../services/language.service';
 import { forkJoin, of, catchError } from 'rxjs';
 import { AuthService } from '../../../services/auth.service';
 import { FridaService } from '../../../services/frida.service';
@@ -21,11 +23,11 @@ interface DossierResume {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [RouterLink, CommonModule, BilabelComponent],
+  imports: [RouterLink, CommonModule, BilabelComponent, TranslatePipe],
   template: `
     <!-- Visiteur non connecté -->
     <section *ngIf="!authService.isLoggedIn(); else tableauDeBord" class="accueil-public">
-      <h1 class="hero-title">Ustadh-a</h1>
+      <h1 class="hero-title"><app-bilabel fr="Ustadh-a" ar="أستاذ-ة" /></h1>
       <p class="hero-subtitle"><app-bilabel fr="Système Avancé de Gestion Notariale" ar="نظام متقدم للإدارة التوثيقية" /></p>
       <div class="actions-publiques">
         <a routerLink="/login" class="btn btn-primary"><app-bilabel fr="Se connecter" ar="تسجيل الدخول" /></a>
@@ -37,7 +39,7 @@ interface DossierResume {
       <div class="dashboard">
         <header class="dashboard-entete">
           <div>
-            <h1>Bonjour{{ nomUtilisateur ? ', ' + nomUtilisateur : '' }}</h1>
+            <h1>{{ (nomUtilisateur ? 'HOME.BONJOUR' : 'HOME.BONJOUR_ANON') | translate:{name: nomUtilisateur} }}</h1>
             <p class="date-jour">{{ aujourdhui }}</p>
           </div>
           <div class="entete-actions">
@@ -80,7 +82,7 @@ interface DossierResume {
         <a *ngIf="authService.isMaitre() && !chargement && etatSauvegarde as s" routerLink="/backups"
            class="bandeau-sauvegarde" [class.en-retard]="s.enRetard">
           <span class="bandeau-icone">{{ s.enRetard ? '⚠' : '✓' }}</span>
-          <span>{{ s.texte }}</span>
+          <span>{{ s.texte | translate:{date: s.date} }}</span>
           <span class="bandeau-lien"><app-bilabel fr="Sauvegardes" ar="النسخ الاحتياطية" /> ›</span>
         </a>
 
@@ -98,7 +100,7 @@ interface DossierResume {
               <li *ngFor="let b of brouillons.slice(0, 5)">
                 <button type="button" class="ligne" (click)="reprendreBrouillon(b)">
                   <span class="ligne-principal demo-blur">{{ b.nomDefunt }} {{ b.prenomDefunt }}</span>
-                  <span class="ligne-secondaire">Commencé le {{ formaterDate(b.dateCreation) }}</span>
+                  <span class="ligne-secondaire">{{ 'HOME.STARTED_ON' | translate:{date: formaterDate(b.dateCreation)} }}</span>
                   <span class="ligne-action"><app-bilabel fr="Reprendre" ar="متابعة" /> ›</span>
                 </button>
               </li>
@@ -124,7 +126,7 @@ interface DossierResume {
                     <span class="num">{{ d.numFrida }}</span>
                     <span class="demo-blur">{{ d.nom }} {{ d.prenom }}</span>
                   </span>
-                  <span class="ligne-secondaire">{{ formaterDate(d.dateCreation) }}</span>
+                  <span class="ligne-secondaire">{{ 'HOME.CREATED_ON' | translate:{date: formaterDate(d.dateCreation)} }}</span>
                   <span *ngIf="d.requiresCorrection" class="badge-correction"><app-bilabel fr="À corriger" ar="للتصحيح" /></span>
                 </button>
               </li>
@@ -337,6 +339,7 @@ interface DossierResume {
   `]
 })
 export class HomeComponent {
+  langService = inject(LanguageService);
   authService = inject(AuthService);
   router = inject(Router);
   uploadState = inject(UploadStateService);
@@ -352,11 +355,16 @@ export class HomeComponent {
   derniereSauvegarde: BackupInfo | null = null;
 
   get aujourdhui(): string {
-    return new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const locale = this.langService.currentLangSignal() === 'ar' ? 'ar-DZ-u-nu-latn' : 'fr-FR';
+      return new Date().toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   }
 
   get nomUtilisateur(): string {
-    return localStorage.getItem('username') || '';
+    let name = localStorage.getItem('username') || '';
+    if (this.langService.currentLangSignal() === 'ar' && name === 'Moh') {
+      name = 'موح';
+    }
+    return name;
   }
 
   get derniersDossiers(): DossierResume[] {
@@ -371,16 +379,17 @@ export class HomeComponent {
   }
 
   /** Alerte si aucune sauvegarde ou si la dernière a plus de 48 h (l'automatique tourne toutes les 24 h). */
-  get etatSauvegarde(): { texte: string; enRetard: boolean } {
+  get etatSauvegarde(): { texte: string; enRetard: boolean; date?: string } {
     if (!this.derniereSauvegarde) {
-      return { texte: 'Aucune sauvegarde n\'a encore été faite.', enRetard: true };
+      return { texte: 'HOME.NO_BACKUP', enRetard: true };
     }
     const date = new Date(this.derniereSauvegarde.createdAt);
     const heures = (Date.now() - date.getTime()) / 3_600_000;
-    const quand = date.toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
+    const locale = this.langService.currentLangSignal() === 'ar' ? 'ar-DZ-u-nu-latn' : 'fr-FR';
+      const quand = date.toLocaleString(locale, { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
     return heures > 48
-      ? { texte: `Dernière sauvegarde le ${quand}, il y a plus de deux jours.`, enRetard: true }
-      : { texte: `Dernière sauvegarde le ${quand}.`, enRetard: false };
+      ? { texte: 'HOME.BACKUP_LATE', date: quand, enRetard: true }
+      : { texte: 'HOME.BACKUP_OK', date: quand, enRetard: false };
   }
 
   ngOnInit() {
@@ -418,7 +427,8 @@ export class HomeComponent {
   formaterDate(iso: string): string {
     if (!iso) return '';
     const d = new Date(iso);
-    return isNaN(d.getTime()) ? iso : d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+    const locale = this.langService.currentLangSignal() === 'ar' ? 'ar-DZ-u-nu-latn' : 'fr-FR';
+    return isNaN(d.getTime()) ? iso : d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
   rechercher(event: Event, terme: string) {
