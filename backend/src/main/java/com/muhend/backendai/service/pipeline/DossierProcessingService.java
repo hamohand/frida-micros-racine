@@ -336,7 +336,7 @@ public class DossierProcessingService {
             if (file != null) {
                 identite.setImagePath(file.toAbsolutePath().toString());
             } else if (nfcJsonFile != null) {
-                // Si on a pas de fichier image, mais qu'on a un JSON NFC, on regarde si l'application mobile a envoyé une image OCR
+                // Si on a pas de fichier image, mais qu'on a un JSON NFC, on extrait la photo biométrique si présente
                 try {
                     String jsonContent = java.nio.file.Files.readString(nfcJsonFile);
                     com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -344,9 +344,18 @@ public class DossierProcessingService {
                     java.util.Map<String, Object> map = mapper.readValue(jsonContent, java.util.Map.class);
                     if (map.containsKey("imagePath") && map.get("imagePath") != null) {
                         identite.setImagePath(map.get("imagePath").toString());
+                    } else if (map.containsKey("photoBase64") && map.get("photoBase64") != null) {
+                        String b64 = map.get("photoBase64").toString().trim();
+                        if (!b64.isEmpty()) {
+                            byte[] imgBytes = java.util.Base64.getDecoder().decode(b64);
+                            Path photoFile = nfcJsonFile.getParent().resolve("cni_photo_" + System.currentTimeMillis() + ".jpg");
+                            java.nio.file.Files.write(photoFile, imgBytes);
+                            identite.setImagePath(photoFile.toAbsolutePath().toString());
+                            log.info("📸 Photo biométrique HD extraite et enregistrée : {}", photoFile.getFileName());
+                        }
                     }
                 } catch (Exception e) {
-                    log.error("Impossible de lire l'imagePath depuis le JSON NFC", e);
+                    log.error("Impossible de lire l'imagePath ou photoBase64 depuis le JSON NFC", e);
                 }
             }
 

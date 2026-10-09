@@ -230,26 +230,39 @@ public class OcrMappingService {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(jsonFile.toFile());
 
-            // 1. Noms Latins (MRZ)
-            // Python v1 utilisait "nom"/"prenom". Python v2 utilise "latines"/"prenomLatines". Mobile utilise "primaryIdentifier"/"secondaryIdentifier".
+            // Support du format standard IdentityRecord v1.1 (dz-eid)
+            com.fasterxml.jackson.databind.JsonNode source = rootNode.has("rawJson") ? rootNode.path("rawJson") : rootNode;
+            com.fasterxml.jackson.databind.JsonNode holder = source.path("holder");
+            com.fasterxml.jackson.databind.JsonNode doc = source.path("document");
+
+            // 1. Noms Latins (MRZ ou puce)
             String latines = rootNode.path("latines").asText(""); 
+            if (latines.isEmpty() && !holder.isMissingNode()) latines = holder.path("lastNameLatin").asText("");
             if (latines.isEmpty()) latines = rootNode.path("nom").asText(""); 
             if (latines.isEmpty()) latines = rootNode.path("primaryIdentifier").asText("");
             
             String prenomLatines = rootNode.path("prenomLatines").asText(""); 
+            if (prenomLatines.isEmpty() && !holder.isMissingNode()) prenomLatines = holder.path("firstNameLatin").asText("");
             if (prenomLatines.isEmpty()) prenomLatines = rootNode.path("prenom").asText(""); 
             if (prenomLatines.isEmpty()) prenomLatines = rootNode.path("secondaryIdentifier").asText("");
             
             entity.setLatines(latines);
             entity.setPrenomLatines(prenomLatines);
             
-            // 2. Noms Arabes (Puce DG11 ou JMRTD)
-            // Python v1 utilisait "nomArabe"/"prenomArabe". Python v2 utilise "nom"/"prenom". Mobile utilise "fullName_dg11".
-            String nomArabe = rootNode.path("nom").asText("");
-            if (nomArabe.isEmpty() || nomArabe.equals(latines)) nomArabe = rootNode.path("nomArabe").asText(""); // Eviter de lire "nom" si c'est la version latine de la v1
+            // 2. Noms Arabes (Puce DG11 / IdentityRecord)
+            String nomArabe = rootNode.path("nomArabe").asText("");
+            if (nomArabe.isEmpty() && !holder.isMissingNode()) nomArabe = holder.path("lastNameArabic").asText("");
+            if (nomArabe.isEmpty()) {
+                String candidate = rootNode.path("nom").asText("");
+                if (!candidate.equals(latines)) nomArabe = candidate;
+            }
             
-            String prenomArabe = rootNode.path("prenom").asText("");
-            if (prenomArabe.isEmpty() || prenomArabe.equals(prenomLatines)) prenomArabe = rootNode.path("prenomArabe").asText("");
+            String prenomArabe = rootNode.path("prenomArabe").asText("");
+            if (prenomArabe.isEmpty() && !holder.isMissingNode()) prenomArabe = holder.path("firstNameArabic").asText("");
+            if (prenomArabe.isEmpty()) {
+                String candidate = rootNode.path("prenom").asText("");
+                if (!candidate.equals(prenomLatines)) prenomArabe = candidate;
+            }
 
             String dg11Hex = rootNode.path("dg11_hex").asText("");
             if (nomArabe.isEmpty() && prenomArabe.isEmpty() && !dg11Hex.isEmpty()) {
@@ -335,16 +348,22 @@ public class OcrMappingService {
 
             // 3. NIN
             String nin = rootNode.path("nin").asText("");
+            if (nin.isEmpty() && !holder.isMissingNode()) nin = holder.path("nin").asText("");
             if (nin.isEmpty()) nin = rootNode.path("nin_dg11").asText("");
             entity.setNin(nin);
             
             String genderStr = rootNode.path("sexe").asText("").trim().toUpperCase();
+            if (genderStr.isEmpty() && !holder.isMissingNode()) genderStr = holder.path("sex").asText("").trim().toUpperCase();
             if (genderStr.isEmpty()) genderStr = rootNode.path("gender").asText("").trim().toUpperCase();
             entity.setSexe(genderStr.startsWith("M") ? "M" : "F");
             
-            entity.setNumeroPiece(rootNode.path("documentNumber").asText(""));
+            String docNum = rootNode.path("documentNumber").asText("");
+            if (docNum.isEmpty() && !doc.isMissingNode()) docNum = doc.path("number").asText("");
+            entity.setNumeroPiece(docNum);
             
-            String mrzDob = rootNode.path("mrzDateOfBirth").asText("");
+            String mrzDob = rootNode.path("dateNaissance").asText("");
+            if (mrzDob.isEmpty() && !holder.isMissingNode()) mrzDob = holder.path("dateOfBirth").asText("");
+            if (mrzDob.isEmpty()) mrzDob = rootNode.path("mrzDateOfBirth").asText("");
             if (mrzDob.isEmpty()) mrzDob = rootNode.path("dateOfBirth").asText("");
             parseDateNaissance(entity, mrzDob);
 

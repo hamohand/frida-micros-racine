@@ -17,6 +17,7 @@
     "@angular/platform-browser": "^18.1.0",
     "@angular/router": "^18.1.0",
     "angularx-qrcode": "^18.0.0",
+    "dz-eid": "file:dz-eid-1.0.0.tgz",
     "rxjs": "^7.8.1",
     "tslib": "^2.5.0",
     "uuid": "^9.0.1",

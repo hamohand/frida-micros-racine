@@ -432,4 +432,12 @@ Pour toute question ou probl√®me, v√©rifiez:
 [Votre License]
 #   f r i d a - o c r - m i c r o s 
  
+  
+ # #   =ÿ≈‹  H i s t o r i q u e   d e s   v e r s i o n s   ( C h a n g e l o g )  
+  
+ # # #   v 1 . 0 . 0 - r c 1   ( O c t o b r e   2 0 2 6 )  
+ -   * * N F C   M o b i l e   ( E 2 E E ) * *   :   L e c t u r e   s a n s   c o n t a c t   d e   l a   c a r t e   C N I e   v i a   l ' a p p l i c a t i o n   m o b i l e   ( c h i f f r e m e n t   d e   b o u t   e n   b o u t ) .  
+ -   * * A g e n t   L o c a l   U S B * *   :   S u p p o r t   d u   l e c t e u r   N F C   U S B .  
+ -   * * U I / U X * *   :   P a r s i n g   e t   a f f i c h a g e   i n s t a n t a n È   d e   l a   p h o t o   e t   d e s   n o m s   d e   l ' h È r i t i e r .  
+ -   * * B a c k e n d * *   :   S i m p l i f i c a t i o n   d u   p i p e l i n e   d e   t r a i t e m e n t ,   i n t È g r a t i o n   t r a n s p a r e n t e   d u   f l u x   N F C .  
  

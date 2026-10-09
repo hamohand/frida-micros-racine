@@ -90,7 +90,30 @@ public class NfcSessionController {
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
             @SuppressWarnings("unchecked")
             Map<String, Object> map = mapper.readValue(json, Map.class);
-            Map<String, Object> data = (Map<String, Object>) map.get("data");
+            
+            Map<String, Object> data = map;
+            if (map.containsKey("mrz")) {
+                data = (Map<String, Object>) map.get("mrz");
+            } else if (map.containsKey("data")) {
+                data = (Map<String, Object>) map.get("data");
+            }
+            
+            // Auto-parse MRZ if keys are missing but 'raw' is present
+            if (data.containsKey("raw") && (!data.containsKey("documentNumber") || String.valueOf(data.get("documentNumber")).trim().isEmpty())) {
+                String raw = String.valueOf(data.get("raw"));
+                String[] lines = raw.split("\r?\n");
+                if (lines.length >= 2) {
+                    if (lines[0].length() >= 30) { // TD1 (ID Card)
+                        data.put("documentNumber", lines[0].substring(5, 14).replaceAll("<", ""));
+                        data.put("dateOfBirth", lines[1].substring(0, 6));
+                        data.put("expiryDate", lines[1].substring(8, 14));
+                    } else if (lines[1].length() >= 44) { // TD3 (Passport)
+                        data.put("documentNumber", lines[1].substring(0, 9).replaceAll("<", ""));
+                        data.put("dateOfBirth", lines[1].substring(13, 19));
+                        data.put("expiryDate", lines[1].substring(21, 27));
+                    }
+                }
+            }
             
             // On le renvoie au Desktop avec le type MRZ_DATA
             sendEvent(sessionId, "MRZ_DATA", mapper.writeValueAsString(data));
@@ -109,6 +132,21 @@ public class NfcSessionController {
         if (nfcJsonData == null) {
             log.error("Corps de requête vide !");
             return ResponseEntity.badRequest().body("Le corps de la requête est vide.");
+        }
+
+        try {
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            @SuppressWarnings("unchecked")
+            Map<String, Object> map = mapper.readValue(nfcJsonData, Map.class);
+            if (map.containsKey("data")) {
+                Object dataObj = map.get("data");
+                if (dataObj instanceof Map) {
+                    nfcJsonData = mapper.writeValueAsString(dataObj);
+                    log.info("📦 Enveloppe 'data' détectée et extraite du JSON NFC.");
+                }
+            }
+        } catch (Exception e) {
+            log.warn("⚠️ Impossible de parser le JSON pour extraire 'data' : {}", e.getMessage());
         }
 
         // Fusionner les résultats OCR (noms arabes) dans le JSON NFC

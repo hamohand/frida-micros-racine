@@ -5,10 +5,14 @@ import { Observable, catchError, map, of, Subscriber } from 'rxjs';
 export interface NfcData {
   nom?: string;
   prenom?: string;
+  latines?: string;
+  prenomLatines?: string;
   nomArabe?: string;
   prenomArabe?: string;
   dateNaissance?: string;
   nin?: string;
+  documentNumber?: string;
+  sexe?: string;
   photoBase64?: string;
   rawJson?: any;
 }
@@ -17,32 +21,52 @@ export interface NfcData {
   providedIn: 'root'
 })
 export class NfcService {
-  // L'adresse de l'agent local (lecteur USB)
-  private readonly USB_AGENT_URL = 'http://127.0.0.1:5000';
+  // L'adresse de l'agent local dz-eid (lecteur USB). On utilise l'hôte actuel pour permettre l'accès depuis le mobile (réseau local).
+  private readonly USB_AGENT_URL = `http://${window.location.hostname}:8989`;
 
   constructor(private http: HttpClient) {}
 
   /**
-   * Vérifie si le lecteur NFC USB (Agent Local) est présent et actif sur ce PC.
-   * Très rapide, permet de décider s'il faut afficher le QR Code ou non.
+   * Vérifie si le lecteur NFC USB (Agent Local dz-eid) est présent et actif sur ce PC.
    */
   public checkUsbAgentAvailable(): Observable<boolean> {
-    return this.http.get<any>(`${this.USB_AGENT_URL}/status`).pipe(
+    return this.http.get<any>(`${this.USB_AGENT_URL}/v1/status`).pipe(
       map(res => {
-        console.log("Agent Local Status:", res);
-        return true; // Forcer à true pour tester l'UI
+        console.log("Agent dz-eid Status:", res);
+        return res && (res.product === 'dz-eid-agent' || res.readers !== undefined);
       }),
-      catchError(() => of(false)) // Si l'agent n'est pas lancé ou erreur, on passe silencieusement à false
+      catchError(() => of(false)) // Si l'agent n'est pas lancé, on passe silencieusement à false
     );
   }
 
   /**
-   * Demande à l'Agent Local de lire la puce NFC via le lecteur USB.
-   * Les clés BAC sont indispensables pour déverrouiller la puce.
+   * Demande à l'Agent Local dz-eid de lire la puce NFC via le lecteur USB.
+   * Retourne l'identité complète (arabe, latin, NIN, photo, dates) au contrat IdentityRecord 1.1.
    */
   public readViaUsb(documentNumber: string, dateOfBirth: string, dateOfExpiry: string): Observable<NfcData> {
     const payload = { documentNumber, dateOfBirth, dateOfExpiry };
-    return this.http.post<NfcData>(`${this.USB_AGENT_URL}/read`, payload);
+    return this.http.post<any>(`${this.USB_AGENT_URL}/v1/read`, payload).pipe(
+      map(record => {
+        const holder = record.holder || {};
+        const doc = record.document || {};
+        const photo = record.photo || {};
+
+        return {
+          nom: holder.lastNameLatin || holder.lastNameArabic || '',
+          prenom: holder.firstNameLatin || holder.firstNameArabic || '',
+          latines: holder.lastNameLatin || '',
+          prenomLatines: holder.firstNameLatin || '',
+          nomArabe: holder.lastNameArabic || '',
+          prenomArabe: holder.firstNameArabic || '',
+          dateNaissance: holder.dateOfBirth || '',
+          nin: holder.nin || '',
+          documentNumber: doc.number || documentNumber,
+          sexe: (holder.sex || '').toUpperCase().startsWith('M') ? 'M' : 'F',
+          photoBase64: photo.base64 || '',
+          rawJson: record
+        } as NfcData;
+      })
+    );
   }
 
   /**

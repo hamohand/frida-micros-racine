@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
           <div *ngIf="mode === 'usb'">
             <div *ngIf="!isUsbAvailable && !checkingUsb" style="color:#D16D6A; margin-bottom: 1rem; text-align: center;">
               <span class="material-icons" style="font-size:3rem; display:block; margin-bottom:10px;">error</span>
-              Agent Local non détecté. Assurez-vous d'avoir lancé le programme "Frida USB Agent" sur votre PC.
+              Agent Local non détecté. Assurez-vous d'avoir lancé le programme "dz-eid-agent" sur votre PC.
             </div>
 
             <div *ngIf="isUsbAvailable" style="display: flex; gap: 20px; text-align: left; align-items: stretch;">
@@ -120,10 +120,12 @@ import { Subscription } from 'rxjs';
         <div class="modal-body success" *ngIf="successData">
           <span class="material-icons success-icon">check_circle</span>
           <h3>Lecture Réussie !</h3>
-          <p>{{ successData.nom }} {{ successData.prenom }}</p>
-          <p *ngIf="successData.nomArabe || successData.prenomArabe" style="font-size: 1.2rem; color: #4ecca3; font-weight: bold; font-family: 'Amiri', 'Arial', sans-serif;" dir="rtl">
+          <img *ngIf="successData.photoBase64" [src]="'data:image/jpeg;base64,' + successData.photoBase64" style="width: 100px; height: auto; border-radius: 8px; margin-bottom: 12px; border: 2px solid #4ecca3; display: inline-block;">
+          <p style="font-weight: bold; font-size: 1.15rem; margin: 4px 0;">{{ successData.latines || successData.nom }} {{ successData.prenomLatines || successData.prenom }}</p>
+          <p *ngIf="successData.nomArabe || successData.prenomArabe" style="font-size: 1.3rem; color: #4ecca3; font-weight: bold; font-family: 'Amiri', 'Arial', sans-serif; margin: 4px 0;" dir="rtl">
             {{ successData.nomArabe }} {{ successData.prenomArabe }}
           </p>
+          <p *ngIf="successData.nin" style="color: #94a3b8; font-size: 0.9rem; margin-top: 6px;">NIN : {{ successData.nin }}</p>
         </div>
       </div>
     </div>
@@ -289,7 +291,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.isReadingUsb = false;
         console.error("Erreur USB", err);
-        this.usbError = err.error?.error || "Erreur de lecture de la puce. Assurez-vous que la carte est bien posée.";
+        this.usbError = err.error?.error?.message || err.error?.message || "Erreur de lecture de la puce. Assurez-vous que la carte est bien posée.";
       }
     });
   }
@@ -312,8 +314,12 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = window.location.protocol + '//' + adresse + port + '/api';
         
-        const uploadUrl = `${apiUrl}/nfc-session/${this.sessionId}/upload`;
-        const payload: any = { action: 'nfc_upload', url: uploadUrl };
+        // Si on est en mode USB, le QR code sert uniquement pour la "Douchette MRZ"
+        // Si on est en mode Mobile, le QR code sert pour le scan E2EE complet
+        const endpoint = this.mode === 'usb' ? 'mrz-only' : 'upload';
+        const targetUrl = `${apiUrl}/nfc-session/${this.sessionId}/${endpoint}`;
+        
+        const payload: any = { action: 'nfc_upload', url: targetUrl };
         if (this.mrzDoc && this.mrzDob && this.mrzExp) {
           payload.mrz = { doc: this.mrzDoc, dob: this.mrzDob, exp: this.mrzExp };
         }
@@ -324,6 +330,22 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
           next: (event: any) => {
             if (event.type === 'MRZ_DATA') {
               const mrz = event.payload;
+
+              if (mrz.raw && (!mrz.documentNumber || mrz.documentNumber.trim() === '')) {
+                const lines = mrz.raw.split(/\r?\n/);
+                if (lines.length >= 2) {
+                  if (lines[0].length >= 30) {
+                    mrz.documentNumber = lines[0].substring(5, 14).replace(/</g, '');
+                    mrz.dateOfBirth = lines[1].substring(0, 6);
+                    mrz.expiryDate = lines[1].substring(8, 14);
+                  } else if (lines[1].length >= 44) {
+                    mrz.documentNumber = lines[1].substring(0, 9).replace(/</g, '');
+                    mrz.dateOfBirth = lines[1].substring(13, 19);
+                    mrz.expiryDate = lines[1].substring(21, 27);
+                  }
+                }
+              }
+
               if (mrz.documentNumber) this.mrzDoc = mrz.documentNumber;
               
               const formatDate = (d: any) => {
@@ -356,6 +378,8 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
               this.mode = 'usb';
               // Afficher le bouton de lecture (pas les champs manuels)
               this.forceManualEntry = false;
+              // Masquer le QR code pour montrer qu'on a bien reçu
+              this.qrData = ''; 
               this.cdr.detectChanges();
               
               this.checkingUsb = true;
@@ -363,6 +387,10 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
                   this.checkingUsb = false;
                   this.isUsbAvailable = isUsb;
                   this.cdr.detectChanges();
+                  // Déclencher automatiquement la lecture USB !
+                  if (isUsb) {
+                    this.lireUsb();
+                  }
               });
             } else if (event.type === 'NFC_DATA') {
               this.handleSuccess(event.payload);
@@ -375,7 +403,33 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
     });
   }
 
-  private handleSuccess(data: NfcData) {
+  private handleSuccess(data: any) {
+    if (typeof data === 'string') {
+      try { data = JSON.parse(data); } catch(e) {}
+    }
+    
+    let raw = data;
+    if (data && data.data) {
+      raw = data.data;
+    }
+
+    // Si c'est un format IdentityRecord v1.1 (mobile)
+    if (raw && raw.holder) {
+      const formatted: NfcData = {
+        latines: raw.holder.lastNameLatin,
+        prenomLatines: raw.holder.firstNameLatin,
+        nomArabe: raw.holder.lastNameArabic,
+        prenomArabe: raw.holder.firstNameArabic,
+        nin: raw.holder.nin,
+        documentNumber: raw.document?.code,
+        sexe: raw.holder.sex,
+        dateNaissance: raw.holder.dateOfBirth,
+        photoBase64: raw.photo?.base64,
+        rawJson: raw
+      };
+      data = formatted;
+    }
+
     this.successData = data;
     this.cdr.detectChanges();
     setTimeout(() => {
