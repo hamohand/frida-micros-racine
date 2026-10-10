@@ -33,6 +33,10 @@ public class FridaService {
     private final HeritierRepo heritierRepo;
     private final IdentitesRepo identitesRepo;
     private final MrzService mrzService;
+    private final com.muhend.backendai.repository.BrouillonRepo brouillonRepo;
+
+    @org.springframework.beans.factory.annotation.Value("${ROOT_PATH:/app/uploads}")
+    private String rootPath;
 
     // Seuil de confiance OCR (75%)
     private static final double SEUIL_CONFIANCE = 0.75;
@@ -53,7 +57,8 @@ public class FridaService {
     public FridaService(FridaRepo fridaRepository, DefuntRepo defuntRepo,
                         CalculRepo calculRepo, HeirPartCalculatorService calculatorService,
                         HeritierRepo heritierRepo, IdentitesRepo identitesRepo,
-                        MrzService mrzService) {
+                        MrzService mrzService,
+                        com.muhend.backendai.repository.BrouillonRepo brouillonRepo) {
         this.fridaRepo = fridaRepository;
         this.defuntRepo = defuntRepo;
         this.calculRepo = calculRepo;
@@ -61,6 +66,7 @@ public class FridaService {
         this.heritierRepo = heritierRepo;
         this.identitesRepo = identitesRepo;
         this.mrzService = mrzService;
+        this.brouillonRepo = brouillonRepo;
     }
 
     // Méthode pour récupérer toutes les fridas
@@ -385,11 +391,66 @@ public class FridaService {
     public boolean deleteFrida(String numFrida) {
         Optional<FridaEntity> fridaOpt = fridaRepo.findByNumFrida(numFrida);
         if (fridaOpt.isPresent()) {
-            fridaRepo.delete(fridaOpt.get());
+            FridaEntity frida = fridaOpt.get();
+            supprimerDossierPhysiqueFrida(frida);
+            fridaRepo.delete(frida);
             log.info("Frida supprimée avec succès: {}", numFrida);
             return true;
         }
         log.warn("Tentative de suppression échouée : Frida {} introuvable", numFrida);
         return false;
+    }
+
+    private void supprimerDossierPhysiqueFrida(FridaEntity frida) {
+        if (frida.getDefunt() == null || frida.getDefunt().getIdentite() == null) {
+            return;
+        }
+        String nom = frida.getDefunt().getIdentite().getNom();
+        String prenom = frida.getDefunt().getIdentite().getPrenom();
+        if (nom == null || prenom == null) return;
+
+        // 1. Nettoyer les brouillons résiduels associés
+        if (brouillonRepo != null) {
+            try {
+                brouillonRepo.findAll().stream()
+                    .filter(b -> nom.equalsIgnoreCase(b.getNomDefunt()) && prenom.equalsIgnoreCase(b.getPrenomDefunt()))
+                    .forEach(b -> {
+                        if (b.getFolderPath() != null) {
+                            try {
+                                java.nio.file.Path p = java.nio.file.Paths.get(b.getFolderPath());
+                                if (java.nio.file.Files.exists(p)) {
+                                    org.springframework.util.FileSystemUtils.deleteRecursively(p);
+                                    log.info("Dossier physique (via brouillon) supprimé : {}", p);
+                                }
+                            } catch (Exception e) {
+                                log.error("Erreur suppression dossier physique brouillon {}", b.getFolderPath(), e);
+                            }
+                        }
+                        brouillonRepo.delete(b);
+                    });
+            } catch (Exception e) {
+                log.warn("Erreur lors de la recherche des brouillons associés au défunt {} {}", nom, prenom, e);
+            }
+        }
+
+        // 2. Nettoyer tout dossier dans ROOT_PATH/dossiers/ commençant par nom+prenom
+        String folderPrefix = (nom + prenom).toLowerCase().replaceAll("\\s+", "");
+        java.nio.file.Path rootDir = java.nio.file.Paths.get(rootPath, "dossiers");
+        if (java.nio.file.Files.exists(rootDir)) {
+            try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.list(rootDir)) {
+                paths.filter(java.nio.file.Files::isDirectory)
+                     .filter(p -> p.getFileName().toString().toLowerCase().startsWith(folderPrefix))
+                     .forEach(p -> {
+                         try {
+                             org.springframework.util.FileSystemUtils.deleteRecursively(p);
+                             log.info("Dossier physique supprimé pour Frida {} : {}", frida.getNumFrida(), p);
+                         } catch (Exception e) {
+                             log.error("Erreur suppression dossier physique {}", p, e);
+                         }
+                     });
+            } catch (Exception e) {
+                log.warn("Impossible de lister le répertoire {} pour nettoyer Frida {}", rootDir, frida.getNumFrida(), e);
+            }
+        }
     }
 }

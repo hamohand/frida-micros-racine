@@ -40,11 +40,22 @@ public class BrouillonController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBrouillon(@PathVariable Long id) {
-        if (!brouillonRepository.existsById(id)) {
-            return ResponseEntity.notFound().build();
-        }
-        brouillonRepository.deleteById(id);
-        return ResponseEntity.noContent().build();
+        return brouillonRepository.findById(id).map(brouillon -> {
+            if (brouillon.getFolderPath() != null) {
+                try {
+                    Path folderPath = Paths.get(brouillon.getFolderPath());
+                    if (Files.exists(folderPath)) {
+                        org.springframework.util.FileSystemUtils.deleteRecursively(folderPath);
+                        log.info("Dossier physique du brouillon {} supprimé : {}", id, folderPath);
+                    }
+                } catch (IOException e) {
+                    log.error("Erreur lors de la suppression du dossier physique {}", brouillon.getFolderPath(), e);
+                }
+            }
+            brouillonRepository.delete(brouillon);
+            log.info("Brouillon {} supprimé de la base de données", id);
+            return ResponseEntity.noContent().<Void>build();
+        }).orElse(ResponseEntity.notFound().build());
     }
 
     @GetMapping("/{id}/fichiers")

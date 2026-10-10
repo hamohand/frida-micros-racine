@@ -71,6 +71,8 @@ services:
       - backend
     networks:
       - frida-network
+    volumes:
+      - ./frontend/dist/demo/browser:/usr/share/nginx/html:ro
     restart: unless-stopped
 
   # ===== Service OCR =====

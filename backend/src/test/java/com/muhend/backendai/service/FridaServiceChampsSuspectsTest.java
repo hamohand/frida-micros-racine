@@ -38,13 +38,14 @@ class FridaServiceChampsSuspectsTest {
     @Mock private HeritierRepo heritierRepo;
     @Mock private IdentitesRepo identitesRepo;
     @Mock private MrzService mrzService;
+    @Mock private com.muhend.backendai.repository.BrouillonRepo brouillonRepo;
 
     private FridaService fridaService;
 
     @BeforeEach
     void setUp() {
         fridaService = new FridaService(fridaRepo, defuntRepo, calculRepo, heirPartCalculatorService,
-                heritierRepo, identitesRepo, mrzService);
+                heritierRepo, identitesRepo, mrzService, brouillonRepo);
 
         IdentitesEntity identite = new IdentitesEntity();
         identite.setNom("منصوري");
