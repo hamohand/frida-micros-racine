@@ -52,6 +52,8 @@ public class OcrProcessingController {
             // 2. Passe générique (extrait de naissance et actes détectés auto par le moteur)
             String nomLatines = "";
             String prenomLatines = "";
+            String nomArabe = "";
+            String prenomArabe = "";
 
             {
                 java.util.Map<String, Object> body = new java.util.HashMap<>();
@@ -70,6 +72,8 @@ public class OcrProcessingController {
                     java.util.Map<String, Object> resultats = (java.util.Map<String, Object>) ocrResult.get("resultats");
                     nomLatines    = extraireTexte(resultats, "latines");
                     prenomLatines = extraireTexte(resultats, "prenomLatines");
+                    nomArabe      = extraireTexte(resultats, "nom");
+                    prenomArabe   = extraireTexte(resultats, "prenom");
                 }
             }
 
@@ -98,8 +102,12 @@ public class OcrProcessingController {
                             java.util.Map<String, Object> resultats2 = (java.util.Map<String, Object>) ocrResult2.get("resultats");
                             String nom2    = extraireTexte(resultats2, "latines");
                             String prenom2 = extraireTexte(resultats2, "prenomLatines");
+                            String nomArabe2 = extraireTexte(resultats2, "nom");
+                            String prenomArabe2 = extraireTexte(resultats2, "prenom");
                             if (estLatin(nom2))    nomLatines    = nom2;
                             if (estLatin(prenom2)) prenomLatines = prenom2;
+                            if (!nomArabe2.isEmpty()) nomArabe = nomArabe2;
+                            if (!prenomArabe2.isEmpty()) prenomArabe = prenomArabe2;
                         }
                     }
                 } catch (Exception ex) {
@@ -108,7 +116,13 @@ public class OcrProcessingController {
             }
 
             if (!nomLatines.isEmpty() || !prenomLatines.isEmpty()) {
-                return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", true, "nom", nomLatines, "prenom", prenomLatines));
+                return org.springframework.http.ResponseEntity.ok(java.util.Map.of(
+                    "success", true,
+                    "nom", nomLatines,
+                    "prenom", prenomLatines,
+                    "nomArabe", nomArabe,
+                    "prenomArabe", prenomArabe
+                ));
             }
 
             return org.springframework.http.ResponseEntity.ok(java.util.Map.of("success", false, "message", "Aucun nom en lettres latines extrait depuis le QR code"));

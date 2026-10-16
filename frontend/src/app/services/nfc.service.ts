@@ -21,8 +21,8 @@ export interface NfcData {
   providedIn: 'root'
 })
 export class NfcService {
-  // L'adresse de l'agent local dz-eid (lecteur USB). On utilise l'hôte actuel pour permettre l'accès depuis le mobile (réseau local).
-  private readonly USB_AGENT_URL = `http://${window.location.hostname}:8989`;
+  // L'adresse de l'agent local dz-eid (lecteur USB). Doit pointer vers la machine cliente (localhost).
+  private readonly USB_AGENT_URL = `http://127.0.0.1:8989`;
 
   constructor(private http: HttpClient) {}
 
@@ -36,6 +36,18 @@ export class NfcService {
         return res && (res.product === 'dz-eid-agent' || res.readers !== undefined);
       }),
       catchError(() => of(false)) // Si l'agent n'est pas lancé, on passe silencieusement à false
+    );
+  }
+
+  /**
+   * IP actuelles du poste sur le réseau local, détectées par l'agent dz-eid (cartes physiques d'abord).
+   * Recalculées à chaque appel : suivent les changements de WiFi sans aucune configuration.
+   * Retourne une liste vide si l'agent n'est pas lancé ou s'il est trop ancien pour fournir l'information.
+   */
+  public getLanAddresses(): Observable<string[]> {
+    return this.http.get<any>(`${this.USB_AGENT_URL}/v1/status`).pipe(
+      map(res => Array.isArray(res?.lanAddresses) ? res.lanAddresses.filter((a: any) => typeof a === 'string' && a) : []),
+      catchError(() => of([] as string[]))
     );
   }
 

@@ -191,4 +191,27 @@ public class FridaController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @GetMapping("/{numFrida}/pdf")
+    public ResponseEntity<byte[]> genererPdf(@PathVariable String numFrida) {
+        Optional<FridaEntity> fridaOpt = fridaService.getFridaByNumFrida(numFrida);
+        if (fridaOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        try {
+            byte[] pdf = wordGenerationService.genererFridaPdf(fridaOpt.get());
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("attachment", "Frida_" + numFrida + ".pdf");
+            headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+            
+            return new ResponseEntity<>(pdf, headers, HttpStatus.OK);
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

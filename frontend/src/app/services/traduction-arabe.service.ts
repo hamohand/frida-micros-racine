@@ -55,50 +55,82 @@ export class TraductionArabeService {
   ];
 
   // Fonction principale pour traduire un nombre
-
   nombreVersArabe(n: number): string {
-    //let n: number = this.setNombre(this.nombre);
-    if (n < 0 || n > 999) {
-      return "Nombre hors de portée. Veuillez entrer un nombre entre 0 et 999.";
+    if (n < 0) return "Nombre négatif non supporté";
+    if (n === 0) return "صفر";
+    if (n > 999999999) return "Nombre hors de portée (max 999 999 999)";
+
+    const millions = Math.floor(n / 1000000);
+    const resteMillions = n % 1000000;
+    
+    const milliers = Math.floor(resteMillions / 1000);
+    const resteMilliers = resteMillions % 1000;
+
+    let parties: string[] = [];
+
+    if (millions > 0) {
+        if (millions === 1) {
+            parties.push("مليون");
+        } else if (millions === 2) {
+            parties.push("مليونين");
+        } else if (millions >= 3 && millions <= 10) {
+            parties.push(this.traduireMoinsDeMille(millions) + " ملايين");
+        } else {
+            parties.push(this.traduireMoinsDeMille(millions) + " مليون");
+        }
     }
 
-    if (n === 0) {
-      return (this.chiffresArabes)[0]; // si n est 0
-    }
-
-    let resultat: string[] = [];
-
-    // Gérer les centaines
-    const centaines = Math.floor(n / 100);
-    if (centaines > 0) {
-      if (centaines === 1) {
-        resultat.push("مائة");
-      } else if (centaines === 2) {
-        resultat.push("مائتين");
+    if (milliers > 0) {
+      if (milliers === 1) {
+        parties.push("ألف");
+      } else if (milliers === 2) {
+        parties.push("ألفين");
+      } else if (milliers >= 3 && milliers <= 10) {
+        parties.push(this.traduireMoinsDeMille(milliers) + " آلاف");
       } else {
-        resultat.push((this.chiffresArabes)[centaines] + " مائة");
+        parties.push(this.traduireMoinsDeMille(milliers) + " ألف");
       }
     }
 
-    // Gérer les dizaines et les unités
+    if (resteMilliers > 0) {
+      parties.push(this.traduireMoinsDeMille(resteMilliers));
+    }
+
+    const resultatFinal = parties.join(" و ");
+    console.log("Traduction : " + resultatFinal);
+    return resultatFinal;
+  }
+
+  traduireMoinsDeMille(n: number): string {
+    if (n === 0) return "";
+    let resultat: string[] = [];
+    const centaines = Math.floor(n / 100);
     const reste = n % 100;
+
+    if (centaines === 1) {
+      resultat.push("مائة");
+    } else if (centaines === 2) {
+      resultat.push("مائتين");
+    } else if (centaines >= 3 && centaines <= 9) {
+      const chiffres = ["", "", "", "ثلاث", "أربع", "خمس", "ست", "سبع", "ثمان", "تسع"];
+      resultat.push(chiffres[centaines] + "مائة");
+    }
+
     if (reste > 0) {
       if (reste < 10) {
-        resultat.push((this.chiffresArabes)[reste]);
+        resultat.push(this.chiffresArabes[reste]);
       } else if (reste >= 11 && reste <= 19) {
-        resultat.push((this.dizainesUniteArabes)[reste - 10]);
+        resultat.push(this.dizainesUniteArabes[reste - 10]);
       } else {
         const dizaines = Math.floor(reste / 10);
         const unites = reste % 10;
-
         if (unites > 0) {
-          resultat.push((this.chiffresArabes)[unites] + " و " + (this.dizainesArabes)[dizaines]);
+          resultat.push(this.chiffresArabes[unites] + " و " + this.dizainesArabes[dizaines]);
         } else {
-          resultat.push((this.dizainesArabes)[dizaines]);
+          resultat.push(this.dizainesArabes[dizaines]);
         }
       }
     }
-    console.log("Traduction : " + resultat.join(" "));
-    return resultat.join(" ");
+    return resultat.join(" و ");
   }
 }

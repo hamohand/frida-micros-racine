@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard, maitreGuard } from './services/auth.guard';
+import { authGuard, maitreGuard, nonDemoBrideeGuard } from './services/auth.guard';
 
 export const routes: Routes = [
   { 
@@ -75,15 +75,17 @@ export const routes: Routes = [
   },
   { 
     path: 'backups', 
-    canActivate: [authGuard],
+    canActivate: [authGuard, nonDemoBrideeGuard],
     loadComponent: () => import('./components/backup/backup.component').then(m => m.BackupComponent) 
   },
   {
     path: 'license',
+    canActivate: [nonDemoBrideeGuard],
     loadComponent: () => import('./components/license/license.component').then(m => m.LicenseComponent)
   },
   {
     path: 'mobile-scanner/:sessionId',
+    canActivate: [nonDemoBrideeGuard],
     loadComponent: () => import('./components/mobile-scanner/mobile-scanner.component').then(m => m.MobileScannerComponent)
   },
   { path: '**', redirectTo: '' }

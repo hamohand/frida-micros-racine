@@ -119,7 +119,7 @@ const LIBELLES_AR: Record<string, string> = {
               <span class="utilisateur-role"><app-bilabel [fr]="authService.isMaitre() ? 'Maître' : 'Collaborateur'" [ar]="authService.isMaitre() ? 'أستاذ' : 'متعاون'" /></span>
             </span>
           </div>
-          <button type="button" class="icone-btn bouton-deconnexion" (click)="logout()" title="Déconnexion" aria-label="Déconnexion">
+          <button *ngIf="!authService.isDemoBridee()" type="button" class="icone-btn bouton-deconnexion" (click)="logout()" title="Déconnexion" aria-label="Déconnexion">
             <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="icones.deconnexion"/></svg>
           </button>
         </div>
@@ -149,7 +149,7 @@ const LIBELLES_AR: Record<string, string> = {
             <span class="sidebar-compteur">{{ nbARevoir }}</span>
           </a>
 
-          <ng-container *ngIf="authService.isMaitre()">
+          <ng-container *ngIf="authService.isMaitre() && !authService.isDemoBridee()">
             <div class="sidebar-section"><app-bilabel fr="Administration" ar="الإدارة" [wrap]="true" /></div>
             <a *ngFor="let l of liensAdmin" [routerLink]="l.route" routerLinkActive="actif" class="sidebar-lien" [title]="l.libelle">
               <svg viewBox="0 -960 960 960" width="22" height="22" fill="currentColor"><path [attr.d]="l.icone"/></svg>
@@ -167,6 +167,12 @@ const LIBELLES_AR: Record<string, string> = {
       <div class="sidebar-voile" *ngIf="afficherSidebar" (click)="menuMobileOuvert = false"></div>
 
       <main class="app-main">
+        <div *ngIf="authService.isDemoBridee() && !isStandaloneSimulator"
+             style="background: rgba(245, 158, 11, 0.14); border-bottom: 1px solid rgba(245, 158, 11, 0.45); color: #fcd34d; padding: 8px 16px; text-align: center; font-size: 0.88rem; font-weight: 500;">
+          <app-bilabel
+            fr="⚠️ Version de démonstration : ne saisissez aucune donnée réelle (actes marqués SPECIMEN, remise à zéro chaque nuit)."
+            ar="⚠️ نسخة تجريبية للعرض فقط : لا تدخلوا أي بيانات حقيقية (العقود تحمل عبارة SPECIMEN وتُعاد تهيئة البيانات كل ليلة)." />
+        </div>
         <app-dossier-stepper *ngIf="etapeDossier" [etapeActive]="etapeDossier"></app-dossier-stepper>
         <router-outlet></router-outlet>
       </main>
@@ -229,17 +235,15 @@ export class AdminComponent {
     });
     this.majNavigation();
 
-    // Auto-login if demo mode is enabled on startup
-    if (!this.authService.isLoggedIn()) {
-      this.authService.getSecurityStatus().subscribe({
-        next: (res) => {
-          if (res.demoMode === true || res.demoMode === 'true') {
-            this.authService.loginDemo();
-          }
-        },
-        error: () => {}
-      });
-    }
+    // Toujours interroger /api/auth/status au démarrage pour synchroniser demoMode et demoBridee
+    this.authService.getSecurityStatus().subscribe({
+      next: (res) => {
+        if (!this.authService.isLoggedIn() && (res.demoMode === true || res.demoMode === 'true')) {
+          this.authService.loginDemo();
+        }
+      },
+      error: () => {}
+    });
   }
 
   basculerMenu() {

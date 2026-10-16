@@ -10,257 +10,455 @@ import com.deepoove.poi.plugin.table.LoopRowTableRenderPolicy;
 import com.muhend.backendai.entities.FridaEntity;
 import com.muhend.backendai.entities.IdentitesEntity;
 import com.muhend.backendai.entities.HeritierEntity;
+import com.muhend.backendai.entities.TemoinEntity;
+import com.muhend.backendai.service.HeritierService;
 import com.muhend.backendai.service.ParametreService;
+import com.muhend.backendai.service.TemoinService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Profile("!calc-only")
 @Service
 @Slf4j
 @RequiredArgsConstructor
 public class WordGenerationService {
 
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+
     private final ParametreService parametreService;
+    private final HeritierService heritierService;
+    private final TemoinService temoinService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.demo-bridee:false}")
+    private boolean demoBridee;
+
+    public void setDemoBridee(boolean demoBridee) {
+        this.demoBridee = demoBridee;
+    }
 
     public byte[] genererFridaWord(FridaEntity frida) throws IOException {
-        // 1. Préparation des données pour le template
         Map<String, Object> data = new HashMap<>();
 
-        // Paramètres de l'étude
-        data.put("notaire", parametreService.getNomNotaireArabe());
-        data.put("commune", parametreService.getCommuneEtude());
-        data.put("wilaya", parametreService.getWilayaEtude());
-
-        // Infos Frida
-        data.put("num_frida", frida.getNumFrida() != null ? frida.getNumFrida() : "");
-        data.put("date_creation", frida.getDateCreation() != null ? frida.getDateCreation().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-
-        // Textes dynamiques selon le sexe du défunt
-        boolean isFeminin = false;
-        if (frida.getDefunt() != null && frida.getDefunt().getIdentite() != null && "أنثى".equals(frida.getDefunt().getIdentite().getSexe())) {
-            isFeminin = true;
+        // 1. Paramètres de l'étude (En-tête : nom du notaire, rue et ville)
+        String nomNotaire = parametreService.getNomNotaireArabe();
+        if (nomNotaire == null || nomNotaire.isBlank()) {
+            nomNotaire = frida.getNotaire() != null ? frida.getNotaire() : "";
         }
-        
+        String adresseEtude = parametreService.getAdresseEtude();
+        String communeEtude = parametreService.getCommuneEtude();
+        String wilayaEtude = parametreService.getWilayaEtude();
+
+        data.put("notaire", nomNotaire);
+        data.put("adresse", adresseEtude != null ? adresseEtude.trim() : "");
+        data.put("commune", communeEtude != null ? communeEtude.trim() : "");
+        data.put("wilaya", wilayaEtude != null ? wilayaEtude.trim() : "");
+
+        List<String> lignesAdresse = new ArrayList<>();
+        if (adresseEtude != null && !adresseEtude.isBlank()) {
+            lignesAdresse.add(adresseEtude.trim());
+        }
+        List<String> villeParts = new ArrayList<>();
+        if (communeEtude != null && !communeEtude.isBlank()) {
+            villeParts.add("بلدية " + communeEtude.trim());
+        }
+        if (wilayaEtude != null && !wilayaEtude.isBlank()) {
+            villeParts.add("ولاية " + wilayaEtude.trim());
+        }
+        if (!villeParts.isEmpty()) {
+            lignesAdresse.add(String.join(" - ", villeParts));
+        }
+        data.put("notaire_adresse", String.join("\n", lignesAdresse));
+
+        // 2. Infos Frida
+        String numFrida = frida.getNumFrida() != null ? frida.getNumFrida() : "";
+        data.put("num_frida", numFrida);
+        data.put("date_creation", formatDate(frida.getDateCreation()));
+
+        // 3. Infos Défunt (alignées exactement sur frida.component.html)
+        boolean isMaleDefunt = frida.getDefunt() != null
+                && frida.getDefunt().getIdentite() != null
+                && isMasculin(frida.getDefunt().getIdentite().getSexe());
+        boolean isFeminin = !isMaleDefunt;
+
         data.put("defunt_titre", isFeminin ? "المرحومة" : "المرحوم");
+        data.put("defunt_pour_temoins", isFeminin ? "للمرحومة" : "للمرحوم");
         data.put("defunt_mort", isFeminin ? "المتوفية" : "المتوفي");
         data.put("defunt_ne", isFeminin ? "المولودة" : "المولود");
-        data.put("defunt_fils", isFeminin ? "بنت" : "ابن");
+        data.put("defunt_fils", isFeminin ? "بنت" : "بن");
 
-        // Infos Défunt
-        if (frida.getDefunt() != null) {
+        if (frida.getDefunt() != null && frida.getDefunt().getIdentite() != null) {
             IdentitesEntity identite = frida.getDefunt().getIdentite();
-            data.put("defunt_nom", identite.getNom());
-            data.put("defunt_prenom", identite.getPrenom());
-            data.put("defunt_pere", identite.getPere() != null ? identite.getPere() : "");
-            data.put("defunt_mere", identite.getMere() != null ? identite.getMere() : "");
-            data.put("defunt_date_naiss", identite.getDateNaissance() != null ? identite.getDateNaissance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            data.put("defunt_lieu_naiss", identite.getLieuNaissance());
-            data.put("defunt_date_deces", frida.getDefunt().getDateDeces() != null ? frida.getDefunt().getDateDeces().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-            data.put("defunt_sexe", identite.getSexe());
+            data.put("defunt_nom", safeStr(identite.getNom()));
+            data.put("defunt_prenom", safeStr(identite.getPrenom()));
+            data.put("defunt_pere", safeStr(identite.getPere()));
+            data.put("defunt_mere", safeStr(identite.getMere()));
+            data.put("defunt_date_naiss", formatDate(identite.getDateNaissance()));
+            data.put("defunt_lieu_naiss", safeStr(identite.getLieuNaissance()));
+            data.put("defunt_date_deces", formatDate(frida.getDefunt().getDateDeces()));
+            data.put("defunt_sexe", safeStr(identite.getSexe()));
+
+            String wilayaDef = safeStr(identite.getWilaya());
+            data.put("defunt_wilaya_text", !wilayaDef.isEmpty() ? " (ولاية " + wilayaDef + ")" : "");
+
+            String ninDef = safeStr(identite.getNin());
+            if (!ninDef.isEmpty()) {
+                data.put("defunt_nin_text", " " + (isFeminin ? "الحاملة" : "الحامل")
+                        + " لرقم التعريف الوطني (NIN) : " + ninDef + "،");
+            } else {
+                data.put("defunt_nin_text", "");
+            }
+
+            String dateDecesStr = formatDate(frida.getDefunt().getDateDeces());
+            if (!dateDecesStr.isEmpty()) {
+                data.put("defunt_deces_text", " " + (isFeminin ? "المتوفية" : "المتوفي")
+                        + " بتاريخ " + dateDecesStr + "،");
+            } else {
+                data.put("defunt_deces_text", "");
+            }
+
+            String numPieceDef = safeStr(identite.getNumeroPiece());
+            if (!numPieceDef.isEmpty()) {
+                data.put("defunt_acte_text", " بناءً على شهادة " + (isFeminin ? "ميلادها" : "ميلاده")
+                        + " رقم " + numPieceDef + ".");
+            } else {
+                data.put("defunt_acte_text", ".");
+            }
+        } else {
+            data.put("defunt_nom", "");
+            data.put("defunt_prenom", "");
+            data.put("defunt_pere", "");
+            data.put("defunt_mere", "");
+            data.put("defunt_date_naiss", "");
+            data.put("defunt_lieu_naiss", "");
+            data.put("defunt_date_deces", "");
+            data.put("defunt_sexe", "");
+            data.put("defunt_wilaya_text", "");
+            data.put("defunt_nin_text", "");
+            data.put("defunt_deces_text", "");
+            data.put("defunt_acte_text", ".");
         }
 
-        // Infos Héritiers (pour un tableau)
-        List<Map<String, String>> heritiersList = new ArrayList<>();
-        if (frida.getHeritiers() != null) {
-            for (HeritierEntity heritier : frida.getHeritiers()) {
-                // On exclut les témoins (souvent code 00)
-                if ("00".equals(heritier.getNumParente())) continue;
-
-                Map<String, String> hData = new HashMap<>();
-                hData.put("h_nom", heritier.getIdentite().getNom());
-                hData.put("h_prenom", heritier.getIdentite().getPrenom());
-                hData.put("h_date_naiss", heritier.getIdentite().getDateNaissance() != null ? heritier.getIdentite().getDateNaissance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-                hData.put("h_lieu_naiss", heritier.getIdentite().getLieuNaissance() != null ? heritier.getIdentite().getLieuNaissance() : "");
-                hData.put("h_relation_exacte", getRelationArabe(heritier, frida));
-                boolean isMaleH = isMasculin(heritier.getIdentite() != null ? heritier.getIdentite().getSexe() : "");
-                hData.put("h_ne", isMaleH ? "المولود في" : "المولودة في");
-                
-                String nin = heritier.getIdentite() != null ? heritier.getIdentite().getNin() : "";
-                String ninText = "";
-                if (nin != null && !nin.isEmpty()) {
-                    ninText = (isMaleH ? "، الحامل للرقم الوطني " : "، الحاملة للرقم الوطني ") + nin;
+        // 4. Récupération des héritiers (ordonnés comme dans la vue web) et des témoins
+        List<HeritierEntity> heritiersOrdered = new ArrayList<>();
+        if (!numFrida.isEmpty()) {
+            try {
+                List<HeritierEntity> fromRepo = heritierService.listeHeritiers(numFrida);
+                if (fromRepo != null && !fromRepo.isEmpty()) {
+                    heritiersOrdered = fromRepo;
                 }
-                hData.put("h_nin_text", ninText);
-                
-                hData.put("h_part", getExactPart(heritier, frida.getCalcul()));
-                heritiersList.add(hData);
+            } catch (Exception e) {
+                log.warn("Impossible de charger listeHeritiers via HeritierService pour {}", numFrida, e);
             }
         }
-        // Infos Témoins
+        if (heritiersOrdered.isEmpty() && frida.getHeritiers() != null) {
+            heritiersOrdered = frida.getHeritiers();
+        }
+
+        List<TemoinEntity> temoinsEntities = new ArrayList<>();
+        if (!numFrida.isEmpty()) {
+            try {
+                List<TemoinEntity> fromRepo = temoinService.listeTemoins(numFrida);
+                if (fromRepo != null && !fromRepo.isEmpty()) {
+                    temoinsEntities = fromRepo;
+                }
+            } catch (Exception e) {
+                log.warn("Impossible de charger listeTemoins via TemoinService pour {}", numFrida, e);
+            }
+        }
+        if (temoinsEntities.isEmpty() && frida.getTemoins() != null) {
+            temoinsEntities = frida.getTemoins();
+        }
+
+        // 5. Liste des témoins
         List<Map<String, String>> temoinsList = new ArrayList<>();
-        if (frida.getHeritiers() != null) {
-            for (HeritierEntity heritier : frida.getHeritiers()) {
-                if ("00".equals(heritier.getNumParente())) {
-                    Map<String, String> tData = new HashMap<>();
-                    boolean isMaleT = isMasculin(heritier.getIdentite().getSexe());
-                    tData.put("t_genre", isMaleT ? "السيد" : "السيدة");
-                    tData.put("t_nom", heritier.getIdentite().getNom());
-                    tData.put("t_prenom", heritier.getIdentite().getPrenom());
-                    tData.put("t_nat", isMaleT ? "" : "ة");
-                    tData.put("t_ne", isMaleT ? "المولود" : "المولودة");
-                    tData.put("t_hab", isMaleT ? "الساكن" : "الساكنة");
-                    tData.put("t_date_naiss", heritier.getIdentite().getDateNaissance() != null ? heritier.getIdentite().getDateNaissance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) : "");
-                    tData.put("t_adresse", heritier.getIdentite().getLieuNaissance() != null ? heritier.getIdentite().getLieuNaissance() : ""); // En l'absence d'adresse dans IdentiteEntity, on fallback sur lieu de naissance ou vide
-                    temoinsList.add(tData);
-                }
+        int tIdx = 1;
+        for (TemoinEntity temoin : temoinsEntities) {
+            IdentitesEntity idT = temoin.getIdentite();
+            boolean isMaleT = idT != null && isMasculin(idT.getSexe());
+            Map<String, String> tData = new HashMap<>();
+            tData.put("t_index", String.valueOf(tIdx++));
+            tData.put("t_genre", isMaleT ? "السيد" : "السيدة");
+            tData.put("t_nom", idT != null ? safeStr(idT.getNom()) : "");
+            tData.put("t_prenom", idT != null ? safeStr(idT.getPrenom()) : "");
+            tData.put("t_nat", isMaleT ? "" : "ة");
+            tData.put("t_ne", isMaleT ? "المولود" : "المولودة");
+            tData.put("t_hab", isMaleT ? "الساكن" : "الساكنة");
+            tData.put("t_date_naiss", idT != null ? formatDate(idT.getDateNaissance()) : "");
+            String adr = safeStr(temoin.getAdresse());
+            if (adr.isEmpty() && idT != null) {
+                adr = safeStr(idT.getLieuNaissance());
             }
+            tData.put("t_adresse", adr);
+            temoinsList.add(tData);
         }
         data.put("temoins", temoinsList);
+
+        // 6. 1ère liste nominative des héritiers (الـورثـة : parenté, nom, prénom, date et lieu de naissance, NIN - sans fraction)
+        List<Map<String, String>> heritiersList = new ArrayList<>();
+        for (HeritierEntity heritier : heritiersOrdered) {
+            if ("00".equals(heritier.getNumParente())) continue;
+            IdentitesEntity idH = heritier.getIdentite();
+            boolean isMaleH = idH != null && isMasculin(idH.getSexe());
+
+            Map<String, String> hData = new HashMap<>();
+            hData.put("h_relation_exacte", getRelationArabe(heritier, frida) + " :");
+            hData.put("h_nom", idH != null ? safeStr(idH.getNom()) : "");
+            hData.put("h_prenom", idH != null ? safeStr(idH.getPrenom()) : "");
+            hData.put("h_ne", isMaleH ? "المولود بتاريخ" : "المولودة بتاريخ");
+            hData.put("h_date_naiss", idH != null ? formatDate(idH.getDateNaissance()) : "");
+
+            String lieuNaiss = idH != null ? safeStr(idH.getLieuNaissance()) : "";
+            hData.put("h_lieu_naiss", lieuNaiss);
+
+            StringBuilder details = new StringBuilder();
+            if (!lieuNaiss.isEmpty()) {
+                details.append(" بـ ").append(lieuNaiss);
+            }
+            String nin = idH != null ? safeStr(idH.getNin()) : "";
+            if (!nin.isEmpty()) {
+                details.append(isMaleH ? "، الحامل للرقم الوطني " : "، الحاملة للرقم الوطني ").append(nin);
+            }
+            hData.put("h_nin_text", details.toString());
+            hData.put("h_part", "");
+            heritiersList.add(hData);
+        }
         data.put("heritiers", heritiersList);
 
-        // Nouveaux éléments pour la section "Parts"
+        // 7. 2ème liste nominative des héritiers (الـقـسـمـة : parenté, nom, prénom, traits d'union serrés et fraction en fin de ligne)
         if (frida.getCalcul() != null) {
-            data.put("denominateur", frida.getCalcul().getDenominateur() != null ? frida.getCalcul().getDenominateur() : "");
-            // Pour faire simple on l'écrit en chiffre, l'Arabe complet nécessiterait le service Angular ou une lib
-            data.put("denominateur_lettres", frida.getCalcul().getDenominateur() != null ? frida.getCalcul().getDenominateur().toString() : ""); 
-            
+            Integer denVal = frida.getCalcul().getDenominateur();
+            data.put("denominateur", denVal != null ? denVal : "");
+            data.put("denominateur_lettres", denVal != null ? com.muhend.backendai.service.calculs_outils.NumberToArabicWords.convert(denVal) : "");
+
+            // Demandeur de la Frida (même règle que frida.component.html lignes 181-189)
+            HeritierEntity demandeur = null;
+            boolean hasChildren = (frida.getCalcul().getNbGarcons() != null && frida.getCalcul().getNbGarcons() != 0)
+                    || (frida.getCalcul().getNbFilles() != null && frida.getCalcul().getNbFilles() != 0);
+            if (hasChildren && heritiersOrdered.size() > 1) {
+                demandeur = heritiersOrdered.get(1);
+            } else if (!heritiersOrdered.isEmpty()) {
+                demandeur = heritiersOrdered.get(0);
+            }
+            if (demandeur != null && demandeur.getIdentite() != null) {
+                boolean isMaleDem = isMasculin(demandeur.getIdentite().getSexe());
+                String titreDem = isMaleDem ? "السيد" : "السيدة";
+                String nomPrenomDem = (safeStr(demandeur.getIdentite().getNom()) + " " + safeStr(demandeur.getIdentite().getPrenom())).trim();
+                data.put("demandeur_intro", "وبناءً على طلب " + titreDem + " " + nomPrenomDem + "، إحدى الورثة المذكورين أعلاه، تم إعداد هذه الفريضة. ");
+            } else {
+                data.put("demandeur_intro", "");
+            }
+
             List<Map<String, String>> partsList = new ArrayList<>();
-            
-            if (frida.getCalcul().getNumerateurConjoint() != null && frida.getCalcul().getNumerateurConjoint() > 0) {
+            int totalNum = 0;
+            for (HeritierEntity h : heritiersOrdered) {
+                if ("00".equals(h.getNumParente())) continue;
+                String relArabe = getRelationArabePourPart(h, frida);
+                String partString = getExactPart(h, frida.getCalcul());
+                String nomH = h.getIdentite() != null ? safeStr(h.getIdentite().getNom()) : "";
+                String prenomH = h.getIdentite() != null ? safeStr(h.getIdentite().getPrenom()) : "";
+
                 Map<String, String> p = new HashMap<>();
-                p.put("h_groupe", isFeminin ? "لأرملها" : "لأرملته");
-                p.put("h_nom_prenom", "");
-                p.put("h_num", frida.getCalcul().getNumerateurConjoint().toString());
-                p.put("h_den", frida.getCalcul().getDenominateur().toString());
-                partsList.add(p);
-            }
-            if (frida.getCalcul().getNumerateurGarcons() != null && frida.getCalcul().getNumerateurGarcons() > 0) {
-                Map<String, String> p = new HashMap<>();
-                p.put("h_groupe", "للأبناء الذكور");
-                p.put("h_nom_prenom", "لكل واحد منهم");
-                p.put("h_num", frida.getCalcul().getNumerateurGarcons().toString());
-                p.put("h_den", frida.getCalcul().getDenominateur().toString());
-                partsList.add(p);
-            }
-            if (frida.getCalcul().getNumerateurFilles() != null && frida.getCalcul().getNumerateurFilles() > 0) {
-                Map<String, String> p = new HashMap<>();
-                p.put("h_groupe", "للبنات");
-                p.put("h_nom_prenom", "لكل واحدة منهن");
-                p.put("h_num", frida.getCalcul().getNumerateurFilles().toString());
-                p.put("h_den", frida.getCalcul().getDenominateur().toString());
-                partsList.add(p);
-            }
-            if (frida.getCalcul().getNumerateurPere() != null && frida.getCalcul().getNumerateurPere() > 0) {
-                Map<String, String> p = new HashMap<>();
-                p.put("h_groupe", "للأب");
-                p.put("h_nom_prenom", "");
-                p.put("h_num", frida.getCalcul().getNumerateurPere().toString());
-                p.put("h_den", frida.getCalcul().getDenominateur().toString());
-                partsList.add(p);
-            }
-            if (frida.getCalcul().getNumerateurMere() != null && frida.getCalcul().getNumerateurMere() > 0) {
-                Map<String, String> p = new HashMap<>();
-                p.put("h_groupe", "للأم");
-                p.put("h_nom_prenom", "");
-                p.put("h_num", frida.getCalcul().getNumerateurMere().toString());
-                p.put("h_den", frida.getCalcul().getDenominateur().toString());
-                partsList.add(p);
-            }
-            
-            // Frères, sœurs, oncles (individuellement)
-            for (HeritierEntity h : frida.getHeritiers()) {
-                if (h.getNumParente() != null && Integer.parseInt(h.getNumParente()) >= 5) {
-                    String relArabe = getRelationArabePourPart(h, frida);
-                    String partString = getExactPart(h, frida.getCalcul());
-                    if (!"-".equals(partString) && !partString.isEmpty()) {
-                        String[] parts = partString.split("/");
-                        Map<String, String> p = new HashMap<>();
-                        p.put("h_groupe", relArabe);
-                        p.put("h_nom_prenom", h.getIdentite().getPrenom());
-                        p.put("h_num", parts.length > 0 ? parts[0] : "");
-                        p.put("h_den", parts.length > 1 ? parts[1] : "");
-                        partsList.add(p);
-                    }
+                p.put("h_groupe", relArabe + " :");
+                p.put("h_nom_prenom", (nomH + " " + prenomH).trim());
+
+                if (!"-".equals(partString) && !partString.isEmpty()) {
+                    String[] parts = partString.split("/");
+                    String numStr = parts.length > 0 ? parts[0] : "";
+                    String denStr = parts.length > 1 ? parts[1] : "";
+                    p.put("h_num", numStr);
+                    p.put("h_den", denStr);
+                    p.put("h_fraction", "\u200E" + numStr + " / " + denStr + "\u200E");
+                    try {
+                        totalNum += Integer.parseInt(numStr);
+                    } catch (NumberFormatException ignored) {}
+                } else {
+                    p.put("h_num", "-");
+                    p.put("h_den", "");
+                    p.put("h_fraction", "-");
                 }
+                partsList.add(p);
             }
             data.put("heritiers_parts", partsList);
-            
-            // Calcul du total des parts distribuées
-            int totalNum = 0;
-            if (frida.getHeritiers() != null) {
-                for (HeritierEntity h : frida.getHeritiers()) {
-                    String partString = getExactPart(h, frida.getCalcul());
-                    if (!"-".equals(partString) && !partString.isEmpty()) {
-                        String[] parts = partString.split("/");
-                        if (parts.length > 0) {
-                            try {
-                                totalNum += Integer.parseInt(parts[0]);
-                            } catch (NumberFormatException ignored) {}
-                        }
-                    }
-                }
-            }
             data.put("total_num", String.valueOf(totalNum));
+            data.put("total_fraction", "\u200E" + totalNum + " / " + (denVal != null ? denVal : "") + "\u200E");
+            data.put("total_num_lettres", com.muhend.backendai.service.calculs_outils.NumberToArabicWords.convert(totalNum));
         }
 
-        // 3. Rendu du document
+        // 8. Rendu du document Word
         ClassPathResource resource = new ClassPathResource("templates/modele_frida.docx");
-        
+
         try (InputStream is = resource.getInputStream();
              XWPFTemplate template = XWPFTemplate.compile(is).render(data);
              ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-            
-            // Protection du document en lecture seule (avec mot de passe arbitraire)
+
+            // Marges du document : droite 5 cm (2835 twips), gauche 1 cm (567 twips)
             XWPFDocument document = template.getXWPFDocument();
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr sectPr = document.getDocument().getBody().isSetSectPr()
+                    ? document.getDocument().getBody().getSectPr()
+                    : document.getDocument().getBody().addNewSectPr();
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar pageMar = sectPr.isSetPgMar()
+                    ? sectPr.getPgMar()
+                    : sectPr.addNewPgMar();
+            pageMar.setRight(java.math.BigInteger.valueOf(2835L)); // 5 cm
+            pageMar.setLeft(java.math.BigInteger.valueOf(567L));   // 1 cm
+            if (pageMar.getTop() == null) pageMar.setTop(java.math.BigInteger.valueOf(1134L));       // 2 cm
+            if (pageMar.getBottom() == null) pageMar.setBottom(java.math.BigInteger.valueOf(1134L)); // 2 cm
+
+            if (demoBridee) {
+                appliquerFiligraneWord(document, "SPECIMEN");
+            }
+
+            // Protection du document en lecture seule (avec mot de passe arbitraire)
             document.enforceReadonlyProtection("frida2026", org.apache.poi.poifs.crypt.HashAlgorithm.sha256);
-            
+
             template.write(out);
             return out.toByteArray();
         }
+    }
+
+    public byte[] genererFridaPdf(FridaEntity frida) throws IOException {
+        byte[] wordBytes = genererFridaWord(frida);
+        try (ByteArrayInputStream in = new ByteArrayInputStream(wordBytes);
+             XWPFDocument document = new XWPFDocument(in);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+
+            PdfOptions options = PdfOptions.create();
+            PdfConverter.getInstance().convert(document, out, options);
+            byte[] pdfBytes = out.toByteArray();
+
+            if (demoBridee) {
+                return appliquerFiligranePdf(pdfBytes, "SPECIMEN");
+            }
+            return pdfBytes;
+        } catch (Exception e) {
+            log.error("Erreur lors de la conversion du document Word en PDF", e);
+            throw new IOException("Impossible de générer le PDF", e);
+        }
+    }
+
+    private void appliquerFiligraneWord(XWPFDocument document, String texte) {
+        try {
+            org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr sectPr =
+                    document.getDocument().getBody().isSetSectPr()
+                            ? document.getDocument().getBody().getSectPr()
+                            : document.getDocument().getBody().addNewSectPr();
+            org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy policy =
+                    new org.apache.poi.xwpf.model.XWPFHeaderFooterPolicy(document, sectPr);
+            policy.createWatermark(texte);
+        } catch (Exception e) {
+            log.warn("Impossible d'appliquer le filigrane Word '{}' : {}", texte, e.getMessage());
+        }
+    }
+
+    private byte[] appliquerFiligranePdf(byte[] pdfBytes, String texte) {
+        try (ByteArrayOutputStream stampedOut = new ByteArrayOutputStream()) {
+            com.lowagie.text.pdf.PdfReader reader = new com.lowagie.text.pdf.PdfReader(pdfBytes);
+            com.lowagie.text.pdf.PdfStamper stamper = new com.lowagie.text.pdf.PdfStamper(reader, stampedOut);
+            com.lowagie.text.pdf.BaseFont font = com.lowagie.text.pdf.BaseFont.createFont(
+                    com.lowagie.text.pdf.BaseFont.HELVETICA_BOLD,
+                    com.lowagie.text.pdf.BaseFont.WINANSI,
+                    com.lowagie.text.pdf.BaseFont.NOT_EMBEDDED);
+            com.lowagie.text.pdf.PdfGState gs = new com.lowagie.text.pdf.PdfGState();
+            gs.setFillOpacity(0.18f);
+
+            int totalPages = reader.getNumberOfPages();
+            for (int i = 1; i <= totalPages; i++) {
+                com.lowagie.text.Rectangle pageSize = reader.getPageSizeWithRotation(i);
+                float x = (pageSize.getLeft() + pageSize.getRight()) / 2f;
+                float y = (pageSize.getBottom() + pageSize.getTop()) / 2f;
+                com.lowagie.text.pdf.PdfContentByte over = stamper.getOverContent(i);
+                over.saveState();
+                over.setGState(gs);
+                over.beginText();
+                over.setFontAndSize(font, 72);
+                over.setRGBColorFill(180, 30, 30);
+                over.showTextAligned(com.lowagie.text.Element.ALIGN_CENTER, texte, x, y, 45);
+                over.endText();
+                over.restoreState();
+            }
+            stamper.close();
+            reader.close();
+            return stampedOut.toByteArray();
+        } catch (Exception e) {
+            log.warn("Impossible d'appliquer le filigrane PDF '{}' : {}", texte, e.getMessage());
+            return pdfBytes;
+        }
+    }
+
+    private String safeStr(String s) {
+        return s != null ? s.trim() : "";
+    }
+
+    private String formatDate(LocalDate d) {
+        return d != null ? d.format(DATE_FMT) : "";
     }
 
     private String getExactPart(HeritierEntity heritier, com.muhend.backendai.entities.CalculEntity calcul) {
         if (calcul == null || calcul.getDenominateur() == null || calcul.getDenominateur() == 0) return "";
         int num = 0;
         int den = calcul.getDenominateur();
-        
-        String parent = heritier.getNumParente();
+
+        String parent = heritier.getNumParente() != null ? heritier.getNumParente().trim() : "";
+        // Normalisation : accepte "2" ou "02"
+        int codeParente = -1;
+        try {
+            codeParente = Integer.parseInt(parent);
+        } catch (NumberFormatException ignored) {}
+
         String sexe = heritier.getIdentite() != null ? heritier.getIdentite().getSexe() : "";
-        
-        if ("02".equals(parent)) {
+        boolean isMale = isMasculin(sexe);
+
+        if (codeParente == 2) {
             num = calcul.getNumerateurConjoint() != null ? calcul.getNumerateurConjoint() : 0;
-        } else if ("03".equals(parent)) {
-            if ("ذكر".equals(sexe)) {
+        } else if (codeParente == 3) {
+            if (isMale) {
                 num = calcul.getNumerateurGarcons() != null ? calcul.getNumerateurGarcons() : 0;
             } else {
                 num = calcul.getNumerateurFilles() != null ? calcul.getNumerateurFilles() : 0;
             }
-        } else if ("04".equals(parent)) {
-            if ("ذكر".equals(sexe)) {
+        } else if (codeParente == 4) {
+            if (isMale) {
                 num = calcul.getNumerateurPere() != null ? calcul.getNumerateurPere() : 0;
             } else {
                 num = calcul.getNumerateurMere() != null ? calcul.getNumerateurMere() : 0;
             }
-        } else if ("05".equals(parent) || "06".equals(parent) || "07".equals(parent)) {
-            if ("ذكر".equals(sexe)) {
+        } else if (codeParente == 5) {
+            if (isMale) {
                 num = calcul.getNumerateurFreres() != null ? calcul.getNumerateurFreres() : 0;
             } else {
                 num = calcul.getNumerateurSoeurs() != null ? calcul.getNumerateurSoeurs() : 0;
             }
-        } else if ("08".equals(parent)) {
+        } else if (codeParente == 6) {
             num = calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0;
-        } else if ("09".equals(parent)) {
-            num = calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0;
-        } else if ("10".equals(parent)) {
-            num = calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0;
-        } else if ("11".equals(parent)) {
+        } else if (codeParente == 7) {
             num = calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0;
-        } else if ("12".equals(parent)) {
+        } else if (codeParente == 8) {
             num = calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0;
-        } else if ("13".equals(parent)) {
+        } else if (codeParente == 9) {
+            num = calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0;
+        } else if (codeParente == 10) {
+            num = calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0;
+        } else if (codeParente == 11) {
             num = calcul.getNumerateurGrandMerePaternelle() != null ? calcul.getNumerateurGrandMerePaternelle() : 0;
         }
-        
+
+        if (num == 0 && heritier.getCoefPart() > 0) {
+            num = (int) Math.round(heritier.getCoefPart() * den);
+        }
+
         if (num == 0) return "-";
         return num + "/" + den;
     }
@@ -271,45 +469,77 @@ public class WordGenerationService {
         return s.equals("ذكر") || s.equals("ذ") || s.equalsIgnoreCase("M");
     }
 
+    private int parseParente(String numParente) {
+        if (numParente == null) return -1;
+        try {
+            return Integer.parseInt(numParente.trim());
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
     private String getRelationArabe(HeritierEntity heritier, FridaEntity frida) {
         boolean isMaleDefunt = isMasculin(frida.getDefunt() != null && frida.getDefunt().getIdentite() != null ? frida.getDefunt().getIdentite().getSexe() : "");
-        String numParente = heritier.getNumParente();
+        int code = parseParente(heritier.getNumParente());
         boolean isMaleHeritier = isMasculin(heritier.getIdentite() != null ? heritier.getIdentite().getSexe() : "");
 
-        if ("02".equals(numParente)) {
+        if (code == 2) {
             return isMaleDefunt ? "أرملته" : "أرملها";
-        } else if ("03".equals(numParente)) {
+        } else if (code == 3) {
             if (isMaleDefunt) return isMaleHeritier ? "ابنه" : "بنته";
             else return isMaleHeritier ? "ابنها" : "بنتها";
-        } else if ("04".equals(numParente)) {
+        } else if (code == 4) {
             if (isMaleDefunt) return isMaleHeritier ? "والده" : "والدته";
             else return isMaleHeritier ? "والدها" : "والدتها";
-        } else if ("05".equals(numParente)) {
+        } else if (code == 5) {
             if (isMaleDefunt) return isMaleHeritier ? "أخوه" : "أخته";
             else return isMaleHeritier ? "أخوها" : "أختها";
-        } else if ("06".equals(numParente)) {
+        } else if (code == 6) {
             return isMaleDefunt ? "عمه" : "عمها";
-        } else if ("07".equals(numParente)) {
+        } else if (code == 7) {
             return isMaleDefunt ? "ابن عمه" : "ابن عمها";
-        } else if ("08".equals(numParente)) {
+        } else if (code == 8) {
             return isMaleDefunt ? "جده" : "جدها";
+        } else if (code == 9) {
+            return isMaleDefunt ? "حفيده" : "حفيدها";
+        } else if (code == 10) {
+            return isMaleDefunt ? "حفيدته" : "حفيدتها";
+        } else if (code == 11) {
+            return isMaleDefunt ? "جدته" : "جدتها";
         }
         return heritier.getCategorieArabe() != null ? heritier.getCategorieArabe() : "";
     }
 
     private String getRelationArabePourPart(HeritierEntity heritier, FridaEntity frida) {
         boolean isMaleDefunt = isMasculin(frida.getDefunt() != null && frida.getDefunt().getIdentite() != null ? frida.getDefunt().getIdentite().getSexe() : "");
-        String numParente = heritier.getNumParente();
+        int code = parseParente(heritier.getNumParente());
         boolean isMaleHeritier = isMasculin(heritier.getIdentite() != null ? heritier.getIdentite().getSexe() : "");
 
-        if ("05".equals(numParente)) {
+        if (code == 2) {
+            return isMaleDefunt ? "لأرملته" : "لأرملها";
+        } else if (code == 3) {
+            if (isMaleDefunt) return isMaleHeritier ? "لابنه" : "لبنته";
+            else return isMaleHeritier ? "لابنها" : "لبنتها";
+        } else if (code == 4) {
+            if (isMaleDefunt) return isMaleHeritier ? "لوالده" : "لوالدته";
+            else return isMaleHeritier ? "لوالدها" : "لوالدتها";
+        } else if (code == 5) {
             if (isMaleDefunt) return isMaleHeritier ? "لأخيه" : "لأخته";
             else return isMaleHeritier ? "لأخيها" : "لأختها";
-        } else if ("06".equals(numParente)) {
+        } else if (code == 6) {
             return isMaleDefunt ? "لعمه" : "لعمها";
-        } else if ("07".equals(numParente)) {
+        } else if (code == 7) {
             return isMaleDefunt ? "لابن عمه" : "لابن عمها";
+        } else if (code == 8) {
+            return isMaleDefunt ? "لجده" : "لجدها";
+        } else if (code == 9) {
+            return isMaleDefunt ? "لحفيده" : "لحفيدها";
+        } else if (code == 10) {
+            return isMaleDefunt ? "لحفيدته" : "لحفيدتها";
+        } else if (code == 11) {
+            return isMaleDefunt ? "لجدته" : "لجدتها";
         }
         return getRelationArabe(heritier, frida);
     }
 }
+

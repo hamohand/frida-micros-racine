@@ -1,6 +1,6 @@
 {
   "HOME": {
-    "BONJOUR": "Bonjour, {{name}}",
+    "BONJOUR": "Bonjour",
     "BONJOUR_ANON": "Bonjour",
     "BACKUP_LATE": "Dernière sauvegarde le {{date}}, il y a plus de deux jours.",
     "BACKUP_OK": "Dernière sauvegarde le {{date}}.",

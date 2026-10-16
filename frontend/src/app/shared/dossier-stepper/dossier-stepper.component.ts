@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, inject } from '@angular/core';
+import { UploadStateService } from '../../services/upload-state.service';
 import { CommonModule } from '@angular/common';
 import { BilabelComponent } from '../bilabel/bilabel.component';
 
@@ -16,6 +17,9 @@ export const ETAPES_DOSSIER = [
   standalone: true,
   imports: [CommonModule, BilabelComponent],
   template: `
+    <div class="dossier-header" *ngIf="uploadState.dossierEnCours() as d">
+      <h2 class="dossier-title">{{ d.libelle }}</h2>
+    </div>
     <ol class="stepper" aria-label="Étapes du dossier">
       <li *ngFor="let e of etapes; let i = index"
           class="etape"
@@ -28,6 +32,16 @@ export const ETAPES_DOSSIER = [
     </ol>
   `,
   styles: [`
+    .dossier-header {
+      text-align: center;
+      padding-top: var(--space-4);
+    }
+    .dossier-title {
+      font-size: 1.2rem;
+      color: var(--primary);
+      margin: 0;
+      font-weight: 600;
+    }
     .stepper {
       list-style: none;
       display: flex;
@@ -79,6 +93,7 @@ export const ETAPES_DOSSIER = [
   `]
 })
 export class DossierStepperComponent {
+  uploadState = inject(UploadStateService);
   @Input({ required: true }) etapeActive!: string;
 
   etapes = ETAPES_DOSSIER;

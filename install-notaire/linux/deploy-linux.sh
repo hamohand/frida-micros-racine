@@ -13,13 +13,9 @@ fi
 mkdir -p ./frida-storage
 chmod 777 ./frida-storage
 
-# Création d'un fichier credentials dummy si inexistant
+# Création du fichier .env si inexistant
 if [ ! -f .env ]; then
     cp .env.linux .env
-fi
-
-if [ ! -f ./dummy-google-credentials.json ]; then
-    echo '{}' > ./dummy-google-credentials.json
 fi
 
 # Arrêt des anciens conteneurs si existants

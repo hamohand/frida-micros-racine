@@ -49,7 +49,6 @@ services:
       SPRING_PROFILES_ACTIVE: production # On force en mode production (sécurité)
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/
-      GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
       SERVICES_OCR_URL: http://ocr-api:8082
     ports:
       - "${BACKEND_PORT}:${BACKEND_PORT}"

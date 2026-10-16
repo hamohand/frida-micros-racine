@@ -5,6 +5,7 @@ import { CommonModule } from '@angular/common';
 import { BilabelComponent } from '../../shared/bilabel/bilabel.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { BrouillonService, Brouillon } from '../../services/brouillon.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-search',
@@ -39,7 +40,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
 
           <div class="stats-bar" *ngIf="fridaList.length > 0" style="display: flex; gap: 1rem; align-items: center;">
             <span class="stat-chip">{{ filteredList.length }} dossier{{ filteredList.length > 1 ? 's' : '' }}</span>
-            <button *ngIf="testCount > 0" class="btn-delete-tests" (click)="deleteAllTests()">
+            <button *ngIf="testCount > 0 && !authService.isDemoBridee()" class="btn-delete-tests" (click)="deleteAllTests()">
               <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 -960 960 960" width="18" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
               Supprimer les {{ testCount }} Tests
             </button>
@@ -83,7 +84,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
                         <svg *ngIf="frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q11 11 17 25.5t6 30.5q0 16-6 30.5t-17 25.5L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
                         <app-bilabel [fr]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'Corriger' : 'Ouvrir'" [ar]="(frida.requiresCorrection && (frida.statut === 'EN_ATTENTE_REVISION' || frida.statut === 'BROUILLON')) ? 'تصحيح' : 'فتح'" />
                       </button>
-                      <button class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
+                      <button *ngIf="!authService.isDemoBridee()" class="btn-delete" (click)="deleteFrida(frida.numFrida)" title="Supprimer la Frida">
                         <svg xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 -960 960 960" width="20" fill="currentColor"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg>
                       </button>
                     </div>
@@ -116,7 +117,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
                 <td style="padding: 10px;">{{ b.dateCreation }}</td>
                 <td style="padding: 10px;">
                   <button (click)="reprendreBrouillon(b)" style="padding: 5px 15px; background: #4ecca3; color: #1e293b; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-right: 8px;"><app-bilabel fr="Reprendre" ar="متابعة" /></button>
-                  <button (click)="supprimerBrouillon(b)" style="padding: 5px 15px; background: transparent; color: #D16D6A; border: 1px solid #D16D6A; border-radius: 6px; cursor: pointer;"><app-bilabel fr="Supprimer" ar="حذف" /></button>
+                  <button *ngIf="!authService.isDemoBridee()" (click)="supprimerBrouillon(b)" style="padding: 5px 15px; background: transparent; color: #D16D6A; border: 1px solid #D16D6A; border-radius: 6px; cursor: pointer;"><app-bilabel fr="Supprimer" ar="حذف" /></button>
                 </td>
               </tr>
             </tbody>
@@ -380,6 +381,7 @@ import { BrouillonService, Brouillon } from '../../services/brouillon.service';
   `]
 })
 export class SearchComponent implements OnInit {
+  authService = inject(AuthService);
   private notif = inject(NotificationService);
   private route = inject(ActivatedRoute);
   /** Terme saisi, conservé pour que le tri ne l'efface pas ; peut venir de l'accueil (?q=). */

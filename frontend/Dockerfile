@@ -3,8 +3,8 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copier les fichiers package
-COPY package*.json ./
+# Copier les fichiers package et la librairie locale
+COPY package*.json dz-eid-1.0.0.tgz* ./
 
 # Installer les dépendances
 RUN npm ci --prefer-offline --no-audit

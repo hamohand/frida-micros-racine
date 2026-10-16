@@ -2,76 +2,136 @@ package com.muhend.backendai.service.calculs_outils;
 
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 public class NumberToArabicWords {
 
-    private static final String[] units = {
-            "", "واحد", "اثنين", "ثلاثة", "أربعة", "خمسة", "ستة", "سبعة", "ثمانية", "تسعة"
-    };
-    private static final String[] tens = {
-            "", "عشرة", "عشرون", "ثلاثون", "أربعون", "خمسون",
-            "ستون", "سبعون", "ثمانون", "تسعون"
-    };
-    private static final String[] teens = {
-            "عشرة", "أحد عشر", "اثنا عشر", "ثلاثة عشر", "أربعة عشر",
-            "خمسة عشر", "ستة عشر", "سبعة عشر", "ثمانية عشر", "تسعة عشر"
-    };
-    private static final String[] thousands = {
-            "", "ألف", "مليون", "مليار", "تريليون"
+    private static final String[] CHIFFRES_ARABES = {
+            "صفر",   // 0
+            "واحد",  // 1
+            "اثنان", // 2
+            "ثلاثة", // 3
+            "أربعة", // 4
+            "خمسة",  // 5
+            "ستة",   // 6
+            "سبعة",  // 7
+            "ثمانية",// 8
+            "تسعة"   // 9
     };
 
-    public static String convert(int number) {
-        if (number == 0) {
+    private static final String[] DIZAINES_ARABES = {
+            "",       // 0
+            "عشرة",   // 10
+            "عشرون",  // 20
+            "ثلاثون", // 30
+            "أربعون", // 40
+            "خمسون",  // 50
+            "ستون",   // 60
+            "سبعون",  // 70
+            "ثمانون", // 80
+            "تسعون"   // 90
+    };
+
+    private static final String[] DIZAINES_UNITE_ARABES = {
+            "",           // 0
+            "أحد عشر",    // 11
+            "اثنا عشر",   // 12
+            "ثلاثة عشر",  // 13
+            "أربعة عشر",  // 14
+            "خمسة عشر",   // 15
+            "ستة عشر",    // 16
+            "سبعة عشر",   // 17
+            "ثمانية عشر", // 18
+            "تسعة عشر"    // 19
+    };
+
+    private static final String[] CENTAINES_PREFIX = {
+            "", "", "", "ثلاث", "أربع", "خمس", "ست", "سبع", "ثمان", "تسع"
+    };
+
+    public static String convert(int n) {
+        if (n < 0) {
+            return "ناقص " + convert(-n);
+        }
+        if (n == 0) {
             return "صفر";
         }
-        if (number < 0) {
-            return "ناقص " + convert(-number);
+        if (n > 999_999_999) {
+            return String.valueOf(n);
         }
 
-        String words = "";
+        int millions = n / 1_000_000;
+        int resteMillions = n % 1_000_000;
 
-        int place = 0;
-        do {
-            int n = number % 1000;
-            if (n != 0) {
-                String segment = convertLessThanOneThousand(n);
-                words = segment + " " + thousands[place] + " " + words;
+        int milliers = resteMillions / 1000;
+        int resteMilliers = resteMillions % 1000;
+
+        List<String> parties = new ArrayList<>();
+
+        if (millions > 0) {
+            if (millions == 1) {
+                parties.add("مليون");
+            } else if (millions == 2) {
+                parties.add("مليونين");
+            } else if (millions >= 3 && millions <= 10) {
+                parties.add(traduireMoinsDeMille(millions) + " ملايين");
+            } else {
+                parties.add(traduireMoinsDeMille(millions) + " مليون");
             }
-            place++;
-            number /= 1000;
-        } while (number > 0);
-
-        return words.trim();
-    }
-
-    private static String convertLessThanOneThousand(int number) {
-        String current;
-
-        if (number % 100 < 10) {
-            current = units[number % 10];
-            number /= 10;
-        } else if (number % 100 < 20) {
-            current = teens[number % 10];
-            number /= 100;
-        } else {
-            current = units[number % 10];
-            number /= 10;
-
-            //current = tens[number % 10] + " " + current;
-            current =  current + " و " + tens[number % 10];
-            number /= 10;
         }
 
-        if (number == 0) {
-            return current;
+        if (milliers > 0) {
+            if (milliers == 1) {
+                parties.add("ألف");
+            } else if (milliers == 2) {
+                parties.add("ألفين");
+            } else if (milliers >= 3 && milliers <= 10) {
+                parties.add(traduireMoinsDeMille(milliers) + " آلاف");
+            } else {
+                parties.add(traduireMoinsDeMille(milliers) + " ألف");
+            }
         }
-        return units[number] + " مئة و " + current;
 
+        if (resteMilliers > 0) {
+            parties.add(traduireMoinsDeMille(resteMilliers));
+        }
+
+        return String.join(" و ", parties);
     }
 
-    /*public static void main(String[] args) {
-        System.out.println(convert(3652885)); // Output: ثلاثة مليون ستة مئة و اثنين و خمسون ألف ثمانية مئة و خمسة و ثمانون
-    }*/
+    private static String traduireMoinsDeMille(int n) {
+        if (n == 0) return "";
+        List<String> resultat = new ArrayList<>();
+        int centaines = n / 100;
+        int reste = n % 100;
 
+        if (centaines == 1) {
+            resultat.add("مائة");
+        } else if (centaines == 2) {
+            resultat.add("مائتين");
+        } else if (centaines >= 3 && centaines <= 9) {
+            resultat.add(CENTAINES_PREFIX[centaines] + "مائة");
+        }
 
+        if (reste > 0) {
+            if (reste < 10) {
+                resultat.add(CHIFFRES_ARABES[reste]);
+            } else if (reste >= 11 && reste <= 19) {
+                resultat.add(DIZAINES_UNITE_ARABES[reste - 10]);
+            } else {
+                int dizaines = reste / 10;
+                int unites = reste % 10;
+                if (unites > 0) {
+                    resultat.add(CHIFFRES_ARABES[unites] + " و " + DIZAINES_ARABES[dizaines]);
+                } else {
+                    resultat.add(DIZAINES_ARABES[dizaines]);
+                }
+            }
+        }
+
+        return String.join(" و ", resultat);
+    }
 }
+

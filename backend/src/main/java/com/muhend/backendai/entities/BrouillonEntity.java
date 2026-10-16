@@ -20,6 +20,8 @@ public class BrouillonEntity {
     private String folderPath;
     private String nomDefunt;
     private String prenomDefunt;
+    private String nomDefuntArabe;
+    private String prenomDefuntArabe;
     private LocalDate dateCreation;
     
     @Column(nullable = false)

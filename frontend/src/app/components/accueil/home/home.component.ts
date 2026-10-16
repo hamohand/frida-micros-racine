@@ -39,7 +39,7 @@ interface DossierResume {
       <div class="dashboard">
         <header class="dashboard-entete">
           <div>
-            <h1>{{ (nomUtilisateur ? 'HOME.BONJOUR' : 'HOME.BONJOUR_ANON') | translate:{name: nomUtilisateur} }}</h1>
+            <h1>{{ (nomUtilisateur ? 'HOME.BONJOUR' : 'HOME.BONJOUR_ANON') | translate }}</h1>
             <p class="date-jour">{{ aujourdhui }}</p>
           </div>
           <div class="entete-actions">
@@ -79,7 +79,7 @@ interface DossierResume {
         </button>
 
         <!-- Alerte sauvegarde (Maître) -->
-        <a *ngIf="authService.isMaitre() && !chargement && etatSauvegarde as s" routerLink="/backups"
+        <a *ngIf="authService.isMaitre() && !authService.isDemoBridee() && !chargement && etatSauvegarde as s" routerLink="/backups"
            class="bandeau-sauvegarde" [class.en-retard]="s.enRetard">
           <span class="bandeau-icone">{{ s.enRetard ? '⚠' : '✓' }}</span>
           <span>{{ s.texte | translate:{date: s.date} }}</span>
@@ -361,7 +361,7 @@ export class HomeComponent {
 
   get nomUtilisateur(): string {
     let name = localStorage.getItem('username') || '';
-    if (this.langService.currentLangSignal() === 'ar' && name === 'Moh') {
+    if (this.langService.currentLangSignal() === 'ar' && (name.toLowerCase() === 'moh' || name.toLowerCase() === 'maitre')) {
       name = 'موح';
     }
     return name;
@@ -412,7 +412,7 @@ export class HomeComponent {
       dossiers: this.fridaService.lancerApi('/api/frida/fridas').pipe(aucun),
       brouillons: this.brouillonService.list().pipe(catchError(() => of([] as Brouillon[]))),
       batch: this.fridaService.lancerApi('/api/frida/batch-en-attente').pipe(aucun),
-      sauvegardes: this.authService.isMaitre() ? this.backupService.listBackups().pipe(catchError(() => of([] as BackupInfo[]))) : of([] as BackupInfo[]),
+      sauvegardes: (this.authService.isMaitre() && !this.authService.isDemoBridee()) ? this.backupService.listBackups().pipe(catchError(() => of([] as BackupInfo[]))) : of([] as BackupInfo[]),
     }).subscribe(r => {
       this.dossiers = Array.isArray(r.dossiers) ? r.dossiers.filter((d: any) => d != null) : [];
       this.brouillons = r.brouillons || [];

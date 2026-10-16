@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { ParametresService } from '../../../services/parametres.service';
 import { AuthService } from '../../../services/auth.service';
 import { NfcService, NfcData } from '../../../services/nfc.service';
-import { Subscription } from 'rxjs';
+import { Subscription, forkJoin, of, catchError } from 'rxjs';
 
 @Component({
   selector: 'app-nfc-scanner-modal',
@@ -43,23 +43,23 @@ import { Subscription } from 'rxjs';
                   <span class="material-icons" style="vertical-align: middle;">keyboard</span> Saisie Manuelle
                 </h3>
                 
-                <div *ngIf="!mrzDoc || !mrzDob || !mrzExp || forceManualEntry" style="flex: 1;">
+                <div *ngIf="!clesValidees" style="flex: 1;">
                   <p class="instructions">Veuillez saisir les 3 informations de la zone MRZ pour déverrouiller la puce.</p>
                   <div class="manual-entry-container" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-                    <input type="text" [(ngModel)]="mrzDoc" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-                    <input type="text" [(ngModel)]="mrzDob" placeholder="Date Naissance (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
-                    <input type="text" [(ngModel)]="mrzExp" placeholder="Date Expiration (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                    <input type="text" [(ngModel)]="mrzDoc" (keyup.enter)="validerCles()" placeholder="N° Document (ex: 123456789)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                    <input type="text" [(ngModel)]="mrzDob" (keyup.enter)="validerCles()" maxlength="6" inputmode="numeric" placeholder="Date Naissance (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
+                    <input type="text" [(ngModel)]="mrzExp" (keyup.enter)="validerCles()" maxlength="6" inputmode="numeric" placeholder="Date Expiration (AAMMJJ)" class="form-control" style="padding: 10px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: rgba(0,0,0,0.2); color: white;">
                   </div>
-                  <button class="btn btn-primary" (click)="forceManualEntry = false" [disabled]="!mrzDoc || !mrzDob || !mrzExp" style="margin-top:auto; width:100%; padding: 10px;">
+                  <button class="btn btn-primary" (click)="validerCles()" [disabled]="!clesSaisiesValides" style="margin-top:auto; width:100%; padding: 10px;">
                     Valider les clés
                   </button>
                 </div>
 
-                <div *ngIf="mrzDoc && mrzDob && mrzExp && !forceManualEntry" style="flex: 1; display: flex; flex-direction: column;">
+                <div *ngIf="clesValidees" style="flex: 1; display: flex; flex-direction: column;">
                   <div class="mrz-success-box" style="background:rgba(78,204,163,0.1); border:1px solid #4ecca3; padding:10px; border-radius:8px; margin-bottom:15px; color:#4ecca3; position: relative;">
                     <span class="material-icons" style="vertical-align:middle;">check_circle</span> Clés validées !<br>
                     <small>{{ mrzDoc }} / {{ mrzDob }} / {{ mrzExp }}</small>
-                    <button (click)="forceManualEntry = true" style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: #4ecca3; cursor: pointer;"><span class="material-icons" style="font-size: 1rem;">edit</span></button>
+                    <button (click)="clesValidees = false" style="position: absolute; right: 10px; top: 10px; background: none; border: none; color: #4ecca3; cursor: pointer;"><span class="material-icons" style="font-size: 1rem;">edit</span></button>
                   </div>
                   <p class="instructions" style="text-align:center;">Posez maintenant la carte d'identité sur le <b>lecteur uTrust</b>.</p>
                   <button class="btn btn-primary" (click)="lireUsb()" [disabled]="isReadingUsb" style="margin-top:auto; width: 100%; font-size: 1.1rem; padding: 12px;">
@@ -89,11 +89,11 @@ import { Subscription } from 'rxjs';
                   <div class="qr-container" *ngIf="qrData">
                     <qrcode [qrdata]="qrData" [width]="180" [errorCorrectionLevel]="'M'"></qrcode>
                   </div>
-                  <div class="listening-state" *ngIf="qrData && (!mrzDoc || forceManualEntry)">
+                  <div class="listening-state" *ngIf="qrData && !clesValidees">
                     <span class="spinner"></span> <i>En attente du scan mobile...</i>
                   </div>
-                  <div class="listening-state" *ngIf="mrzDoc && !forceManualEntry" style="color: #4ecca3;">
-                    <span class="material-icons" style="vertical-align:middle;">check_circle</span> <i>MRZ reçue avec succès !</i>
+                  <div class="listening-state" *ngIf="clesValidees" style="color: #4ecca3;">
+                    <span class="material-icons" style="vertical-align:middle;">check_circle</span> <i>Clés MRZ prêtes !</i>
                   </div>
                 </div>
               </div>
@@ -159,7 +159,23 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   successData: NfcData | null = null;
   adresseNonConfiguree = false;
   estMaitre = false;
-  forceManualEntry = false;
+  /** Passe à vrai uniquement sur validation explicite (bouton/Entrée) ou réception d'une MRZ (mobile, webcam). */
+  clesValidees = false;
+
+  /** Les 3 clés MRZ sont complètes : n° de document renseigné, dates au format AAMMJJ. */
+  get clesSaisiesValides(): boolean {
+    const date = /^\d{6}$/;
+    return !!this.mrzDoc?.trim() && date.test(this.mrzDob?.trim() || '') && date.test(this.mrzExp?.trim() || '');
+  }
+
+  validerCles() {
+    if (!this.clesSaisiesValides) return;
+    this.mrzDoc = this.mrzDoc.trim().toUpperCase();
+    this.mrzDob = this.mrzDob.trim();
+    this.mrzExp = this.mrzExp.trim();
+    this.usbError = '';
+    this.clesValidees = true;
+  }
   
   checkingUsb = false;
   isUsbAvailable = false;
@@ -265,6 +281,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
       this.mrzDoc = data.documentNumber;
       this.mrzDob = data.dateOfBirth;
       this.mrzExp = data.dateOfExpiry;
+      this.clesValidees = true;
       this.stopWebcam();
       
     } catch (e: any) {
@@ -297,19 +314,25 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
   }
 
   private setupMobileNfc() {
-    this.parametresService.lire().subscribe({
-      next: (p) => {
-        let adresse = (p.adresseReseauLocale || '').trim();
-        
-        // Auto-détection si on accède déjà via une IP réseau
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            adresse = window.location.hostname;
-        }
+    forkJoin({
+      parametres: this.parametresService.lire().pipe(catchError(() => of({} as any))),
+      ipsAgent: this.nfcService.getLanAddresses()
+    }).subscribe({
+      next: ({ parametres, ipsAgent }) => {
+        // Adresse que le mobile utilisera pour joindre ce poste, par ordre de fiabilité :
+        //  1. l'adresse tapée dans le navigateur si c'est déjà une IP réseau (forcément joignable) ;
+        //  2. l'IP WiFi détectée par l'agent dz-eid (suit les changements de réseau, permet de rester en localhost) ;
+        //  3. le paramètre « Adresse réseau locale » (poste sans agent).
+        const hote = window.location.hostname;
+        const estLocal = hote === 'localhost' || hote === '127.0.0.1';
+        const adresse = !estLocal ? hote
+          : (ipsAgent[0] || (parametres?.adresseReseauLocale || '').trim());
 
         if (!adresse) {
           this.adresseNonConfiguree = true;
           return;
         }
+        this.adresseNonConfiguree = false;
         
         const port = window.location.port ? ':' + window.location.port : '';
         const apiUrl = window.location.protocol + '//' + adresse + port + '/api';
@@ -325,8 +348,11 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
         }
         
         this.qrData = JSON.stringify(payload);
+        this.cdr.markForCheck();
         
-        this.nfcSubscription = this.nfcService.listenToMobileNfc(apiUrl, this.sessionId).subscribe({
+        // Le navigateur écoute sur sa propre origine (même serveur, pas de CORS) ;
+        // seule l'URL du QR code a besoin de l'IP réseau, pour le mobile.
+        this.nfcSubscription = this.nfcService.listenToMobileNfc('/api', this.sessionId).subscribe({
           next: (event: any) => {
             if (event.type === 'MRZ_DATA') {
               const mrz = event.payload;
@@ -377,7 +403,7 @@ export class NfcScannerModalComponent implements OnInit, OnDestroy {
               // Basculer en mode usb (si on venait du mode mobile pur)
               this.mode = 'usb';
               // Afficher le bouton de lecture (pas les champs manuels)
-              this.forceManualEntry = false;
+              this.clesValidees = true;
               // Masquer le QR code pour montrer qu'on a bien reçu
               this.qrData = ''; 
               this.cdr.detectChanges();

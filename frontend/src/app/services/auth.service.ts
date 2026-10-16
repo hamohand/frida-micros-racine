@@ -63,7 +63,19 @@ export class AuthService {
   }
 
   getSecurityStatus(): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/status`);
+    return this.http.get<any>(`${this.apiUrl}/status`).pipe(
+      tap((res: any) => {
+        const bridee = res?.demoBridee === true || res?.demoBridee === 'true';
+        localStorage.setItem('demoBridee', String(bridee));
+      })
+    );
+  }
+
+  isDemoBridee(): boolean {
+    if (localStorage.getItem('demoBridee') === 'true') {
+      return true;
+    }
+    return typeof window !== 'undefined' && window.location.hostname.includes('frida.enclume-numerique.com');
   }
 
   loginDemo() {

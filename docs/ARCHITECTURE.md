@@ -298,7 +298,6 @@ src/ → Maven Build → target/app.jar
 - **postgresql**: Driver JDBC
 - **lombok**: Boilerplate reduction
 - **springdoc-openapi**: Swagger/OpenAPI
-- **google-cloud-document-ai**: Document processing
 - **spring-boot-starter-actuator**: Health checks
 
 ### Frontend (Node 20, Angular 18)

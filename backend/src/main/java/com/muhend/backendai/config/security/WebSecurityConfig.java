@@ -31,10 +31,15 @@ public class WebSecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsService;
     private final DemoAuthFilter demoAuthFilter;
+    private final DemoBrideeGuardFilter demoBrideeGuardFilter;
 
-    public WebSecurityConfig(UserDetailsServiceImpl userDetailsService, DemoAuthFilter demoAuthFilter) {
+    public WebSecurityConfig(
+            UserDetailsServiceImpl userDetailsService,
+            DemoAuthFilter demoAuthFilter,
+            DemoBrideeGuardFilter demoBrideeGuardFilter) {
         this.userDetailsService = userDetailsService;
         this.demoAuthFilter = demoAuthFilter;
+        this.demoBrideeGuardFilter = demoBrideeGuardFilter;
     }
 
     @Bean
@@ -89,8 +94,9 @@ public class WebSecurityConfig {
 
         http.authenticationProvider(authenticationProvider());
 
-        // Ordre : DemoAuthFilter (en premier) -> JwtAuthFilter (ensuite)
-        http.addFilterBefore(demoAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        // Ordre : JwtAuthFilter -> DemoAuthFilter -> DemoBrideeGuardFilter -> UsernamePasswordAuthenticationFilter
+        http.addFilterBefore(demoBrideeGuardFilter, UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(demoAuthFilter, DemoBrideeGuardFilter.class);
         http.addFilterBefore(authenticationJwtTokenFilter(), DemoAuthFilter.class);
 
         return http.build();

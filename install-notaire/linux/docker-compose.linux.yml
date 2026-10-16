@@ -40,7 +40,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:-}
       CORS_ORIGINS: ${CORS_ORIGINS}
       ROOT_PATH: /frida-storage/ # L'appli sait qu'elle doit travailler ici
-      GOOGLE_APPLICATION_CREDENTIALS: /app/config/google-credentials.json
       SERVICES_OCR_URL: http://ocr:8082
       MAX_PARALLEL_FOLDERS: ${MAX_PARALLEL_FOLDERS:-2}
     ports:
@@ -53,7 +52,6 @@ services:
     volumes:
       - ../../backend/uploads:/app/uploads
       - ${ROOT_PATH}:/frida-storage/
-      - ${GOOGLE_APPLICATION_CREDENTIALS}:/app/config/google-credentials.json:ro
     restart: unless-stopped
 
   # ===== Frontend (Angular + Nginx) =====

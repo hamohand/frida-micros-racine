@@ -42,11 +42,14 @@ node_modules/
 *.iml
 *.ipr
 
-### NetBeans ###
+### NetBeans & Angular / Python build caches ###
 /nbbuild/
 /nbdist/
 /nbproject/private/
-/dist/
+dist/
+.angular/
+__pycache__/
+*.py[cod]
 /.nb-gradle/
 
 ### Visual Studio Code ###
@@ -71,5 +74,7 @@ logs_*.txt
 /frida-storage/
 /backend/uploads/
 
-# Backups
+# Backups & large binaries (>100MB GitHub limit)
 /db_backups/frida_mobile_nfc.apk
+install-notaire/mobile/*.apk
+*.apk

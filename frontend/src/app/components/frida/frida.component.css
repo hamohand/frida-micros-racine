@@ -12,7 +12,8 @@
   background: var(--background-gradient-end, #112420);
   width: 21cm;
   min-height: 29.7cm;
-  padding: 2.5cm;
+  padding: 2.5cm 5cm 2.5cm 1cm;
+  box-sizing: border-box;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border-radius: 4px;
   color: white;
@@ -60,77 +61,79 @@
 
 /* Inline paragraph layout for witnesses */
 .dash-paragraph {
-  display: block;
+  display: flex;
+  align-items: baseline;
   text-align: right;
   overflow: hidden;
   position: relative;
   margin-bottom: 5px;
 }
 .dash-paragraph .text-content {
-  display: inline;
   position: relative;
   z-index: 2;
   line-height: 1.8;
-  padding-left: 10px; /* Gap before dashes */
+  padding-left: 6px; /* Gap before hyphens */
 }
 .dash-paragraph .leader-spacer {
-  display: inline-block;
-  width: 0;
-  height: 0;
+  flex: 1;
+  min-width: 1cm;
+  overflow: hidden;
+  white-space: nowrap;
   position: relative;
+  align-self: baseline;
 }
 .dash-paragraph .leader-spacer::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 8px; /* text baseline */
-  width: 21cm; /* Exactly A4 width, perfectly print safe */
-  border-bottom: 2px dashed var(--text-secondary, rgba(255, 255, 255, 0.3));
-  z-index: 1;
+  content: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
+  letter-spacing: -1px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+  font-family: monospace;
+  font-weight: bold;
 }
 
-/* Specific inline layout for Heirs with fraction box */
+/* Specific layout for Heirs with tight hyphens and fraction box pushed to end of line (left in RTL) */
 .heir-paragraph {
-  display: block;
+  display: flex;
+  align-items: baseline;
   text-align: right;
   overflow: hidden;
   position: relative;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
 }
 .heir-paragraph .text-content {
-  display: inline;
   position: relative;
   z-index: 2;
   line-height: 1.8;
-  padding-left: 10px;
+  padding-left: 6px;
 }
 .heir-paragraph .leader-spacer {
-  display: inline-block;
-  width: 0;
-  height: 0;
+  flex: 1;
+  min-width: 1cm;
+  overflow: hidden;
+  white-space: nowrap;
   position: relative;
+  align-self: baseline;
 }
 .heir-paragraph .leader-spacer::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  bottom: 8px; /* text baseline */
-  width: 21cm; /* Exactly A4 width, perfectly print safe */
-  border-bottom: 2px dashed var(--text-secondary, rgba(255, 255, 255, 0.3));
-  z-index: 1;
+  content: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------";
+  letter-spacing: -1px;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.55));
+  font-family: monospace;
+  font-weight: bold;
 }
 .heir-paragraph .fraction-box {
-  float: left; /* Pull to far left */
-  display: flex;
+  flex-shrink: 0;
+  margin-right: 8px;
+  margin-left: 0;
+  display: inline-flex;
   flex-direction: column;
   align-items: center;
+  align-self: center;
   background: var(--background-gradient-end, #112420);
   -webkit-print-color-adjust: exact;
   print-color-adjust: exact;
   position: relative;
-  z-index: 2; /* Masks the dashed line */
-  padding-right: 15px; /* Space between dashes and fraction */
-  margin: 0;
+  z-index: 2;
+  padding-right: 8px;
 }
 
 .section-titre {
@@ -184,6 +187,11 @@
   width: 6cm;
 }
 
+@page {
+  size: A4;
+  margin: 2cm 5cm 2cm 1cm;
+}
+
 /* Média Print */
 @media print {
   .frida-wrapper {
@@ -200,7 +208,7 @@
     width: 100%;
     min-height: auto;
     padding: 0;
-    /* Les marges de l'imprimante feront le travail */
+    box-sizing: border-box;
   }
 
   body {
@@ -213,7 +221,7 @@
 
   .dash-paragraph .leader-spacer::after,
   .heir-paragraph .leader-spacer::after {
-    border-bottom: 2px dashed black !important;
+    color: black !important;
   }
 
   .heir-paragraph .fraction-box {

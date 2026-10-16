@@ -1,10 +1,11 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UploadedFile, UploadConfig } from './file-upload.interface';
 import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal.component';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-file-upload',
@@ -15,45 +16,53 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
       <!-- Colonne de gauche : Zone d'upload principale -->
       <div class="upload-container" style="flex: 1; min-width: 300px; max-width: 650px;">
         <h2>{{ config.title }}</h2>
-        <div
-          class="drop-zone"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (click)="fileInput.click()"
-          style="cursor: pointer;"
-          [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
-        >
-          <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-            <span class="material-icons">cloud_upload</span>
-            <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
+        <div *ngIf="authService.isDemoBridee()" class="drop-zone disabled-zone" style="cursor: default; padding: 24px;">
+          <div class="drop-message">
+            <span class="material-icons" style="color: #f59e0b;">info</span>
+            <p style="color: #fef3c7;">Démo publique : le téléversement de fichiers personnels est désactivé.<br/>Utilisez le bouton <strong>« Charger les actes fictifs d'exemple »</strong> ci-dessus.</p>
           </div>
-          <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
-            <span class="material-icons" style="color: #ffb84d;">lock</span>
-            <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
-          </div>
-          <input
-            #fileInput
-            type="file"
-            multiple
-            style="display: none;"
-            [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
-            (change)="onFileSelected($event)"
-          />
         </div>
+        <ng-container *ngIf="!authService.isDemoBridee()">
+          <div
+            class="drop-zone"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (click)="fileInput.click()"
+            style="cursor: pointer;"
+            [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
+          >
+            <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+              <span class="material-icons">cloud_upload</span>
+              <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
+            </div>
+            <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
+              <span class="material-icons" style="color: #ffb84d;">lock</span>
+              <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
+            </div>
+            <input
+              #fileInput
+              type="file"
+              multiple
+              style="display: none;"
+              [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
+              (change)="onFileSelected($event)"
+            />
+          </div>
 
-        <div class="upload-actions" style="margin-top: 20px;">
-          <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-            <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
-              Sélectionner des fichiers
-            </button>
-            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
-              📱 Scanner (Mobile)
-            </button>
-            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #3b82f6; border-color: #3b82f6;" (click)="openScanner('usb')">
-              🪪 Scanner (Lecteur USB)
-            </button>
+          <div class="upload-actions" style="margin-top: 20px;">
+            <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+              <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
+                Sélectionner des fichiers
+              </button>
+              <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
+                📱 Scanner (Mobile)
+              </button>
+              <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #3b82f6; border-color: #3b82f6;" (click)="openScanner('usb')">
+                🪪 Scanner (Lecteur USB)
+              </button>
+            </div>
           </div>
-        </div>
+        </ng-container>
 
         <div class="file-list" *ngIf="uploadedFiles.length > 0" style="margin-top: 20px;">
           <div class="file-item" *ngFor="let file of uploadedFiles">
@@ -304,6 +313,7 @@ import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal
   `]
 })
 export class FileUploadComponent implements OnInit {
+  authService = inject(AuthService);
   @Input() config!: UploadConfig & { allowPrevious?: boolean };
   @Input() initialFiles: UploadedFile[] = [];
   
@@ -316,7 +326,7 @@ export class FileUploadComponent implements OnInit {
   uploadedFiles: UploadedFile[] = [];
   
   get isBeta(): boolean {
-    return window.location.hostname.includes('frida.enclume-numerique.com');
+    return this.authService.isDemoBridee() || window.location.hostname.includes('frida.enclume-numerique.com');
   }
 
   showNfcModal: boolean = false;

@@ -192,46 +192,66 @@ export class FridaComponent implements OnInit, AfterViewInit {
 
   getRelationArabe(heritier: any): string {
     const isMaleDefunt = this.isMasculin(this.frida?.defunt?.identite?.sexe);
-    const numParente = heritier.numParente;
+    const numParente = Number(heritier.numParente);
     const isMaleHeritier = this.isMasculin(heritier.identite?.sexe);
 
-    if (numParente == 2) {
+    if (numParente === 2) {
       return isMaleDefunt ? 'أرملته' : 'أرملها';
-    } else if (numParente == 3) {
+    } else if (numParente === 3) {
       if (isMaleDefunt) return isMaleHeritier ? 'ابنه' : 'بنته';
       else return isMaleHeritier ? 'ابنها' : 'بنتها';
-    } else if (numParente == 4) {
+    } else if (numParente === 4) {
       if (isMaleDefunt) return isMaleHeritier ? 'والده' : 'والدته';
       else return isMaleHeritier ? 'والدها' : 'والدتها';
-    } else if (numParente == 5) {
+    } else if (numParente === 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'أخوه' : 'أخته';
       else return isMaleHeritier ? 'أخوها' : 'أختها';
-    } else if (numParente == 6) {
+    } else if (numParente === 6) {
       return isMaleDefunt ? 'عمه' : 'عمها';
-    } else if (numParente == 7) {
+    } else if (numParente === 7) {
       return isMaleDefunt ? 'ابن عمه' : 'ابن عمها';
-    } else if (numParente == 8) {
+    } else if (numParente === 8) {
       return isMaleDefunt ? 'جده' : 'جدها';
+    } else if (numParente === 9) {
+      return isMaleDefunt ? 'حفيده' : 'حفيدها';
+    } else if (numParente === 10) {
+      return isMaleDefunt ? 'حفيدته' : 'حفيدتها';
+    } else if (numParente === 11) {
+      return isMaleDefunt ? 'جدته' : 'جدتها';
     }
-    return '';
+    return heritier.categorieArabe || '';
   }
 
   getRelationArabePourPart(heritier: any): string {
     const isMaleDefunt = this.isMasculin(this.frida?.defunt?.identite?.sexe);
-    const numParente = heritier.numParente;
+    const numParente = Number(heritier.numParente);
     const isMaleHeritier = this.isMasculin(heritier.identite?.sexe);
 
-    if (numParente == 5) {
+    if (numParente === 2) {
+      return isMaleDefunt ? 'لأرملته' : 'لأرملها';
+    } else if (numParente === 3) {
+      if (isMaleDefunt) return isMaleHeritier ? 'لابنه' : 'لبنته';
+      else return isMaleHeritier ? 'لابنها' : 'لبنتها';
+    } else if (numParente === 4) {
+      if (isMaleDefunt) return isMaleHeritier ? 'لوالده' : 'لوالدته';
+      else return isMaleHeritier ? 'لوالدها' : 'لوالدتها';
+    } else if (numParente === 5) {
       if (isMaleDefunt) return isMaleHeritier ? 'لأخيه' : 'لأخته';
       else return isMaleHeritier ? 'لأخيها' : 'لأختها';
-    } else if (numParente == 6) {
+    } else if (numParente === 6) {
       return isMaleDefunt ? 'لعمه' : 'لعمها';
-    } else if (numParente == 7) {
+    } else if (numParente === 7) {
       return isMaleDefunt ? 'لابن عمه' : 'لابن عمها';
-    } else if (numParente == 8) {
+    } else if (numParente === 8) {
       return isMaleDefunt ? 'لجده' : 'لجدها';
+    } else if (numParente === 9) {
+      return isMaleDefunt ? 'لحفيده' : 'لحفيدها';
+    } else if (numParente === 10) {
+      return isMaleDefunt ? 'لحفيدته' : 'لحفيدتها';
+    } else if (numParente === 11) {
+      return isMaleDefunt ? 'لجدته' : 'لجدتها';
     }
-    return '';
+    return this.getRelationArabe(heritier);
   }
 
   getTexteHeritier(heritier: any): string {
@@ -250,31 +270,43 @@ export class FridaComponent implements OnInit, AfterViewInit {
   getHeritierPart(heritier: any): {num: number, den: number} | null {
     if (!this.frida || !this.frida.calcul) return null;
     const den = this.frida.calcul.denominateur || 1;
+    const numParente = Number(heritier.numParente);
     
     // Récupération de la part selon la parenté
-    if (heritier.numParente == 2) {
+    if (numParente === 2) {
       return { num: this.frida.calcul.numerateurConjoint || 0, den: den };
-    } else if (heritier.numParente == 3) {
+    } else if (numParente === 3) {
       if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurGarcons || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurFilles || 0, den: den };
       }
-    } else if (heritier.numParente == 4) {
+    } else if (numParente === 4) {
       if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurPere || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurMere || 0, den: den };
       }
-    } else if (heritier.numParente == 5) {
+    } else if (numParente === 5) {
       if (this.isMasculin(heritier.identite?.sexe)) {
          return { num: this.frida.calcul.numerateurFreres || 0, den: den };
       } else {
          return { num: this.frida.calcul.numerateurSoeurs || 0, den: den };
       }
+    } else if (numParente === 6) {
+      return { num: this.frida.calcul.numerateurOnclesPaternels || 0, den: den };
+    } else if (numParente === 7) {
+      return { num: this.frida.calcul.numerateurCousinsPaternels || 0, den: den };
+    } else if (numParente === 8) {
+      return { num: this.frida.calcul.numerateurGrandPerePaternel || 0, den: den };
+    } else if (numParente === 9) {
+      return { num: this.frida.calcul.numerateurPetitsFils || 0, den: den };
+    } else if (numParente === 10) {
+      return { num: this.frida.calcul.numerateurPetitesFilles || 0, den: den };
+    } else if (numParente === 11) {
+      return { num: this.frida.calcul.numerateurGrandMerePaternelle || 0, den: den };
     }
     
-    // Ajouter frères/sœurs si leurs numérateurs sont ajoutés au backend plus tard
     // Fallback: reconstruire depuis le coefficient
     if (heritier.coefPart && heritier.coefPart > 0) {
       return { num: Math.round(heritier.coefPart * den), den: den };
@@ -338,14 +370,18 @@ export class FridaComponent implements OnInit, AfterViewInit {
             <head>
               <title>Impression du document Frida</title>
               <style>
-                
+                @page {
+                  size: A4;
+                  margin: 2cm 5cm 2cm 1cm;
+                }
                 
                 body {
                   font-family: 'Amiri', serif;
                   color: black;
                   font-size: 12pt;
                   direction: rtl;
-                  padding: 40px;
+                  margin: 0;
+                  padding: 0;
                   line-height: 1.8;
                 }
                 
@@ -368,16 +404,16 @@ export class FridaComponent implements OnInit, AfterViewInit {
                 .fraction-box .num { border-bottom: 1px solid black; padding: 0 5px; line-height: 1.2; font-size: 14pt; }
                 .fraction-box .den { padding: 0 5px; line-height: 1.2; font-size: 14pt; }
                 
-                .dash-paragraph { display: block; text-align: right; overflow: hidden; position: relative; margin-bottom: 5px; }
-                .dash-paragraph .text-content { display: inline; position: relative; z-index: 2; padding-left: 10px; }
-                .dash-paragraph .leader-spacer { display: inline-block; width: 0; height: 0; position: relative; }
-                .dash-paragraph .leader-spacer::after { content: ""; position: absolute; right: 0; bottom: 8px; width: 21cm; border-bottom: 2px dashed black; z-index: 1; }
+                .dash-paragraph { display: flex; align-items: baseline; text-align: right; overflow: hidden; position: relative; margin-bottom: 5px; }
+                .dash-paragraph .text-content { position: relative; z-index: 2; padding-left: 6px; }
+                .dash-paragraph .leader-spacer { flex: 1; min-width: 1cm; overflow: hidden; white-space: nowrap; position: relative; align-self: baseline; }
+                .dash-paragraph .leader-spacer::after { content: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"; letter-spacing: -1px; color: black; font-family: monospace; font-weight: bold; }
 
-                .heir-paragraph { display: block; text-align: right; overflow: hidden; position: relative; margin-bottom: 15px; }
-                .heir-paragraph .text-content { display: inline; position: relative; z-index: 2; padding-left: 10px; }
-                .heir-paragraph .leader-spacer { display: inline-block; width: 0; height: 0; position: relative; }
-                .heir-paragraph .leader-spacer::after { content: ""; position: absolute; right: 0; bottom: 8px; width: 21cm; border-bottom: 2px dashed black; z-index: 1; }
-                .heir-paragraph .fraction-box { float: left; display: flex; flex-direction: column; align-items: center; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; z-index: 2; padding-right: 15px; margin: 0; }
+                .heir-paragraph { display: flex; align-items: baseline; text-align: right; overflow: hidden; position: relative; margin-bottom: 12px; }
+                .heir-paragraph .text-content { position: relative; z-index: 2; padding-left: 6px; }
+                .heir-paragraph .leader-spacer { flex: 1; min-width: 1cm; overflow: hidden; white-space: nowrap; position: relative; align-self: baseline; }
+                .heir-paragraph .leader-spacer::after { content: "--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------"; letter-spacing: -1px; color: black; font-family: monospace; font-weight: bold; }
+                .heir-paragraph .fraction-box { flex-shrink: 0; margin-right: 8px; margin-left: 0; display: inline-flex; flex-direction: column; align-items: center; align-self: center; background: white; -webkit-print-color-adjust: exact; print-color-adjust: exact; position: relative; z-index: 2; padding-right: 8px; }
 
                 .signature-area {
                   margin-top: 2cm;

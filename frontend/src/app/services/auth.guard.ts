@@ -32,6 +32,11 @@ export const maitreGuard: CanActivateFn = (route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
+  if (authService.isDemoBridee()) {
+    router.navigate(['/']);
+    return false;
+  }
+
   if (authService.isLoggedIn() && authService.isMaitre()) {
     return true;
   } else {
@@ -40,9 +45,13 @@ export const maitreGuard: CanActivateFn = (route, state) => {
     if (!authService.isLoggedIn()) {
       return authService.getSecurityStatus().pipe(
         map(res => {
+          if (res.demoBridee === true || res.demoBridee === 'true') {
+            router.navigate(['/']);
+            return false;
+          }
           if (res.demoMode === true || res.demoMode === 'true') {
             authService.loginDemo();
-            return true; // En mode démo, l'utilisateur est MAITRE
+            return true; // En mode démo non bridée, l'utilisateur est MAITRE
           }
           router.navigate(['/login']);
           return false;
@@ -57,4 +66,14 @@ export const maitreGuard: CanActivateFn = (route, state) => {
     router.navigate(['/list']);
     return false;
   }
+};
+
+export const nonDemoBrideeGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+  if (authService.isDemoBridee()) {
+    router.navigate(['/']);
+    return false;
+  }
+  return true;
 };

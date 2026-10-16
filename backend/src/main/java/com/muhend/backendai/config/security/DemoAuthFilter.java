@@ -23,12 +23,15 @@ public class DemoAuthFilter extends OncePerRequestFilter {
     @Value("${app.demo-mode:false}")
     private boolean demoMode;
 
+    @Value("${app.demo-bridee:false}")
+    private boolean demoBridee;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
         // Si le mode démo est activé et qu'aucune authentification n'a été effectuée (ex: token invalide ou absent)
-        if (demoMode && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if ((demoMode || demoBridee) && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = new org.springframework.security.core.userdetails.User(
                     "Moh", "", Collections.singletonList(new SimpleGrantedAuthority("ROLE_MAITRE")));
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

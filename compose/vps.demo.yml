@@ -58,6 +58,9 @@ services:
       - SERVICES_OCR_URL=http://ocr-api:8082
       - CORS_ORIGINS=https://frida.enclume-numerique.com,https://www.frida.enclume-numerique.com,https://simul-frida.enclume-numerique.com
       - APP_DEMO_MODE=true
+      - DEMO_BRIDEE=true
+      - DEMO_MAX_DOSSIERS_TOTAL=30
+      - DEMO_MAX_DOSSIERS_PAR_IP=3
       # Visiteurs anonymes en Maître : sauvegardes et archives en lecture seule
       - SAUVEGARDES_LECTURE_SEULE=true
       - JWT_SECRET=${JWT_SECRET:-}

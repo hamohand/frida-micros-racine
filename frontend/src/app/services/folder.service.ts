@@ -5,6 +5,8 @@ import { Observable } from 'rxjs';
 export interface CreateFolderRequest {
   nom: string;
   prenom: string;
+  nomArabe?: string;
+  prenomArabe?: string;
 }
 
 export interface FolderResponse {

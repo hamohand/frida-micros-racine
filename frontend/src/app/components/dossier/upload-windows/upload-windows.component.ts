@@ -3,6 +3,7 @@ import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
 import { Component, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { FileUploadComponent } from '../file-upload/file-upload.component';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { UploadWindowState } from './upload-window.interface';
@@ -13,6 +14,7 @@ import { ConstitutionService } from '../../../services/constitution.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { forkJoin, Observable, of } from 'rxjs';
 import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-upload-windows',
@@ -51,7 +53,7 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-          <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
+          <button *ngIf="!authService.isDemoBridee()" class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
             <span class="material-icons">person_add</span> <app-bilabel fr="Ajouter des héritiers" ar="إضافة الورثة" />
           </button>
           <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: #f59e0b; border-color: #f59e0b;" 
@@ -66,6 +68,14 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
 
       <!-- Carousel normal (masqué pendant le récap) -->
       <ng-container *ngIf="!showBrouillonRecap">
+
+      <div *ngIf="authService.isDemoBridee()" style="max-width: 820px; margin: 0 auto 16px; padding: 14px 20px; border: 1px dashed #4ecca3; border-radius: 12px; background: rgba(78, 204, 163, 0.08); text-align: center;">
+        <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-size: 1rem;" (click)="chargerActesFictifsExemple()" [disabled]="isLoadingDemoExemple">
+          📂 <app-bilabel
+            [fr]="isLoadingDemoExemple ? 'Chargement des 15 actes fictifs...' : 'Charger les 15 actes fictifs d\\'exemple (Famille KACEM Ahmed)'"
+            [ar]="isLoadingDemoExemple ? 'جارٍ تحميل 15 عقداً افتراضياً...' : 'تحميل 15 عقداً افتراضياً نموذجياً (عائلة قاسم أحمد)'" />
+        </button>
+      </div>
 
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
@@ -693,7 +703,10 @@ import { BrouillonService, BrouillonFichiers } from '../../../services/brouillon
   `]
 })
 export class UploadWindowsComponent implements OnInit, OnDestroy {
+  authService = inject(AuthService);
+  private http = inject(HttpClient);
   private notif = inject(NotificationService);
+  isLoadingDemoExemple = false;
   windows: { [key: string]: UploadWindowState } = {
     // Défunt
     f1: { isVisible: true, hasFiles: false, isUploading: false, path: '01' },
@@ -750,6 +763,27 @@ export class UploadWindowsComponent implements OnInit, OnDestroy {
   existingFiles: { [key: string]: string[] } = {};
   showBrouillonRecap = false;
   recapCategories: { label: string, count: number }[] = [];
+
+  chargerActesFictifsExemple() {
+    if (this.isLoadingDemoExemple) return;
+    this.isLoadingDemoExemple = true;
+    this.http.post<any>('/api/demo/charger-exemple', {}).subscribe({
+      next: (res) => {
+        this.isLoadingDemoExemple = false;
+        if (res.brouillonId) {
+          this.brouillonId = res.brouillonId;
+        }
+        if (res.folderName) {
+          this.brouillonFolderName = res.folderName;
+        }
+        this.loadBrouillonFiles();
+      },
+      error: (err) => {
+        this.isLoadingDemoExemple = false;
+        this.notif.erreur(err.error?.message || err.error?.error || 'Impossible de charger les actes fictifs.');
+      }
+    });
+  }
 
   private folderCodeLabels: { [key: string]: string } = {
     '01': 'Défunt', '02': 'Conjoint', '03': 'Fils / Filles',

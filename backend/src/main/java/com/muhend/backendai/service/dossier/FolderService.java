@@ -122,6 +122,8 @@ public class FolderService {
             brouillon.setFolderPath(folderPath.toString());
             brouillon.setNomDefunt(request.getNom());
             brouillon.setPrenomDefunt(request.getPrenom());
+            brouillon.setNomDefuntArabe(request.getNomArabe());
+            brouillon.setPrenomDefuntArabe(request.getPrenomArabe());
             brouillon.setDateCreation(LocalDate.now());
             brouillon.setStatut("EN_COURS");
             brouillonRepository.save(brouillon);

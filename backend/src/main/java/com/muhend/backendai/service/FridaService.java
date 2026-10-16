@@ -407,13 +407,19 @@ public class FridaService {
         }
         String nom = frida.getDefunt().getIdentite().getNom();
         String prenom = frida.getDefunt().getIdentite().getPrenom();
-        if (nom == null || prenom == null) return;
+        String latines = frida.getDefunt().getIdentite().getLatines();
+        String prenomLatines = frida.getDefunt().getIdentite().getPrenomLatines();
+        
+        String nomRecherche = (latines != null && !latines.isBlank()) ? latines : nom;
+        String prenomRecherche = (prenomLatines != null && !prenomLatines.isBlank()) ? prenomLatines : prenom;
+
+        if (nomRecherche == null || prenomRecherche == null) return;
 
         // 1. Nettoyer les brouillons résiduels associés
         if (brouillonRepo != null) {
             try {
                 brouillonRepo.findAll().stream()
-                    .filter(b -> nom.equalsIgnoreCase(b.getNomDefunt()) && prenom.equalsIgnoreCase(b.getPrenomDefunt()))
+                    .filter(b -> nomRecherche.equalsIgnoreCase(b.getNomDefunt()) && prenomRecherche.equalsIgnoreCase(b.getPrenomDefunt()))
                     .forEach(b -> {
                         if (b.getFolderPath() != null) {
                             try {
@@ -429,17 +435,17 @@ public class FridaService {
                         brouillonRepo.delete(b);
                     });
             } catch (Exception e) {
-                log.warn("Erreur lors de la recherche des brouillons associés au défunt {} {}", nom, prenom, e);
+                log.warn("Erreur lors de la recherche des brouillons associés au défunt {} {}", nomRecherche, prenomRecherche, e);
             }
         }
 
         // 2. Nettoyer tout dossier dans ROOT_PATH/dossiers/ commençant par nom+prenom
-        String folderPrefix = (nom + prenom).toLowerCase().replaceAll("\\s+", "");
+        String folderPrefix = (nomRecherche + prenomRecherche).toLowerCase().replaceAll("[\\s_]+", "");
         java.nio.file.Path rootDir = java.nio.file.Paths.get(rootPath, "dossiers");
         if (java.nio.file.Files.exists(rootDir)) {
             try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.list(rootDir)) {
                 paths.filter(java.nio.file.Files::isDirectory)
-                     .filter(p -> p.getFileName().toString().toLowerCase().startsWith(folderPrefix))
+                     .filter(p -> p.getFileName().toString().toLowerCase().replaceAll("[\\s_]+", "").startsWith(folderPrefix))
                      .forEach(p -> {
                          try {
                              org.springframework.util.FileSystemUtils.deleteRecursively(p);

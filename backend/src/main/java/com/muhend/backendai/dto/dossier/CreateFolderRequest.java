@@ -10,4 +10,6 @@ public class CreateFolderRequest {
     
     @Pattern(regexp = "^[a-zA-ZÀ-ÿ\\s\\-]+$", message = "Le prénom contient des caractères non autorisés")
     private String prenom;
+    private String nomArabe;
+    private String prenomArabe;
 }

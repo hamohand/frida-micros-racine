@@ -74,7 +74,11 @@ public class AuthController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<?> getSecurityStatus(@Value("${app.demo-mode:false}") boolean demoMode) {
-        return ResponseEntity.ok(java.util.Collections.singletonMap("demoMode", demoMode));
+    public ResponseEntity<?> getSecurityStatus(
+            @Value("${app.demo-mode:false}") boolean demoMode,
+            @Value("${app.demo-bridee:false}") boolean demoBridee) {
+        return ResponseEntity.ok(java.util.Map.of(
+                "demoMode", demoMode || demoBridee,
+                "demoBridee", demoBridee));
     }
 }

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { BilabelComponent } from '../../../shared/bilabel/bilabel.component';
@@ -7,6 +7,7 @@ import { HttpClient } from '@angular/common/http';
 import { FolderService } from '../../../services/folder.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { ConstitutionService } from '../../../services/constitution.service';
+import { AuthService } from '../../../services/auth.service';
 
 @Component({
   selector: 'app-create-person',
@@ -22,7 +23,17 @@ import { ConstitutionService } from '../../../services/constitution.service';
         <button type="button" class="btn btn-secondary" (click)="router.navigateByUrl(d.url)"><app-bilabel fr="Reprendre ce dossier" ar="متابعة هذا الملف" /></button>
       </div>
 
-      <div class="qr-action-container">
+      <div class="qr-action-container" *ngIf="authService.isDemoBridee()">
+        <button type="button" class="btn btn-secondary qr-btn" (click)="creerDossierExemple()" [disabled]="isSubmittingExemple">
+          <span class="icon">✨</span>
+          <app-bilabel
+            [fr]="isSubmittingExemple ? 'Chargement des 15 actes fictifs...' : 'Charger le dossier d\\'exemple complet (Famille KACEM Ahmed — 15 actes fictifs)'"
+            [ar]="isSubmittingExemple ? 'جارٍ تحميل 15 عقداً افتراضياً...' : 'تحميل ملف نموذجي كامل (عائلة قاسم أحمد — 15 عقداً افتراضياً)'" />
+        </button>
+        <div *ngIf="qrError" class="error-message" style="margin-top: 5px;">{{ qrError }}</div>
+      </div>
+
+      <div class="qr-action-container" *ngIf="!authService.isDemoBridee()">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,.pdf" style="display: none;" />
         <button type="button" class="btn btn-secondary qr-btn" (click)="fileInput.click()" [disabled]="isScanningQr">
           <span class="icon">📷</span> <app-bilabel [fr]="isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Acte de décès)'" [ar]="isScanningQr ? 'جارٍ تحليل رمز QR...' : 'ملء عبر رمز QR (عقد الوفاة)'" />
@@ -34,7 +45,15 @@ import { ConstitutionService } from '../../../services/constitution.service';
 
       <form [formGroup]="personForm" (ngSubmit)="onSubmit()" class="person-form">
         <div class="form-group">
-          <label for="lastName"><app-bilabel fr="Nom" ar="اللقب" /></label>
+          <label for="lastNameAr"><app-bilabel fr="Nom (en arabe)" ar="اللقب (بالعربية)" /></label>
+          <input id="lastNameAr" type="text" formControlName="lastNameAr" class="form-input" [class.error]="isFieldInvalid('lastNameAr')" dir="rtl" />
+        </div>
+        <div class="form-group">
+          <label for="firstNameAr"><app-bilabel fr="Prénom (en arabe)" ar="الاسم (بالعربية)" /></label>
+          <input id="firstNameAr" type="text" formControlName="firstNameAr" class="form-input" [class.error]="isFieldInvalid('firstNameAr')" dir="rtl" />
+        </div>
+        <div class="form-group">
+          <label for="lastName"><app-bilabel fr="Nom (en français)" ar="اللقب (بالفرنسية)" /></label>
           <input
             id="lastName"
             type="text"
@@ -49,7 +68,7 @@ import { ConstitutionService } from '../../../services/constitution.service';
         </div>
 
         <div class="form-group">
-          <label for="firstName"><app-bilabel fr="Prénom" ar="الاسم" /></label>
+          <label for="firstName"><app-bilabel fr="Prénom (en français)" ar="الاسم (بالفرنسية)" /></label>
           <input
             id="firstName"
             type="text"
@@ -202,8 +221,10 @@ import { ConstitutionService } from '../../../services/constitution.service';
   `]
 })
 export class CreatePersonComponent {
+  authService = inject(AuthService);
   personForm: FormGroup;
   isSubmitting = false;
+  isSubmittingExemple = false;
   submitSuccess = false;
   submitError = false;
   errorMessage = '';
@@ -222,14 +243,39 @@ export class CreatePersonComponent {
     private http: HttpClient
   ) {
     this.personForm = this.fb.group({
-      lastName: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]],
-      firstName: ['', [Validators.required, Validators.pattern('^[a-zA-Z]+$')]]
+      lastName: ['', [Validators.required, Validators.pattern('^[a-zA-Z\\s]+$')]],
+      firstName: ['', [Validators.required, Validators.pattern('^[a-zA-Z\\s]+$')]],
+      lastNameAr: ['', [Validators.pattern('^[\\u0600-\\u06FF\\s]+$')]],
+      firstNameAr: ['', [Validators.pattern('^[\\u0600-\\u06FF\\s]+$')]]
     });
   }
 
   isFieldInvalid(fieldName: string): boolean {
     const field = this.personForm.get(fieldName);
     return field ? field.invalid && (field.dirty || field.touched) : false;
+  }
+
+  creerDossierExemple() {
+    if (this.isSubmittingExemple) return;
+    this.isSubmittingExemple = true;
+    this.qrError = '';
+    this.submitError = false;
+
+    this.http.post<any>('/api/demo/creer-dossier-exemple', {}).subscribe({
+      next: (res) => {
+        this.isSubmittingExemple = false;
+        this.uploadStateService.clearState();
+        this.constitutionService.resetFiche();
+        this.uploadStateService.demarrerDossier('أحمد قاسم (KACEM AHMED)');
+        this.router.navigate(['/upload'], {
+          queryParams: { brouillon: res.brouillonId, folderName: res.folderName }
+        });
+      },
+      error: (err) => {
+        this.isSubmittingExemple = false;
+        this.qrError = err.error?.message || err.error?.error || 'Impossible de charger le dossier d\'exemple.';
+      }
+    });
   }
   
   onFileSelected(event: any) {
@@ -253,7 +299,9 @@ export class CreatePersonComponent {
           
           this.personForm.patchValue({
             lastName: cleanNom,
-            firstName: cleanPrenom
+            firstName: cleanPrenom,
+            lastNameAr: res.nomArabe || '',
+            firstNameAr: res.prenomArabe || ''
           });
           
           if (!cleanNom || !cleanPrenom) {
@@ -279,7 +327,9 @@ export class CreatePersonComponent {
 
       const request = {
         nom: this.personForm.value.lastName.toUpperCase(),
-        prenom: this.personForm.value.firstName.toUpperCase()
+        prenom: this.personForm.value.firstName.toUpperCase(),
+        nomArabe: this.personForm.value.lastNameAr,
+        prenomArabe: this.personForm.value.firstNameAr
       };
 
       this.folderService.createFolder(request).subscribe({
@@ -288,7 +338,15 @@ export class CreatePersonComponent {
           this.isSubmitting = false;
           // Nettoyer la mémoire de l'ancien dossier
           this.uploadStateService.clearState();
-          this.uploadStateService.demarrerDossier(`${request.nom} ${request.prenom}`.trim());
+          
+          let libelle = `${request.nom} ${request.prenom}`.trim();
+          if (request.prenomArabe || request.nomArabe) {
+             const prenomAr = request.prenomArabe || '';
+             const nomAr = request.nomArabe || '';
+             libelle = `${prenomAr} ${nomAr} (${libelle})`.trim();
+          }
+          
+          this.uploadStateService.demarrerDossier(libelle);
           
           if (this.selectedFile) {
              const state = this.uploadStateService.getState();
@@ -324,7 +382,7 @@ export class CreatePersonComponent {
         },
         error: (error) => {
           this.submitError = true;
-          this.errorMessage = error.error.error || 'Une erreur est survenue';
+          this.errorMessage = error.error?.message || error.error?.error || 'Une erreur est survenue';
           this.isSubmitting = false;
         }
       });
