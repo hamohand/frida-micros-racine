@@ -85,7 +85,7 @@ Domaines :
 
 | Composant | Compose file | Rôle | État |
 |---|---|---|---|
-| **Composante 2 — Démo Frida** | `compose/vps.demo.yml` | Vitrine commerciale (`frida.enclume-numerique.com`, `simul-frida.enclume-numerique.com`) | ✅ En prod |
+| **Composante 2 — Démo Frida** | `compose/vps.demo.yml` | Vitrine commerciale bridée (`DEMO_BRIDEE=true`, dossier fictif `famille`) sur `frida.enclume-numerique.com` — voir [implementation_demo_publique_bridee.md](implementation_demo_publique_bridee.md) | ✅ En prod |
 | **Composante 3 — Calculs SaaS** | `compose/vps.calc.yml` | API JSON pure sur `calc.frida.enclume-numerique.com` pour appelants machine | ✅ En prod |
 | **Infra Licences** | `compose/vps.licences.yml` | Vérification des clés, dashboard admin sur `licences.frida.enclume-numerique.com` | ✅ En prod |
 | **Tarif Cloack** | (repo séparé) | SaaS indépendant, cohabite sur le même VPS | ✅ Existe déjà |

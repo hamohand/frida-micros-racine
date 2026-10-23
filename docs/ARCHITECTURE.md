@@ -411,6 +411,8 @@ ng serve --disable-host-check
 
 ## 📚 Documentation supplémentaire
 
+- [architecture/implementation_demo_publique_bridee.md](architecture/implementation_demo_publique_bridee.md) - Implémentation de la Démo Publique Bridée (DEMO_BRIDEE=true)
+- [architecture/architecture_saas_frida.md](architecture/architecture_saas_frida.md) - Architecture SaaS Frida (3 composantes)
 - [architecture/deploiement_vps.md](architecture/deploiement_vps.md) - Déploiement VPS (Composantes 2, 3, licences)
 - [../install-notaire/documentation/README.md](../install-notaire/documentation/README.md) - Installation chez un notaire (Composante 1)
 - [legacy/DEPLOYMENT.md](legacy/DEPLOYMENT.md) - Ancien guide générique (archivé)
