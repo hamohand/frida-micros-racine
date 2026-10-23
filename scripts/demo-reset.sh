@@ -38,9 +38,4 @@ END \$\$;
 # 2. Nettoyer les fichiers déposés dans le volume /app/uploads
 docker exec frida-backend sh -c "rm -rf /app/uploads/*"
 
-# 3. Pré-créer un brouillon d'exemple (Famille KACEM Ahmed — 15 actes fictifs)
-docker exec frida-backend curl -sf -X POST http://localhost:8080/api/demo/creer-dossier-exemple >/dev/null \
-  && echo "Dossier d'exemple (Famille KACEM Ahmed) pré-chargé." \
-  || echo "Attention : impossible de pré-charger le dossier d'exemple (vérifiez docker logs frida-backend)."
-
 echo "[$(date -Iseconds)] Réinitialisation terminée avec succès."

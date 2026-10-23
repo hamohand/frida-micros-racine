@@ -6,63 +6,66 @@ import { v4 as uuidv4 } from 'uuid';
 import { FileUploadService } from '../../../services/file-upload.service';
 import { NfcScannerModalComponent } from '../nfc-scanner-modal/nfc-scanner-modal.component';
 import { AuthService } from '../../../services/auth.service';
+import { FamillePickerModalComponent } from '../../../shared/famille-picker-modal/famille-picker-modal.component';
 
 @Component({
   selector: 'app-file-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, NfcScannerModalComponent],
+  imports: [CommonModule, FormsModule, NfcScannerModalComponent, FamillePickerModalComponent],
   template: `
     <div class="file-upload-layout" style="display: flex; gap: 20px; align-items: stretch; justify-content: center; max-width: 900px; margin: 0 auto; flex-wrap: wrap;">
       <!-- Colonne de gauche : Zone d'upload principale -->
       <div class="upload-container" style="flex: 1; min-width: 300px; max-width: 650px;">
         <h2>{{ config.title }}</h2>
-        <div *ngIf="authService.isDemoBridee()" class="drop-zone disabled-zone" style="cursor: default; padding: 24px;">
-          <div class="drop-message">
-            <span class="material-icons" style="color: #f59e0b;">info</span>
-            <p style="color: #fef3c7;">Démo publique : le téléversement de fichiers personnels est désactivé.<br/>Utilisez le bouton <strong>« Charger les actes fictifs d'exemple »</strong> ci-dessus.</p>
+        <div
+          class="drop-zone"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          (click)="ouvrirSelectionFichiers(fileInput)"
+          style="cursor: pointer;"
+          [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
+        >
+          <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+            <span class="material-icons">cloud_upload</span>
+            <p *ngIf="!authService.isDemoBridee()">Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
+            <p *ngIf="authService.isDemoBridee()">Cliquez ici pour choisir les actes depuis le dossier en ligne <strong>« famille »</strong></p>
+          </div>
+          <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
+            <span class="material-icons" style="color: #ffb84d;">lock</span>
+            <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
+          </div>
+          <input
+            #fileInput
+            type="file"
+            multiple
+            style="display: none;"
+            [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
+            (change)="onFileSelected($event)"
+          />
+        </div>
+
+        <div class="upload-actions" style="margin-top: 20px;">
+          <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
+            <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="ouvrirSelectionFichiers(fileInput)">
+              {{ authService.isDemoBridee() ? '📂 Sélectionner dans « famille »' : 'Sélectionner des fichiers' }}
+            </button>
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
+              📱 Scanner (Mobile)
+            </button>
+            <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #3b82f6; border-color: #3b82f6;" (click)="openScanner('usb')">
+              🪪 Scanner (Lecteur USB)
+            </button>
           </div>
         </div>
-        <ng-container *ngIf="!authService.isDemoBridee()">
-          <div
-            class="drop-zone"
-            (dragover)="onDragOver($event)"
-            (dragleave)="onDragLeave($event)"
-            (click)="fileInput.click()"
-            style="cursor: pointer;"
-            [class.disabled-zone]="uploadedFiles.length >= (config.maxFiles || 10)"
-          >
-            <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-              <span class="material-icons">cloud_upload</span>
-              <p>Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
-            </div>
-            <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
-              <span class="material-icons" style="color: #ffb84d;">lock</span>
-              <p style="color: #ffb84d;">Limite atteinte ({{ config.maxFiles }} max). Supprimez un fichier pour en ajouter un autre.</p>
-            </div>
-            <input
-              #fileInput
-              type="file"
-              multiple
-              style="display: none;"
-              [disabled]="uploadedFiles.length >= (config.maxFiles || 10)"
-              (change)="onFileSelected($event)"
-            />
-          </div>
 
-          <div class="upload-actions" style="margin-top: 20px;">
-            <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-              <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="fileInput.click()">
-                Sélectionner des fichiers
-              </button>
-              <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
-                📱 Scanner (Mobile)
-              </button>
-              <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #3b82f6; border-color: #3b82f6;" (click)="openScanner('usb')">
-                🪪 Scanner (Lecteur USB)
-              </button>
-            </div>
-          </div>
-        </ng-container>
+        <app-famille-picker-modal
+          *ngIf="showFamilleModal"
+          [multiple]="true"
+          [maxFiles]="(config.maxFiles || 10) - uploadedFiles.length"
+          (filesSelected)="onFamilleFilesSelected($event)"
+          (closed)="showFamilleModal = false"
+        />
 
         <div class="file-list" *ngIf="uploadedFiles.length > 0" style="margin-top: 20px;">
           <div class="file-item" *ngFor="let file of uploadedFiles">
@@ -92,7 +95,7 @@ import { AuthService } from '../../../services/auth.service';
                   <span class="material-icons" style="font-size: 1.2rem;">close</span>
                 </button>
               </div>
-              <button class="btn btn-verso" *ngIf="!file.versoFile" (click)="triggerVersoInput(file.id)">
+              <button class="btn btn-verso" *ngIf="!file.versoFile && !authService.isDemoBridee()" (click)="triggerVersoInput(file.id)">
                 + Ajouter verso (optionnel)
               </button>
               <input [id]="'verso_' + file.id" type="file" style="display:none" [accept]="config.allowedTypes.join(',')" (change)="onVersoSelected($event, file.id)" />
@@ -169,9 +172,8 @@ import { AuthService } from '../../../services/auth.service';
       font-size: 0.95rem;
     }
 
-    /* Correction du bug d'affichage blanc sur blanc pour les options */
     .select-doc-type option {
-      background-color: #2c3e50; /* Couleur foncée par défaut pour s'assortir au thème sombre probable */
+      background-color: #2c3e50;
       color: #ffffff;
     }
     
@@ -217,8 +219,6 @@ import { AuthService } from '../../../services/auth.service';
       margin-bottom: var(--spacing-xs);
     }
 
-    /* Le contenu passe à la ligne au lieu de déborder : sinon la corbeille glissait
-       sous la colonne des boutons de navigation et ne recevait plus les clics. */
     .file-info {
       display: flex;
       flex: 1;
@@ -324,6 +324,7 @@ export class FileUploadComponent implements OnInit {
   @Output() skipClicked = new EventEmitter<void>();
 
   uploadedFiles: UploadedFile[] = [];
+  showFamilleModal = false;
   
   get isBeta(): boolean {
     return this.authService.isDemoBridee() || window.location.hostname.includes('frida.enclume-numerique.com');
@@ -335,6 +336,24 @@ export class FileUploadComponent implements OnInit {
   openScanner(mode: 'mobile' | 'usb') {
     this.scannerMode = mode;
     this.showNfcModal = true;
+  }
+
+  ouvrirSelectionFichiers(fileInput: HTMLInputElement) {
+    if (this.uploadedFiles.length >= (this.config.maxFiles || 10)) {
+      return;
+    }
+    if (this.authService.isDemoBridee()) {
+      this.showFamilleModal = true;
+    } else {
+      fileInput.click();
+    }
+  }
+
+  onFamilleFilesSelected(files: File[]) {
+    this.showFamilleModal = false;
+    if (files && files.length > 0) {
+      this.addFiles(files);
+    }
   }
 
   /** Entité OCR proposée par défaut, par type de document (sinon {type}_01). */
@@ -362,11 +381,9 @@ export class FileUploadComponent implements OnInit {
   ngOnInit() {
     if (this.initialFiles && this.initialFiles.length > 0) {
       this.uploadedFiles = [...this.initialFiles];
-      // Pour s'assurer que le parent a bien le compte initial quand on revient en arrière
       setTimeout(() => this.pendingFilesChanged.emit(this.uploadedFiles.length));
     }
     
-    // Charger dynamiquement les entités OCR depuis l'API Python
     this.fileUploadService.getEntities().subscribe({
       next: (entities) => {
         const cni = entities.filter(e => e.nom && e.nom.startsWith('cni_')).map(e => e.nom);
@@ -406,6 +423,11 @@ export class FileUploadComponent implements OnInit {
     const dropZone = event.currentTarget as HTMLElement;
     dropZone.classList.remove('drag-over');
 
+    if (this.authService.isDemoBridee()) {
+      this.showFamilleModal = true;
+      return;
+    }
+
     const files = event.dataTransfer?.files;
     if (files) {
       this.addFiles(Array.from(files));
@@ -416,7 +438,7 @@ export class FileUploadComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       this.addFiles(Array.from(input.files));
-      input.value = ''; // Réinitialiser pour permettre de resélectionner le même fichier
+      input.value = '';
     }
   }
 
@@ -442,12 +464,10 @@ export class FileUploadComponent implements OnInit {
 
   validateFile(file: File): boolean {
     if (file.size > this.config.maxFileSize) {
-      // Ajouter un message d'erreur
       return false;
     }
 
     if (!this.config.allowedTypes.includes(file.type)) {
-      // Ajouter un message d'erreur
       return false;
     }
 
@@ -502,23 +522,17 @@ export class FileUploadComponent implements OnInit {
 
   onUpload() {
     if (this.uploadedFiles.length > 0) {
-      // Group files by docType and entityName
       const groups = new Map<string, {files: File[], docType: string, entityName: string}>();
-
+      
       this.uploadedFiles.forEach(f => {
-        const key = f.docType + '_' + (f.entityName || '');
+        const key = `${f.docType}_${f.entityName || 'default'}`;
         if (!groups.has(key)) {
           groups.set(key, {files: [], docType: f.docType, entityName: f.entityName || ''});
         }
         groups.get(key)!.files.push(f.file);
 
-        // Si un verso est attaché, le mettre dans un groupe séparé avec le suffixe '_verso'
         if (f.versoFile) {
           const versoKey = key + '_verso';
-          // Renommer le fichier avec le suffixe _verso pour la détection côté backend
-          // Nom derive du RECTO, pas du verso : le backend apparie recto et verso par nom
-          // de base. C'est le seul lien fiable quand plusieurs personnes d'une meme
-          // categorie (ex. deux fils) fournissent chacune une CNI.
           const rectoBase = f.file.name.replace(/\.\w+$/, '');
           const versoExt = (f.versoFile.name.match(/\.\w+$/) || [''])[0];
           const renamedVerso = new File([f.versoFile], rectoBase + '_verso' + versoExt, { type: f.versoFile.type });
@@ -529,9 +543,8 @@ export class FileUploadComponent implements OnInit {
         }
       });
 
-      // Emit array of groups
       const emitData: { files: File[], docType: string, entityName: string }[] = [];
-      groups.forEach((groupData, key) => {
+      groups.forEach((groupData) => {
         emitData.push(groupData);
       });
 
@@ -544,13 +557,10 @@ export class FileUploadComponent implements OnInit {
 
   onNfcDataReceived(data: any) {
     console.log("Données NFC reçues dans le formulaire !", data);
-    // On convertit le JSON NFC reçu en un "fichier" virtuel JSON pour l'upload
-    // Le nom de fichier permettra au backend de l'identifier comme un dump NFC
     const jsonString = JSON.stringify(data);
     const blob = new Blob([jsonString], { type: 'application/json' });
     const virtualFile = new File([blob], `nfc_dump_${data.documentNumber || uuidv4()}.json`, { type: 'application/json' });
     
-    // On simule l'ajout de ce fichier comme une CNI
     this.uploadedFiles.push({
       file: virtualFile,
       id: uuidv4(),
@@ -559,12 +569,5 @@ export class FileUploadComponent implements OnInit {
       entityName: 'cni_01'
     });
     this.pendingFilesChanged.emit(this.uploadedFiles.length);
-    
-    // Facultatif : on pourrait même déclencher le "Suivant" automatiquement
-    // this.onUpload();
   }
 }
-
-
-
-

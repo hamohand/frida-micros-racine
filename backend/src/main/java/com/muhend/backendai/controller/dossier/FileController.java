@@ -1,6 +1,7 @@
 package com.muhend.backendai.controller.dossier;
 
 import com.muhend.backendai.dto.dossier.FileUploadResponse;
+import com.muhend.backendai.service.demo.DemoFamilleService;
 import com.muhend.backendai.service.dossier.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -8,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Profile("!calc-only")
@@ -24,17 +27,34 @@ import java.util.List;
 @Tag(name = "File Management", description = "API pour la gestion des fichiers")
 public class FileController {
     private final FileStorageService fileStorageService;
+    private final DemoFamilleService demoFamilleService;
     private final RestTemplate restTemplate;
 
     @Value("${services.ocr.url}")
     private String ocrApiUrl;
 
+    @Value("${app.demo-bridee:false}")
+    private boolean demoBridee;
+
     @PostMapping("/files/upload")
     @Operation(summary = "Téléverser des fichiers", description = "Téléverse un ou plusieurs fichiers dans un sous-dossier spécifique")
-    public ResponseEntity<FileUploadResponse> uploadFiles(
+    public ResponseEntity<?> uploadFiles(
             @RequestParam("files") MultipartFile[] files,
             @RequestParam("path") String path,
             @RequestParam(required = false) String folderName) {
+        if (demoBridee) {
+            if (files == null || files.length == 0) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("message", "En mode démonstration, seuls les documents du dossier 'famille' sont autorisés."));
+            }
+            for (MultipartFile f : files) {
+                if (!demoFamilleService.estFichierAutorise(f)) {
+                    log.warn("Tentative d'upload d'un fichier non autorisé en démo bridée : {}", f.getOriginalFilename());
+                    return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                            .body(Map.of("message", "En mode démonstration, seuls les documents du dossier 'famille' sont autorisés."));
+                }
+            }
+        }
         List<String> savedFiles;
         if (folderName != null && !folderName.isEmpty()) {
             savedFiles = fileStorageService.storeFiles(files, path, folderName);

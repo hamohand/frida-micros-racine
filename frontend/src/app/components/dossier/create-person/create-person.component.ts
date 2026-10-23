@@ -8,11 +8,12 @@ import { FolderService } from '../../../services/folder.service';
 import { UploadStateService } from '../../../services/upload-state.service';
 import { ConstitutionService } from '../../../services/constitution.service';
 import { AuthService } from '../../../services/auth.service';
+import { FamillePickerModalComponent } from '../../../shared/famille-picker-modal/famille-picker-modal.component';
 
 @Component({
   selector: 'app-create-person',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, BilabelComponent],
+  imports: [CommonModule, ReactiveFormsModule, BilabelComponent, FamillePickerModalComponent],
   template: `
     <div class="container form-container">
       <h1 class="form-title"><app-bilabel fr="Création du dossier" ar="إنشاء الملف" /></h1>
@@ -23,23 +24,21 @@ import { AuthService } from '../../../services/auth.service';
         <button type="button" class="btn btn-secondary" (click)="router.navigateByUrl(d.url)"><app-bilabel fr="Reprendre ce dossier" ar="متابعة هذا الملف" /></button>
       </div>
 
-      <div class="qr-action-container" *ngIf="authService.isDemoBridee()">
-        <button type="button" class="btn btn-secondary qr-btn" (click)="creerDossierExemple()" [disabled]="isSubmittingExemple">
-          <span class="icon">✨</span>
-          <app-bilabel
-            [fr]="isSubmittingExemple ? 'Chargement des 15 actes fictifs...' : 'Charger le dossier d\\'exemple complet (Famille KACEM Ahmed — 15 actes fictifs)'"
-            [ar]="isSubmittingExemple ? 'جارٍ تحميل 15 عقداً افتراضياً...' : 'تحميل ملف نموذجي كامل (عائلة قاسم أحمد — 15 عقداً افتراضياً)'" />
-        </button>
-        <div *ngIf="qrError" class="error-message" style="margin-top: 5px;">{{ qrError }}</div>
-      </div>
-
-      <div class="qr-action-container" *ngIf="!authService.isDemoBridee()">
+      <div class="qr-action-container">
         <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,.pdf" style="display: none;" />
-        <button type="button" class="btn btn-secondary qr-btn" (click)="fileInput.click()" [disabled]="isScanningQr">
+        <button type="button" class="btn btn-secondary qr-btn" (click)="ouvrirSelectionQr(fileInput)" [disabled]="isScanningQr">
           <span class="icon">📷</span> <app-bilabel [fr]="isScanningQr ? 'Analyse du QR Code...' : 'Remplir via QR Code (Acte de décès)'" [ar]="isScanningQr ? 'جارٍ تحليل رمز QR...' : 'ملء عبر رمز QR (عقد الوفاة)'" />
         </button>
         <div *ngIf="qrError" class="error-message" style="margin-top: 5px;">{{ qrError }}</div>
       </div>
+
+      <app-famille-picker-modal
+        *ngIf="showFamilleModal"
+        [multiple]="false"
+        [maxFiles]="1"
+        (filesSelected)="onFamilleFilesSelected($event)"
+        (closed)="showFamilleModal = false"
+      />
       
       <div class="divider"><app-bilabel fr="ou saisie manuelle" ar="أو إدخال يدوي" /></div>
 
@@ -224,13 +223,13 @@ export class CreatePersonComponent {
   authService = inject(AuthService);
   personForm: FormGroup;
   isSubmitting = false;
-  isSubmittingExemple = false;
   submitSuccess = false;
   submitError = false;
   errorMessage = '';
   
   isScanningQr = false;
   qrError = '';
+  showFamilleModal = false;
   
   selectedFile: File | null = null;
 
@@ -255,33 +254,28 @@ export class CreatePersonComponent {
     return field ? field.invalid && (field.dirty || field.touched) : false;
   }
 
-  creerDossierExemple() {
-    if (this.isSubmittingExemple) return;
-    this.isSubmittingExemple = true;
-    this.qrError = '';
-    this.submitError = false;
+  ouvrirSelectionQr(fileInput?: HTMLInputElement) {
+    if (this.authService.isDemoBridee()) {
+      this.showFamilleModal = true;
+    } else if (fileInput) {
+      fileInput.click();
+    }
+  }
 
-    this.http.post<any>('/api/demo/creer-dossier-exemple', {}).subscribe({
-      next: (res) => {
-        this.isSubmittingExemple = false;
-        this.uploadStateService.clearState();
-        this.constitutionService.resetFiche();
-        this.uploadStateService.demarrerDossier('أحمد قاسم (KACEM AHMED)');
-        this.router.navigate(['/upload'], {
-          queryParams: { brouillon: res.brouillonId, folderName: res.folderName }
-        });
-      },
-      error: (err) => {
-        this.isSubmittingExemple = false;
-        this.qrError = err.error?.message || err.error?.error || 'Impossible de charger le dossier d\'exemple.';
-      }
-    });
+  onFamilleFilesSelected(files: File[]) {
+    this.showFamilleModal = false;
+    if (files && files.length > 0) {
+      this.analyserFichierQr(files[0]);
+    }
   }
   
   onFileSelected(event: any) {
     const file = event.target.files[0];
     if (!file) return;
-    
+    this.analyserFichierQr(file);
+  }
+
+  private analyserFichierQr(file: File) {
     this.selectedFile = file;
     this.isScanningQr = true;
     this.qrError = '';
@@ -293,7 +287,6 @@ export class CreatePersonComponent {
       next: (res) => {
         this.isScanningQr = false;
         if (res.success) {
-          // Retirer les éventuels accents et caractères non autorisés, et mettre en majuscule
           const cleanNom = (res.nom || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").toUpperCase();
           const cleanPrenom = (res.prenom || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z]/g, "").toUpperCase();
           
@@ -313,7 +306,7 @@ export class CreatePersonComponent {
       },
       error: (err) => {
         this.isScanningQr = false;
-        this.qrError = "Erreur de connexion au serveur OCR.";
+        this.qrError = err.error?.message || "Erreur de connexion au serveur OCR.";
         console.error(err);
       }
     });
@@ -336,7 +329,6 @@ export class CreatePersonComponent {
         next: (response) => {
           this.submitSuccess = true;
           this.isSubmitting = false;
-          // Nettoyer la mémoire de l'ancien dossier
           this.uploadStateService.clearState();
           
           let libelle = `${request.nom} ${request.prenom}`.trim();

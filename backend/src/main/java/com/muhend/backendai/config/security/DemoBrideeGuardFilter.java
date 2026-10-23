@@ -17,8 +17,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Filtre de sécurité pour la version de démonstration publique bridée (DEMO_BRIDEE=true).
- * Bloque l'administration, les sauvegardes/archives, l'envoi de fichiers personnels,
- * le NFC, la suppression et Swagger, et plafonne la création quotidienne de dossiers.
+ * Bloque l'administration, les sauvegardes/archives, le NFC, la suppression et Swagger,
+ * et plafonne la création quotidienne de dossiers.
+ * Les téléversements (/api/files/upload et /api/pdfs/extraire-noms-qr) sont contrôlés
+ * par empreinte SHA-256 par rapport au dossier en ligne « famille ».
  */
 @Profile("!calc-only")
 @Component
@@ -101,11 +103,10 @@ public class DemoBrideeGuardFilter extends OncePerRequestFilter {
         if (estSousChemin(path, "/api/parametres") && !"GET".equals(method)) {
             return true;
         }
-        // Envoi de fichiers depuis le poste du visiteur et OCR sur pièces envoyées
-        if (path.equals("/api/files/upload")
-                || path.equals("/api/pdfs/ocr-cni-front")
-                || path.equals("/api/pdfs/mobile-mrz")
-                || path.equals("/api/pdfs/extraire-noms-qr")) {
+        // OCR CNI et MRZ mobile désactivés en démo (les uploads de fichiers et l'extraction QR
+        // sont contrôlés par empreinte SHA-256 par rapport au dossier 'famille')
+        if (path.equals("/api/pdfs/ocr-cni-front")
+                || path.equals("/api/pdfs/mobile-mrz")) {
             return true;
         }
         // Sessions NFC / scanner mobile

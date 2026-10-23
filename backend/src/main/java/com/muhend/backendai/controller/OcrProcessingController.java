@@ -17,7 +17,7 @@ import java.io.IOException;
 @Profile("!calc-only")
 @lombok.extern.slf4j.Slf4j
 @RestController
-@AllArgsConstructor
+@lombok.RequiredArgsConstructor
 @RequestMapping("/api/pdfs")
 public class OcrProcessingController {
 
@@ -34,9 +34,21 @@ public class OcrProcessingController {
     @Autowired
     private com.muhend.backendai.repository.BrouillonRepo brouillonRepository;
 
+    @Autowired
+    private com.muhend.backendai.service.demo.DemoFamilleService demoFamilleService;
+
+    @org.springframework.beans.factory.annotation.Value("${app.demo-bridee:false}")
+    private boolean demoBridee;
+
     @org.springframework.web.bind.annotation.PostMapping("/extraire-noms-qr")
     public org.springframework.http.ResponseEntity<?> extraireNomsQr(@org.springframework.web.bind.annotation.RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         try {
+            if (demoBridee && !demoFamilleService.estFichierAutorise(file)) {
+                return org.springframework.http.ResponseEntity.status(403).body(java.util.Map.of(
+                    "success", false,
+                    "message", "En mode démonstration, seuls les documents du dossier 'famille' sont autorisés."
+                ));
+            }
             java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("qr_upload_", file.getOriginalFilename());
             java.nio.file.Files.write(tempFile, file.getBytes());
 

@@ -15,8 +15,8 @@
     "fichier": "epouse.png",
     "role": "Conjoint (epouse)",
     "code": "02",
-    "nom": "بوزيد",
-    "prenom": "فاطمة",
+    "nom": "نصوري",
+    "prenom": "زهرة",
     "nomLatin": "NASOURI",
     "prenomLatin": "ZAHRA",
     "sexe": "أنثى",
@@ -48,6 +48,18 @@
     "nin": "991000000000000004"
   },
   {
+    "fichier": "fils_3.png",
+    "role": "Fils 3",
+    "code": "03",
+    "nom": "قاسم",
+    "prenom": "كريم",
+    "nomLatin": "KACEM",
+    "prenomLatin": "KARIM",
+    "sexe": "ذكر",
+    "dateNaissance": "1982-03-15",
+    "nin": "991000000000000005"
+  },
+  {
     "fichier": "fille_1.png",
     "role": "Fille 1",
     "code": "03",
@@ -57,7 +69,7 @@
     "prenomLatin": "AMINA",
     "sexe": "أنثى",
     "dateNaissance": "1985-07-20",
-    "nin": "992000000000000005"
+    "nin": "992000000000000006"
   },
   {
     "fichier": "fille_2.png",
@@ -69,7 +81,7 @@
     "prenomLatin": "SARA",
     "sexe": "أنثى",
     "dateNaissance": "1986-07-20",
-    "nin": "992000000000000006"
+    "nin": "992000000000000007"
   },
   {
     "fichier": "pere.png",
@@ -81,19 +93,19 @@
     "prenomLatin": "ABDELKADER",
     "sexe": "ذكر",
     "dateNaissance": "1920-02-02",
-    "nin": "991000000000000007"
+    "nin": "991000000000000008"
   },
   {
     "fichier": "mere.png",
     "role": "Mere",
     "code": "04",
-    "nom": "منصوري",
-    "prenom": "زهرة",
+    "nom": "بوزيد",
+    "prenom": "فاطمة",
     "nomLatin": "MANSOURI",
     "prenomLatin": "ZOHRA",
     "sexe": "أنثى",
     "dateNaissance": "1925-06-06",
-    "nin": "992000000000000008"
+    "nin": "992000000000000009"
   },
   {
     "fichier": "frere.png",
@@ -105,7 +117,7 @@
     "prenomLatin": "MUSTAPHA",
     "sexe": "ذكر",
     "dateNaissance": "1952-08-08",
-    "nin": "991000000000000009"
+    "nin": "991000000000000010"
   },
   {
     "fichier": "soeur.png",
@@ -117,7 +129,7 @@
     "prenomLatin": "HOURIA",
     "sexe": "أنثى",
     "dateNaissance": "1953-09-09",
-    "nin": "992000000000000010"
+    "nin": "992000000000000011"
   },
   {
     "fichier": "temoin_1.png",
@@ -129,7 +141,7 @@
     "prenomLatin": "RACHID",
     "sexe": "ذكر",
     "dateNaissance": "1968-04-12",
-    "nin": "991000000000000011"
+    "nin": "991000000000000012"
   },
   {
     "fichier": "temoin_2.png",
@@ -141,6 +153,6 @@
     "prenomLatin": "NADIR",
     "sexe": "ذكر",
     "dateNaissance": "1972-11-23",
-    "nin": "991000000000000012"
+    "nin": "991000000000000013"
   }
 ]

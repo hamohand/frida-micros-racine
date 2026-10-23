@@ -53,7 +53,7 @@ import { AuthService } from '../../../services/auth.service';
         </div>
 
         <div style="display: flex; flex-direction: column; gap: 12px; align-items: center;">
-          <button *ngIf="!authService.isDemoBridee()" class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
+          <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem;" (click)="showBrouillonRecap = false">
             <span class="material-icons">person_add</span> <app-bilabel fr="Ajouter des héritiers" ar="إضافة الورثة" />
           </button>
           <button class="btn btn-primary" style="width: 100%; max-width: 400px; padding: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: #f59e0b; border-color: #f59e0b;" 
@@ -68,14 +68,6 @@ import { AuthService } from '../../../services/auth.service';
 
       <!-- Carousel normal (masqué pendant le récap) -->
       <ng-container *ngIf="!showBrouillonRecap">
-
-      <div *ngIf="authService.isDemoBridee()" style="max-width: 820px; margin: 0 auto 16px; padding: 14px 20px; border: 1px dashed #4ecca3; border-radius: 12px; background: rgba(78, 204, 163, 0.08); text-align: center;">
-        <button type="button" class="btn btn-primary" style="padding: 10px 24px; font-size: 1rem;" (click)="chargerActesFictifsExemple()" [disabled]="isLoadingDemoExemple">
-          📂 <app-bilabel
-            [fr]="isLoadingDemoExemple ? 'Chargement des 15 actes fictifs...' : 'Charger les 15 actes fictifs d\\'exemple (Famille KACEM Ahmed)'"
-            [ar]="isLoadingDemoExemple ? 'جارٍ تحميل 15 عقداً افتراضياً...' : 'تحميل 15 عقداً افتراضياً نموذجياً (عائلة قاسم أحمد)'" />
-        </button>
-      </div>
 
       <div class="carousel-track" [style.transform]="'translateX(-' + getCurrentIndex() * 100 + '%)'">
         
