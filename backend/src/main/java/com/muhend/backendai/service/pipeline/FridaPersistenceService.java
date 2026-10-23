@@ -211,6 +211,15 @@ public class FridaPersistenceService {
                 defunt.getIdentite().setNin(dto.getDefunt().getNin());
                 if (dto.getDefunt().getPere() != null) defunt.getIdentite().setPere(dto.getDefunt().getPere());
                 if (dto.getDefunt().getMere() != null) defunt.getIdentite().setMere(dto.getDefunt().getMere());
+                if (dto.getDefunt().getLieuNaissance() != null && !dto.getDefunt().getLieuNaissance().isBlank()) {
+                    defunt.getIdentite().setLieuNaissance(dto.getDefunt().getLieuNaissance());
+                }
+                if (dto.getDefunt().getWilaya() != null && !dto.getDefunt().getWilaya().isBlank()) {
+                    defunt.getIdentite().setWilaya(dto.getDefunt().getWilaya());
+                }
+                if (dto.getDefunt().getNumeroPiece() != null && !dto.getDefunt().getNumeroPiece().isBlank()) {
+                    defunt.getIdentite().setNumeroPiece(dto.getDefunt().getNumeroPiece());
+                }
                 if (dto.getDefunt().getDateDeces() != null) defunt.setDateDeces(dto.getDefunt().getDateDeces());
                 identitesRepo.save(defunt.getIdentite());
             }
@@ -220,9 +229,33 @@ public class FridaPersistenceService {
             frida.setSexeParentPredecede(dto.getSexeParentPredecede());
         }
         
-        // 2. Remplacer les héritiers
-        // Nettoyage de l'ancienne liste
+        // 2. Remplacer les héritiers en préservant les métadonnées d'identité (lieuNaissance, wilaya, etc.)
+        java.util.List<IdentitesEntity> anciennesIdentites = new java.util.ArrayList<>();
         if (frida.getHeritiers() != null && !frida.getHeritiers().isEmpty()) {
+            for (HeritierEntity ancienH : frida.getHeritiers()) {
+                if (ancienH.getIdentite() != null) {
+                    try {
+                        IdentitesEntity src = ancienH.getIdentite();
+                        IdentitesEntity snap = new IdentitesEntity();
+                        snap.setNin(src.getNin());
+                        snap.setNom(src.getNom());
+                        snap.setPrenom(src.getPrenom());
+                        snap.setLieuNaissance(src.getLieuNaissance());
+                        snap.setWilaya(src.getWilaya());
+                        snap.setNumeroPiece(src.getNumeroPiece());
+                        snap.setLatines(src.getLatines());
+                        snap.setPrenomLatines(src.getPrenomLatines());
+                        snap.setImagePath(src.getImagePath());
+                        snap.setMrzValid(src.getMrzValid());
+                        snap.setDelivrePar(src.getDelivrePar());
+                        snap.setDelivreLe(src.getDelivreLe());
+                        snap.setExpireLe(src.getExpireLe());
+                        snap.setConfidencesJson(src.getConfidencesJson());
+                        snap.setRawOcrTextJson(src.getRawOcrTextJson());
+                        anciennesIdentites.add(snap);
+                    } catch (Exception ignored) {}
+                }
+            }
             heritierRepo.deleteAll(frida.getHeritiers());
             frida.getHeritiers().clear();
         }
@@ -239,6 +272,76 @@ public class FridaPersistenceService {
                 identite.setNin(p.getNin());
                 if (p.getPere() != null) identite.setPere(p.getPere());
                 if (p.getMere() != null) identite.setMere(p.getMere());
+
+                // Retrouver l'ancienne identité correspondante (par NIN ou par Nom+Prénom) pour préserver lieuNaissance, etc.
+                IdentitesEntity ancienne = null;
+                if (p.getNin() != null && !p.getNin().isBlank()) {
+                    for (IdentitesEntity oldId : anciennesIdentites) {
+                        if (p.getNin().trim().equals(oldId.getNin() != null ? oldId.getNin().trim() : "")) {
+                            ancienne = oldId;
+                            break;
+                        }
+                    }
+                }
+                if (ancienne == null && p.getNom() != null && p.getPrenom() != null) {
+                    for (IdentitesEntity oldId : anciennesIdentites) {
+                        if (p.getNom().trim().equals(oldId.getNom() != null ? oldId.getNom().trim() : "")
+                                && p.getPrenom().trim().equals(oldId.getPrenom() != null ? oldId.getPrenom().trim() : "")) {
+                            ancienne = oldId;
+                            break;
+                        }
+                    }
+                }
+                if (ancienne != null) {
+                    if (ancienne.getLieuNaissance() != null && !ancienne.getLieuNaissance().isBlank()) {
+                        identite.setLieuNaissance(ancienne.getLieuNaissance());
+                    }
+                    if (ancienne.getWilaya() != null && !ancienne.getWilaya().isBlank()) {
+                        identite.setWilaya(ancienne.getWilaya());
+                    }
+                    if (ancienne.getNumeroPiece() != null && !ancienne.getNumeroPiece().isBlank()) {
+                        identite.setNumeroPiece(ancienne.getNumeroPiece());
+                    }
+                    if (ancienne.getLatines() != null && !ancienne.getLatines().isBlank()) {
+                        identite.setLatines(ancienne.getLatines());
+                    }
+                    if (ancienne.getPrenomLatines() != null && !ancienne.getPrenomLatines().isBlank()) {
+                        identite.setPrenomLatines(ancienne.getPrenomLatines());
+                    }
+                    if (ancienne.getImagePath() != null && !ancienne.getImagePath().isBlank()) {
+                        identite.setImagePath(ancienne.getImagePath());
+                    }
+                    if (ancienne.getMrzValid() != null) {
+                        identite.setMrzValid(ancienne.getMrzValid());
+                    }
+                    if (ancienne.getDelivrePar() != null && !ancienne.getDelivrePar().isBlank()) {
+                        identite.setDelivrePar(ancienne.getDelivrePar());
+                    }
+                    if (ancienne.getDelivreLe() != null && !ancienne.getDelivreLe().isBlank()) {
+                        identite.setDelivreLe(ancienne.getDelivreLe());
+                    }
+                    if (ancienne.getExpireLe() != null && !ancienne.getExpireLe().isBlank()) {
+                        identite.setExpireLe(ancienne.getExpireLe());
+                    }
+                    if (ancienne.getConfidencesJson() != null) {
+                        identite.setConfidencesJson(ancienne.getConfidencesJson());
+                    }
+                    if (ancienne.getRawOcrTextJson() != null) {
+                        identite.setRawOcrTextJson(ancienne.getRawOcrTextJson());
+                    }
+                }
+
+                // Écraser avec les valeurs explicites du DTO si fournies
+                if (p.getLieuNaissance() != null && !p.getLieuNaissance().isBlank()) {
+                    identite.setLieuNaissance(p.getLieuNaissance());
+                }
+                if (p.getWilaya() != null && !p.getWilaya().isBlank()) {
+                    identite.setWilaya(p.getWilaya());
+                }
+                if (p.getNumeroPiece() != null && !p.getNumeroPiece().isBlank()) {
+                    identite.setNumeroPiece(p.getNumeroPiece());
+                }
+
                 identite = identitesRepo.save(identite);
                 
                 HeritierEntity heritier = new HeritierEntity();
@@ -303,8 +406,10 @@ public class FridaPersistenceService {
             case "06" -> (calcul.getNumerateurOnclesPaternels() != null ? calcul.getNumerateurOnclesPaternels() : 0);
             case "07" -> (calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0);
             case "08" -> (calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0);
-            case "09" -> (calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0);
-            case "10" -> (calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0);
+            case "09", "10" -> SexeUtils.isMasculin(heritier.getIdentite().getSexe())
+                    ? (calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0)
+                    : (calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0);
+
             case "11" -> (calcul.getNumerateurGrandMerePaternelle() != null ? calcul.getNumerateurGrandMerePaternelle() : 0);
             default -> 0;
         };

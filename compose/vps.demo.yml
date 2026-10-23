@@ -33,7 +33,7 @@ services:
       - PORT=8082
       - OCR_MODE=qrcode_only
     volumes:
-      - ../ocr-api/entities:/app/app_ocr/entities
+      - ../ocr-api/app_ocr/entities:/app/app_ocr/entities
     networks:
       - internal
     restart: always

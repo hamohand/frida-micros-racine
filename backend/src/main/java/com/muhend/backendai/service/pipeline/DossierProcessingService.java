@@ -88,6 +88,7 @@ public class DossierProcessingService {
 
             FolderService.FolderScanResult scanResult = folderService.listFolderContents(folderPath);
             TraitementContext ctx = initialiserContext(scanResult);
+            ctx.getFicheFrida().setFolderPath(folderPath);
 
             Map<Path, DocumentInfo> fileDocInfoMap = scanResult.getFileDocumentInfoMap();
             Map<String, OcrEntityDefinitionDto> entityDefCache = new HashMap<>();

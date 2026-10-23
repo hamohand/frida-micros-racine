@@ -100,6 +100,7 @@ public class FridaService {
         // Copy corrections (Here we do a full overwrite to keep it simple, assuming the UI sends the whole structure)
         // Ensure ID is same to avoid detached entity error
         corrections.setId(existing.getId());
+        if (corrections.getFolderPath() == null) corrections.setFolderPath(existing.getFolderPath());
         if (corrections.getDefunt() != null) corrections.getDefunt().setId(existing.getDefunt().getId());
         if (corrections.getCalcul() != null) corrections.getCalcul().setId(existing.getCalcul().getId());
 
@@ -162,6 +163,8 @@ public class FridaService {
             case "06" -> "Oncle paternel";
             case "07" -> "Cousin paternel";
             case "08" -> "Grand-père paternel";
+            case "09", "10" -> "Petit-enfant (Petit-fils / Petite-fille)";
+            case "11" -> "Grand-mère paternelle";
             default -> "Héritier (" + numParente + ")";
         };
     }
@@ -402,61 +405,145 @@ public class FridaService {
     }
 
     private void supprimerDossierPhysiqueFrida(FridaEntity frida) {
-        if (frida.getDefunt() == null || frida.getDefunt().getIdentite() == null) {
+        java.nio.file.Path rootDir = java.nio.file.Paths.get(rootPath, "dossiers").toAbsolutePath().normalize();
+        java.nio.file.Path dossierCible = resoudreDossierPhysiqueUnique(frida, rootDir);
+
+        if (dossierCible == null) {
+            log.info("Aucun dossier physique unique identifié pour la Frida {}", frida.getNumFrida());
             return;
         }
+
+        String targetFolderName = dossierCible.getFileName().toString();
+
+        // 1. Nettoyer uniquement le brouillon correspondant à ce dossier précis
+        if (brouillonRepo != null) {
+            try {
+                brouillonRepo.findByFolderName(targetFolderName).ifPresent(b -> {
+                    brouillonRepo.delete(b);
+                    log.info("Brouillon associé supprimé pour Frida {} : {}", frida.getNumFrida(), targetFolderName);
+                });
+            } catch (Exception e) {
+                log.warn("Erreur lors de la suppression du brouillon {} pour Frida {}", targetFolderName, frida.getNumFrida(), e);
+            }
+        }
+
+        // 2. Supprimer uniquement ce seul dossier physique dans ROOT_PATH/dossiers/
+        try {
+            if (java.nio.file.Files.exists(dossierCible) && dossierCible.getParent() != null && dossierCible.getParent().equals(rootDir)) {
+                org.springframework.util.FileSystemUtils.deleteRecursively(dossierCible);
+                log.info("Dossier physique unique supprimé pour Frida {} : {}", frida.getNumFrida(), dossierCible);
+            }
+        } catch (Exception e) {
+            log.error("Erreur suppression dossier physique {} pour Frida {}", dossierCible, frida.getNumFrida(), e);
+        }
+    }
+
+    /**
+     * Identifie l'unique sous-dossier de {@code rootDir} rattaché à cette Frida :
+     * d'abord via {@code frida.folderPath}, puis via {@code imagePath} des pièces du dossier,
+     * et en dernier recours (anciens dossiers sans chemin enregistré) en prenant au plus un seul
+     * dossier correspondant au nom/date qui n'appartient à aucune autre Frida ni brouillon actif.
+     */
+    private java.nio.file.Path resoudreDossierPhysiqueUnique(FridaEntity frida, java.nio.file.Path rootDir) {
+        java.nio.file.Path direct = extraireDossierDirect(frida, rootDir);
+        if (direct != null) {
+            return direct;
+        }
+
+        if (frida.getDefunt() == null || frida.getDefunt().getIdentite() == null || !java.nio.file.Files.exists(rootDir)) {
+            return null;
+        }
+
         String nom = frida.getDefunt().getIdentite().getNom();
         String prenom = frida.getDefunt().getIdentite().getPrenom();
         String latines = frida.getDefunt().getIdentite().getLatines();
         String prenomLatines = frida.getDefunt().getIdentite().getPrenomLatines();
-        
+
         String nomRecherche = (latines != null && !latines.isBlank()) ? latines : nom;
         String prenomRecherche = (prenomLatines != null && !prenomLatines.isBlank()) ? prenomLatines : prenom;
+        if (nomRecherche == null || prenomRecherche == null) {
+            return null;
+        }
 
-        if (nomRecherche == null || prenomRecherche == null) return;
-
-        // 1. Nettoyer les brouillons résiduels associés
+        // Protéger les dossiers appartenant aux autres Fridas ou aux brouillons encore EN_COURS
+        Set<java.nio.file.Path> dossiersProteges = new HashSet<>();
+        for (FridaEntity autre : fridaRepo.findAll()) {
+            if (autre.getId() != null && !autre.getId().equals(frida.getId())) {
+                java.nio.file.Path p = extraireDossierDirect(autre, rootDir);
+                if (p != null) dossiersProteges.add(p);
+            }
+        }
         if (brouillonRepo != null) {
-            try {
-                brouillonRepo.findAll().stream()
-                    .filter(b -> nomRecherche.equalsIgnoreCase(b.getNomDefunt()) && prenomRecherche.equalsIgnoreCase(b.getPrenomDefunt()))
-                    .forEach(b -> {
-                        if (b.getFolderPath() != null) {
-                            try {
-                                java.nio.file.Path p = java.nio.file.Paths.get(b.getFolderPath());
-                                if (java.nio.file.Files.exists(p)) {
-                                    org.springframework.util.FileSystemUtils.deleteRecursively(p);
-                                    log.info("Dossier physique (via brouillon) supprimé : {}", p);
-                                }
-                            } catch (Exception e) {
-                                log.error("Erreur suppression dossier physique brouillon {}", b.getFolderPath(), e);
-                            }
-                        }
-                        brouillonRepo.delete(b);
-                    });
-            } catch (Exception e) {
-                log.warn("Erreur lors de la recherche des brouillons associés au défunt {} {}", nomRecherche, prenomRecherche, e);
+            for (com.muhend.backendai.entities.BrouillonEntity b : brouillonRepo.findByStatutOrderByDateCreationDesc("EN_COURS")) {
+                java.nio.file.Path p = extraireDossierDepuisChemin(b.getFolderPath(), rootDir);
+                if (p != null) dossiersProteges.add(p);
             }
         }
 
-        // 2. Nettoyer tout dossier dans ROOT_PATH/dossiers/ commençant par nom+prenom
         String folderPrefix = (nomRecherche + prenomRecherche).toLowerCase().replaceAll("[\\s_]+", "");
-        java.nio.file.Path rootDir = java.nio.file.Paths.get(rootPath, "dossiers");
-        if (java.nio.file.Files.exists(rootDir)) {
-            try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.list(rootDir)) {
-                paths.filter(java.nio.file.Files::isDirectory)
-                     .filter(p -> p.getFileName().toString().toLowerCase().replaceAll("[\\s_]+", "").startsWith(folderPrefix))
-                     .forEach(p -> {
-                         try {
-                             org.springframework.util.FileSystemUtils.deleteRecursively(p);
-                             log.info("Dossier physique supprimé pour Frida {} : {}", frida.getNumFrida(), p);
-                         } catch (Exception e) {
-                             log.error("Erreur suppression dossier physique {}", p, e);
-                         }
-                     });
-            } catch (Exception e) {
-                log.warn("Impossible de lister le répertoire {} pour nettoyer Frida {}", rootDir, frida.getNumFrida(), e);
+        String datedPrefix = frida.getDateCreation() != null
+                ? folderPrefix + frida.getDateCreation().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))
+                : null;
+
+        try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.list(rootDir)) {
+            List<java.nio.file.Path> candidats = paths
+                    .filter(java.nio.file.Files::isDirectory)
+                    .map(p -> p.toAbsolutePath().normalize())
+                    .filter(p -> !dossiersProteges.contains(p))
+                    .filter(p -> p.getFileName().toString().toLowerCase().replaceAll("[\\s_]+", "").startsWith(folderPrefix))
+                    .toList();
+
+            if (datedPrefix != null) {
+                Optional<java.nio.file.Path> parDate = candidats.stream()
+                        .filter(p -> p.getFileName().toString().toLowerCase().replaceAll("[\\s_]+", "").startsWith(datedPrefix))
+                        .findFirst();
+                if (parDate.isPresent()) {
+                    return parDate.get();
+                }
+            }
+            return candidats.stream().findFirst().orElse(null);
+        } catch (Exception e) {
+            log.warn("Impossible de lister le répertoire {} pour nettoyer Frida {}", rootDir, frida.getNumFrida(), e);
+            return null;
+        }
+    }
+
+    private java.nio.file.Path extraireDossierDirect(FridaEntity frida, java.nio.file.Path rootDir) {
+        java.nio.file.Path p = extraireDossierDepuisChemin(frida.getFolderPath(), rootDir);
+        if (p != null) return p;
+
+        if (frida.getDefunt() != null && frida.getDefunt().getIdentite() != null) {
+            p = extraireDossierDepuisChemin(frida.getDefunt().getIdentite().getImagePath(), rootDir);
+            if (p != null) return p;
+        }
+        if (frida.getHeritiers() != null) {
+            for (HeritierEntity h : frida.getHeritiers()) {
+                if (h.getIdentite() != null) {
+                    p = extraireDossierDepuisChemin(h.getIdentite().getImagePath(), rootDir);
+                    if (p != null) return p;
+                }
             }
         }
+        if (frida.getTemoins() != null) {
+            for (com.muhend.backendai.entities.TemoinEntity t : frida.getTemoins()) {
+                if (t.getIdentite() != null) {
+                    p = extraireDossierDepuisChemin(t.getIdentite().getImagePath(), rootDir);
+                    if (p != null) return p;
+                }
+            }
+        }
+        return null;
+    }
+
+    private java.nio.file.Path extraireDossierDepuisChemin(String pathStr, java.nio.file.Path rootDir) {
+        if (pathStr == null || pathStr.isBlank()) return null;
+        try {
+            java.nio.file.Path p = java.nio.file.Paths.get(pathStr).toAbsolutePath().normalize();
+            if (p.startsWith(rootDir) && p.getNameCount() > rootDir.getNameCount()) {
+                return rootDir.resolve(p.getName(rootDir.getNameCount()));
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 }

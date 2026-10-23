@@ -61,4 +61,7 @@ public class FridaEntity {
     @Column(name = "sexe_parent_predecede", length = 1)
     private String sexeParentPredecede;
 
+    @Column(name = "folder_path")
+    private String folderPath;
+
 }

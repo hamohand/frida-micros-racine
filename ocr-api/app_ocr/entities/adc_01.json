@@ -1,0 +1,89 @@
+{
+  "nom": "adc_01",
+  "description": "Acte de décès QRcode",
+  "date_creation": "2026-10-01T02:58:57.624701",
+  "image_reference": null,
+  "zones": [
+    {
+      "char_filter": "none",
+      "coords": [
+        0.01,
+        0.72,
+        0.41,
+        0.99
+      ],
+      "expected_format": "auto",
+      "id": 1781804674211,
+      "lang": "ara+fra",
+      "mapping_sequences": {
+        "2": "numeroPiece",
+        "3": "nom",
+        "4": "prenom",
+        "5": "dateNaissance",
+        "6": "lieuNaissance",
+        "9": "latines",
+        "10": "prenomLatines",
+        "12": "pere",
+        "13": "mere_prenom",
+        "14": "mere_nom",
+        "15": "dateDeces",
+        "16": "heureDeces",
+        "17": "lieuDeces"
+      },
+      "margin": 0,
+      "nom": "adc_QR",
+      "preprocess": "auto",
+      "type": "qrcode"
+    }
+  ],
+  "cadre_reference": {
+    "image_base_dimensions": {
+      "width": 2481,
+      "height": 3508
+    },
+    "haut": {
+      "labels": [],
+      "position_base": [
+        0.5,
+        0
+      ],
+      "manuel_formula": "0"
+    },
+    "droite": {
+      "labels": [],
+      "position_base": [
+        1,
+        0.5
+      ],
+      "manuel_formula": "largeur"
+    },
+    "gauche": {
+      "labels": [],
+      "position_base": [
+        0,
+        0.5
+      ],
+      "manuel_formula": "0"
+    },
+    "bas": {
+      "labels": [],
+      "position_base": [
+        0.5,
+        1
+      ],
+      "manuel_formula": "hauteur"
+    },
+    "dimensions_absolues": {
+      "largeur": 2481,
+      "hauteur": 3508,
+      "angle": 0
+    }
+  },
+  "metadata": {
+    "nombre_zones": 1,
+    "image_dimensions": {
+      "width": 2481,
+      "height": 3508
+    }
+  }
+}

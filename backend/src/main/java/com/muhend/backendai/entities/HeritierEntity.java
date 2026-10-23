@@ -57,8 +57,7 @@ public class HeritierEntity {
             case "06" -> estHomme ? "عم" : "عمة";
             case "07" -> estHomme ? "إبن عم" : "إبنة عم";
             case "08" -> "جد";
-            case "09" -> "إبن إبن";
-            case "10" -> "بنت إبن";
+            case "09", "10" -> estHomme ? "إبن إبن" : "بنت إبن";
             case "11" -> "جدة";
             default -> "";
         };

@@ -14,4 +14,7 @@ public class PersonneUpdateDto {
     private String nin;
     private String pere;
     private String mere;
+    private String lieuNaissance;
+    private String wilaya;
+    private String numeroPiece;
 }

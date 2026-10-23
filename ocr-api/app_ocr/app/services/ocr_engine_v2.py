@@ -1732,31 +1732,67 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                         def get_seq(i):
                             return sequences[i] if i < len(sequences) else ""
                             
-                        # Extractions de base
-                        if len(sequences) >= 6:
-                            add_qr_field('nom', get_seq(4))
-                            add_qr_field('prenom', get_seq(5))
-                            
-                        # Extractions étendues
-                        if len(sequences) >= 26:
-                            add_qr_field('numeroPiece', get_seq(2))
-                            add_qr_field('dateNaissance', get_seq(6))
-                            add_qr_field('lieuNaissance', get_seq(8))
-                            add_qr_field('pere', get_seq(9))
-                            
-                            mere_val = f"{get_seq(10)} {get_seq(11)}".strip()
-                            add_qr_field('mere', mere_val)
-                            
-                            add_qr_field('sexe', get_seq(12))
-                            add_qr_field('latines', get_seq(13))
-                            add_qr_field('prenomLatines', get_seq(14))
-                            add_qr_field('delivrePar', get_seq(15))
-                            
-                            
-                            # nin : 18 chiffres consécutifs dans la chaîne complète
-                            match_nin = re.search(r'\d{18}', qr_data)
-                            if match_nin:
-                                add_qr_field('nin', match_nin.group(0))
+                        # Détection automatique du type de document (Naissance vs Décès)
+                        is_deces = False
+                        if 'adc' in nom_zone.lower() or 'deces' in nom_zone.lower():
+                            is_deces = True
+                        elif len(sequences) >= 20:
+                            import re
+                            is_seq_15_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(15)))
+                            is_seq_5_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(5)))
+                            if is_seq_15_date and is_seq_5_date:
+                                is_deces = True
+                        
+                        if is_deces:
+                            # --- Mappage pour l'Acte de Décès ---
+                            if len(sequences) >= 5:
+                                add_qr_field('nom', get_seq(3))
+                                add_qr_field('prenom', get_seq(4))
+                            if len(sequences) >= 17:
+                                add_qr_field('numeroPiece', get_seq(2))
+                                add_qr_field('dateNaissance', get_seq(5))
+                                add_qr_field('lieuNaissance', get_seq(6))
+                                add_qr_field('latines', get_seq(9))
+                                add_qr_field('prenomLatines', get_seq(10))
+                                add_qr_field('pere', get_seq(12))
+                                add_qr_field('mere_prenom', get_seq(13))
+                                add_qr_field('mere_nom', get_seq(14))
+                                add_qr_field('dateDeces', get_seq(15))
+                                add_qr_field('heureDeces', get_seq(16))
+                                add_qr_field('lieuDeces', get_seq(17))
+                                # Rétrocompatibilité avec le champ 'mere' unique
+                                mere_val = f"{get_seq(14)} {get_seq(13)}".strip()
+                                add_qr_field('mere', mere_val)
+                            if len(sequences) >= 21:
+                                add_qr_field('dateDeclaration', get_seq(18))
+                                add_qr_field('heureDeclaration', get_seq(19))
+                                add_qr_field('declarant', get_seq(20))
+                        else:
+                            # --- Mappage pour l'Extrait de Naissance ---
+                            # Extractions de base
+                            if len(sequences) >= 6:
+                                add_qr_field('nom', get_seq(4))
+                                add_qr_field('prenom', get_seq(5))
+                                
+                            # Extractions étendues
+                            if len(sequences) >= 16:
+                                add_qr_field('numeroPiece', get_seq(2))
+                                add_qr_field('dateNaissance', get_seq(6))
+                                add_qr_field('lieuNaissance', get_seq(8))
+                                add_qr_field('pere', get_seq(9))
+                                
+                                mere_val = f"{get_seq(10)} {get_seq(11)}".strip()
+                                add_qr_field('mere', mere_val)
+                                
+                                add_qr_field('sexe', get_seq(12))
+                                add_qr_field('latines', get_seq(13))
+                                add_qr_field('prenomLatines', get_seq(14))
+                                add_qr_field('delivrePar', get_seq(15))
+                                
+                                # nin : 18 chiffres consécutifs dans la chaîne complète
+                                match_nin = re.search(r'\d{18}', qr_data)
+                                if match_nin:
+                                    add_qr_field('nin', match_nin.group(0))
                     # ----------------------------------------------------------------
     
                 else:

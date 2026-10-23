@@ -62,8 +62,20 @@ public class PersonneFactory {
             case "06" -> ctx.incrementOnclesPaternels();
             case "07" -> ctx.incrementCousinsPaternels();
             case "08" -> ctx.setGrandPerePaternelVivant(true);
-            case "09" -> ctx.incrementPetitsFils();
-            case "10" -> ctx.incrementPetitesFilles();
+            case "09", "10" -> {
+                if ("10".equals(numParente) && ctx.getFicheFrida().getSexeParentPredecede() == null) {
+                    ctx.setSexeParentPredecede("F");
+                    ctx.getFicheFrida().setSexeParentPredecede("F");
+                } else if ("09".equals(numParente)) {
+                    ctx.setSexeParentPredecede("M");
+                    ctx.getFicheFrida().setSexeParentPredecede("M");
+                }
+                if (SexeUtils.isMasculin(sexe)) {
+                    ctx.incrementPetitsFils();
+                } else {
+                    ctx.incrementPetitesFilles();
+                }
+            }
         }
 
         return heritier;

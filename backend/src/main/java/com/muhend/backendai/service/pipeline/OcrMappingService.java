@@ -367,6 +367,38 @@ public class OcrMappingService {
             if (mrzDob.isEmpty()) mrzDob = rootNode.path("dateOfBirth").asText("");
             parseDateNaissance(entity, mrzDob);
 
+            // Lieu de naissance, Délivré par, Délivré le, Expire le (contrat IdentityRecord v1.1 dz-eid)
+            String lieuNaissance = rootNode.path("lieuNaissance").asText("");
+            if (lieuNaissance.isEmpty() && !holder.isMissingNode()) {
+                lieuNaissance = holder.path("placeOfBirthArabic").asText("");
+                if (lieuNaissance.isEmpty()) lieuNaissance = holder.path("placeOfBirthLatin").asText("");
+            }
+            if (!lieuNaissance.isEmpty()) entity.setLieuNaissance(lieuNaissance);
+
+            String delivrePar = rootNode.path("delivrePar").asText("");
+            if (delivrePar.isEmpty() && !doc.isMissingNode()) {
+                delivrePar = doc.path("issuingAuthorityArabic").asText("");
+                if (delivrePar.isEmpty()) delivrePar = doc.path("issuingAuthorityLatin").asText("");
+            }
+            if (!delivrePar.isEmpty()) entity.setDelivrePar(delivrePar);
+
+            String delivreLe = rootNode.path("delivreLe").asText("");
+            if (delivreLe.isEmpty() && !doc.isMissingNode()) delivreLe = doc.path("dateOfIssue").asText("");
+            if (!delivreLe.isEmpty()) entity.setDelivreLe(delivreLe);
+
+            String expireLe = rootNode.path("expireLe").asText("");
+            if (expireLe.isEmpty() && !doc.isMissingNode()) expireLe = doc.path("dateOfExpiry").asText("");
+            if (!expireLe.isEmpty()) entity.setExpireLe(expireLe);
+
+            com.fasterxml.jackson.databind.JsonNode mrzLines = source.path("mrz").path("lines");
+            if (mrzLines.isArray() && mrzLines.size() > 0) {
+                java.util.List<String> lines = new java.util.ArrayList<>();
+                for (com.fasterxml.jackson.databind.JsonNode l : mrzLines) {
+                    lines.add(l.asText(""));
+                }
+                entity.setMrzRaw(String.join("\n", lines));
+            }
+
             entity.setNomPiece(docType == DocumentType.CNI ? "Carte Nationale d'Identité (NFC)" : "Passeport (NFC)");
             entity.setMrzValid(true);
             
@@ -386,6 +418,10 @@ public class OcrMappingService {
             confiances.put("sexe", 1.0);
             confiances.put("dateNaissance", 1.0);
             confiances.put("numeroPiece", 1.0);
+            if (!lieuNaissance.isEmpty()) confiances.put("lieuNaissance", 1.0);
+            if (!delivrePar.isEmpty()) confiances.put("delivrePar", 1.0);
+            if (!delivreLe.isEmpty()) confiances.put("delivreLe", 1.0);
+            if (!expireLe.isEmpty()) confiances.put("expireLe", 1.0);
             entity.setConfidencesJson(mapper.writeValueAsString(confiances));
 
         } catch (Exception e) {
@@ -458,6 +494,10 @@ public class OcrMappingService {
         if (nfcEntity.getNumeroPiece() != null && !nfcEntity.getNumeroPiece().isEmpty()) ocrEntity.setNumeroPiece(nfcEntity.getNumeroPiece());
         if (nfcEntity.getNom() != null && !nfcEntity.getNom().isEmpty()) ocrEntity.setNom(nfcEntity.getNom());
         if (nfcEntity.getPrenom() != null && !nfcEntity.getPrenom().isEmpty()) ocrEntity.setPrenom(nfcEntity.getPrenom());
+        if (nfcEntity.getLieuNaissance() != null && !nfcEntity.getLieuNaissance().isEmpty()) ocrEntity.setLieuNaissance(nfcEntity.getLieuNaissance());
+        if (nfcEntity.getDelivrePar() != null && !nfcEntity.getDelivrePar().isEmpty()) ocrEntity.setDelivrePar(nfcEntity.getDelivrePar());
+        if (nfcEntity.getDelivreLe() != null && !nfcEntity.getDelivreLe().isEmpty()) ocrEntity.setDelivreLe(nfcEntity.getDelivreLe());
+        if (nfcEntity.getExpireLe() != null && !nfcEntity.getExpireLe().isEmpty()) ocrEntity.setExpireLe(nfcEntity.getExpireLe());
         
         ocrEntity.setMrzValid(true); // NFC implies 100% validity of MRZ data
 
@@ -512,6 +552,9 @@ public class OcrMappingService {
         entity.setPere(getText.apply("pere"));
         entity.setMere(getText.apply("mere"));
         entity.setNumeroPiece(getText.apply("numeroPiece"));
+        entity.setLatines(getText.apply("latines"));
+        entity.setPrenomLatines(getText.apply("prenomLatines"));
+        entity.setDelivrePar(getText.apply("delivrePar"));
 
         parseDateNaissance(entity, getText.apply("dateNaissance"));
 
@@ -746,6 +789,7 @@ public class OcrMappingService {
                     .char_filter(z.getChar_filter())
                     .margin(z.getMargin())
                     .valeurs_attendues(z.getValeurs_attendues())
+                    .mapping_sequences(z.getMappingSequences())
                     .build());
         }
         return zones;

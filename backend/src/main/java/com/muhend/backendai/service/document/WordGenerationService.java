@@ -41,6 +41,7 @@ public class WordGenerationService {
     private final ParametreService parametreService;
     private final HeritierService heritierService;
     private final TemoinService temoinService;
+    private final com.muhend.backendai.repository.IdentitesRepo identitesRepo;
 
     @org.springframework.beans.factory.annotation.Value("${app.demo-bridee:false}")
     private boolean demoBridee;
@@ -221,11 +222,15 @@ public class WordGenerationService {
             hData.put("h_date_naiss", idH != null ? formatDate(idH.getDateNaissance()) : "");
 
             String lieuNaiss = idH != null ? safeStr(idH.getLieuNaissance()) : "";
+            if (lieuNaiss.isEmpty() && idH != null) {
+                lieuNaiss = resolveLieuNaissanceFallback(idH);
+            }
+            hData.put("h_lieu_prefix", !lieuNaiss.isEmpty() ? " بـ " : "");
             hData.put("h_lieu_naiss", lieuNaiss);
 
             StringBuilder details = new StringBuilder();
             if (!lieuNaiss.isEmpty()) {
-                details.append(" بـ ").append(lieuNaiss);
+                // lieuNaiss est affiché en gras via {{h_lieu_prefix}}{{h_lieu_naiss}} dans modele_frida.docx
             }
             String nin = idH != null ? safeStr(idH.getNin()) : "";
             if (!nin.isEmpty()) {
@@ -280,7 +285,7 @@ public class WordGenerationService {
                     String denStr = parts.length > 1 ? parts[1] : "";
                     p.put("h_num", numStr);
                     p.put("h_den", denStr);
-                    p.put("h_fraction", "\u200E" + numStr + " / " + denStr + "\u200E");
+                    p.put("h_fraction", "\u00A0\u200E" + numStr + "\u00A0/\u00A0" + denStr + "\u200E");
                     try {
                         totalNum += Integer.parseInt(numStr);
                     } catch (NumberFormatException ignored) {}
@@ -293,7 +298,7 @@ public class WordGenerationService {
             }
             data.put("heritiers_parts", partsList);
             data.put("total_num", String.valueOf(totalNum));
-            data.put("total_fraction", "\u200E" + totalNum + " / " + (denVal != null ? denVal : "") + "\u200E");
+            data.put("total_fraction", "\u00A0\u200E" + totalNum + "\u00A0/\u00A0" + (denVal != null ? denVal : "") + "\u200E");
             data.put("total_num_lettres", com.muhend.backendai.service.calculs_outils.NumberToArabicWords.convert(totalNum));
         }
 
@@ -402,6 +407,28 @@ public class WordGenerationService {
         return s != null ? s.trim() : "";
     }
 
+    private String resolveLieuNaissanceFallback(IdentitesEntity idH) {
+        try {
+            if (identitesRepo == null) return "";
+            String nin = safeStr(idH.getNin());
+            if (!nin.isEmpty()) {
+                for (IdentitesEntity cand : identitesRepo.findByNin(nin)) {
+                    String l = safeStr(cand.getLieuNaissance());
+                    if (!l.isEmpty()) return l;
+                }
+            }
+            String nom = safeStr(idH.getNom());
+            String prenom = safeStr(idH.getPrenom());
+            if (!nom.isEmpty() && !prenom.isEmpty()) {
+                for (IdentitesEntity cand : identitesRepo.findByNomAndPrenom(nom, prenom)) {
+                    String l = safeStr(cand.getLieuNaissance());
+                    if (!l.isEmpty()) return l;
+                }
+            }
+        } catch (Exception ignored) {}
+        return "";
+    }
+
     private String formatDate(LocalDate d) {
         return d != null ? d.format(DATE_FMT) : "";
     }
@@ -447,10 +474,12 @@ public class WordGenerationService {
             num = calcul.getNumerateurCousinsPaternels() != null ? calcul.getNumerateurCousinsPaternels() : 0;
         } else if (codeParente == 8) {
             num = calcul.getNumerateurGrandPerePaternel() != null ? calcul.getNumerateurGrandPerePaternel() : 0;
-        } else if (codeParente == 9) {
-            num = calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0;
-        } else if (codeParente == 10) {
-            num = calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0;
+        } else if (codeParente == 9 || codeParente == 10) {
+            if (isMale) {
+                num = calcul.getNumerateurPetitsFils() != null ? calcul.getNumerateurPetitsFils() : 0;
+            } else {
+                num = calcul.getNumerateurPetitesFilles() != null ? calcul.getNumerateurPetitesFilles() : 0;
+            }
         } else if (codeParente == 11) {
             num = calcul.getNumerateurGrandMerePaternelle() != null ? calcul.getNumerateurGrandMerePaternelle() : 0;
         }
@@ -500,10 +529,9 @@ public class WordGenerationService {
             return isMaleDefunt ? "ابن عمه" : "ابن عمها";
         } else if (code == 8) {
             return isMaleDefunt ? "جده" : "جدها";
-        } else if (code == 9) {
-            return isMaleDefunt ? "حفيده" : "حفيدها";
-        } else if (code == 10) {
-            return isMaleDefunt ? "حفيدته" : "حفيدتها";
+        } else if (code == 9 || code == 10) {
+            if (isMaleDefunt) return isMaleHeritier ? "حفيده" : "حفيدته";
+            else return isMaleHeritier ? "حفيدها" : "حفيدتها";
         } else if (code == 11) {
             return isMaleDefunt ? "جدته" : "جدتها";
         }
@@ -532,10 +560,9 @@ public class WordGenerationService {
             return isMaleDefunt ? "لابن عمه" : "لابن عمها";
         } else if (code == 8) {
             return isMaleDefunt ? "لجده" : "لجدها";
-        } else if (code == 9) {
-            return isMaleDefunt ? "لحفيده" : "لحفيدها";
-        } else if (code == 10) {
-            return isMaleDefunt ? "لحفيدته" : "لحفيدتها";
+        } else if (code == 9 || code == 10) {
+            if (isMaleDefunt) return isMaleHeritier ? "لحفيده" : "لحفيدته";
+            else return isMaleHeritier ? "لحفيدها" : "لحفيدتها";
         } else if (code == 11) {
             return isMaleDefunt ? "لجدته" : "لجدتها";
         }

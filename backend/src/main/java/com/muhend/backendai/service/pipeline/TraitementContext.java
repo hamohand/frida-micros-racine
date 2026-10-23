@@ -86,8 +86,20 @@ public class TraitementContext {
                     case "06" -> ctx.incrementOnclesPaternels();
                     case "07" -> ctx.incrementCousinsPaternels();
                     case "08" -> ctx.setGrandPerePaternelVivant(true);
-                    case "09" -> ctx.incrementPetitsFils();
-                    case "10" -> ctx.incrementPetitesFilles();
+                    case "09" -> {
+                    if (SexeUtils.isMasculin(sexe)) {
+                        ctx.incrementPetitsFils();
+                    } else {
+                        ctx.incrementPetitesFilles();
+                    }
+                }
+                    case "10" -> {
+                    if (SexeUtils.isMasculin(sexe)) {
+                        ctx.incrementPetitsFils();
+                    } else {
+                        ctx.incrementPetitesFilles();
+                    }
+                }
                     case "11" -> ctx.setGrandMerePaternelleVivante(true);
                 }
             }

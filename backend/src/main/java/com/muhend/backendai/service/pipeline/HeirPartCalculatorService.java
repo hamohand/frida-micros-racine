@@ -151,6 +151,14 @@ public class HeirPartCalculatorService {
                     .findFirst()
                     .ifPresent(h -> calcul.setNumerateurPetitesFilles(h.getPart().getNumerateur()));
 
+            // Cas classique (aucun enfant direct vivant) : CalculPartsService remplace petits-fils/petites-filles par fils/filles
+            if (calcul.getNumerateurPetitsFils() == null && ctx.getNbPetitsFils() > 0 && ctx.getNbGarcons() == 0) {
+                calcul.setNumerateurPetitsFils(calcul.getNumerateurGarcons());
+            }
+            if (calcul.getNumerateurPetitesFilles() == null && ctx.getNbPetitesFilles() > 0 && ctx.getNbFilles() == 0) {
+                calcul.setNumerateurPetitesFilles(calcul.getNumerateurFilles());
+            }
+
             // Numérateur père
             response.getHeritiers().stream()
                     .filter(h -> {

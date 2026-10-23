@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Data
@@ -37,4 +38,7 @@ public class OcrZoneConfigDto {
     // Direction de la valeur par rapport à l'ancre (gauche, droite, bas, haut)
     @JsonProperty("anchor_direction")
     private String anchor_direction;
+    // Mapping optionnel des séquences QR code (index -> nom du champ)
+    @JsonProperty("mapping_sequences")
+    private Map<String, String> mapping_sequences;
 }
