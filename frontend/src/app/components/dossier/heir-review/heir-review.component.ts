@@ -14,6 +14,7 @@ interface Personne {
   nom: string;
   prenom: string;
   dateNaissance: string;
+  lieuNaissance?: string;
   sexe: string;
   numParente: string;
   nin?: string;
@@ -47,7 +48,7 @@ interface Personne {
           <div class="info">
             <span class="name"><span class="demo-blur">{{ defunt.nom }}</span> {{ defunt.prenom }}</span>
             <span class="badge">{{ defunt.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
-            <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ defunt.nin || '-' }}</span></span>
+            <span class="details">Né(e) le {{ defunt.dateNaissance || 'Inconnue' }}{{ defunt.lieuNaissance ? ' à ' + defunt.lieuNaissance : '' }} | NIN: <span class="demo-blur">{{ defunt.nin || '-' }}</span></span>
             <span class="details" *ngIf="defunt.dateDeces">Décédé(e) le {{ defunt.dateDeces }}</span>
             <div *ngIf="frida?.defunt?.identite?.mrzValid !== null && frida?.defunt?.identite?.mrzValid !== undefined" style="margin: 5px 0; direction: ltr;">
               <span style="padding: 3px 10px; border-radius: 12px; font-size: 0.85rem;" [style.background]="frida?.defunt?.identite?.mrzValid ? 'rgba(78,204,163,0.15)' : 'rgba(255,184,77,0.15)'" [style.border]="frida?.defunt?.identite?.mrzValid ? '1px solid #4ecca3' : '1px solid #ffb84d'" [style.color]="frida?.defunt?.identite?.mrzValid ? '#4ecca3' : '#ffb84d'">
@@ -69,6 +70,7 @@ interface Personne {
               <input type="text" [(ngModel)]="defunt.nom" placeholder="Nom">
               <input type="text" [(ngModel)]="defunt.prenom" placeholder="Prénom">
               <input type="date" [(ngModel)]="defunt.dateNaissance">
+              <input type="text" [(ngModel)]="defunt.lieuNaissance" placeholder="Lieu de naissance">
               <label style="font-size: 0.85rem; color: #a0aec0; margin-bottom: -8px;">Date de décès</label>
               <input type="date" [(ngModel)]="defunt.dateDeces">
               <input type="text" [(ngModel)]="defunt.nin" placeholder="NIN">
@@ -106,6 +108,7 @@ interface Personne {
               <input type="text" [(ngModel)]="currentHeir.nom" placeholder="Nom">
               <input type="text" [(ngModel)]="currentHeir.prenom" placeholder="Prénom">
               <input type="date" [(ngModel)]="currentHeir.dateNaissance">
+              <input type="text" [(ngModel)]="currentHeir.lieuNaissance" placeholder="Lieu de naissance">
               <input type="text" [(ngModel)]="currentHeir.nin" placeholder="NIN">
               <input type="text" [(ngModel)]="currentHeir.pere" placeholder="Nom et prénom du père">
               <input type="text" [(ngModel)]="currentHeir.mere" placeholder="Nom et prénom de la mère">
@@ -147,7 +150,7 @@ interface Personne {
                 <span class="name"><span class="demo-blur">{{ h.nom }}</span> {{ h.prenom }}</span>
                 <span class="badge">{{ h.sexe === 'M' ? 'Homme' : 'Femme' }}</span>
                 <span class="badge role">{{ getRoleLabel(h.numParente, h.sexe) }}</span>
-                <span class="details">Né(e) le {{ h.dateNaissance || 'Inconnue' }} | NIN: <span class="demo-blur">{{ h.nin || '-' }}</span></span>
+                <span class="details">Né(e) le {{ h.dateNaissance || 'Inconnue' }}{{ h.lieuNaissance ? ' à ' + h.lieuNaissance : '' }} | NIN: <span class="demo-blur">{{ h.nin || '-' }}</span></span>
                 <div *ngIf="h.mrzValid !== null && h.mrzValid !== undefined" style="margin: 5px 0; direction: ltr;">
                   <span style="padding: 3px 10px; border-radius: 12px; font-size: 0.85rem;" [style.background]="h.mrzValid ? 'rgba(78,204,163,0.15)' : 'rgba(255,184,77,0.15)'" [style.border]="h.mrzValid ? '1px solid #4ecca3' : '1px solid #ffb84d'" [style.color]="h.mrzValid ? '#4ecca3' : '#ffb84d'">
                     {{ h.mrzValid ? '✅ MRZ Validée' : '⚠️ MRZ Non validée' }}
@@ -347,6 +350,7 @@ export class HeirReviewComponent implements OnInit {
              nom: data.defunt.identite.nom || '',
              prenom: data.defunt.identite.prenom || '',
              dateNaissance: data.defunt.identite.dateNaissance || '',
+             lieuNaissance: data.defunt.identite.lieuNaissance || '',
              dateDeces: data.defunt.dateDeces || '',
              sexe: isFemale ? 'F' : 'M',
              numParente: '01',
@@ -379,6 +383,7 @@ export class HeirReviewComponent implements OnInit {
                 nom: h.identite?.nom || '',
                 prenom: h.identite?.prenom || '',
                 dateNaissance: h.identite?.dateNaissance || '',
+                lieuNaissance: h.identite?.lieuNaissance || '',
                 sexe: isFemale ? 'F' : 'M',
                 numParente: h.numParente || '03',
                 nin: h.identite?.nin || '',
@@ -405,6 +410,9 @@ export class HeirReviewComponent implements OnInit {
                uniqueHeirs.push(h);
            }
            this.heritiers = uniqueHeirs;
+           if (!this.frida?.sexeParentPredecede && this.heritiers.some(h => h.numParente === '10')) {
+               this.sexeParentPredecede = 'F';
+           }
         }
         this.isLoading = false;
       },
@@ -431,7 +439,7 @@ export class HeirReviewComponent implements OnInit {
   }
 
   getEmptyHeir(): Personne {
-    return { nom: '', prenom: '', dateNaissance: '', sexe: 'M', numParente: '03', nin: '' };
+    return { nom: '', prenom: '', dateNaissance: '', lieuNaissance: '', sexe: 'M', numParente: '03', nin: '' };
   }
 
   startAddingHeir() {
@@ -503,8 +511,9 @@ export class HeirReviewComponent implements OnInit {
       case '07': return 'Cousin paternel';
       case '08': return 'Grand-père paternel';
       case '11': return 'Grand-mère paternelle';
-      case '09': return 'Petit-fils';
-      case '10': return 'Petite-fille';
+      case '09':
+      case '10':
+        return isMale ? 'Petit-fils' : 'Petite-fille';
       default: return isMale ? 'Masculin' : 'Féminin';
     }
   }
@@ -606,6 +615,7 @@ export class HeirReviewComponent implements OnInit {
       nom: p.nom,
       prenom: p.prenom,
       dateNaissance: p.dateNaissance,
+      lieuNaissance: p.lieuNaissance,
       dateDeces: p.dateDeces,
       sexe: p.sexe === 'M' ? 'ذكر' : 'أنثى', 
       numParente: p.numParente,

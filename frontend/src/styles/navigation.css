@@ -30,11 +30,15 @@
 }
 
 .nav-logo {
-  font-size: 1.35rem;
-  font-weight: 700;
-  color: var(--primary);
+  display: inline-flex;
+  align-items: center;
   text-decoration: none;
-  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.logo-img {
+  height: 48px;
+  width: auto;
 }
 
 .icone-btn {

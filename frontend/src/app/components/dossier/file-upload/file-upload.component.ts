@@ -28,8 +28,8 @@ import { FamillePickerModalComponent } from '../../../shared/famille-picker-moda
         >
           <div class="drop-message" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
             <span class="material-icons">cloud_upload</span>
-            <p *ngIf="!authService.isDemoBridee()">Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
-            <p *ngIf="authService.isDemoBridee()">Cliquez ici pour choisir les actes depuis le dossier en ligne <strong>« famille »</strong></p>
+            <p *ngIf="!isBeta">Glissez-déposez ou cliquez ici pour ajouter vos fichiers</p>
+            <p *ngIf="isBeta">Cliquez ici pour choisir les actes depuis le dossier en ligne <strong>« famille »</strong></p>
           </div>
           <div class="drop-message" *ngIf="uploadedFiles.length >= (config.maxFiles || 10)">
             <span class="material-icons" style="color: #ffb84d;">lock</span>
@@ -47,8 +47,8 @@ import { FamillePickerModalComponent } from '../../../shared/famille-picker-moda
 
         <div class="upload-actions" style="margin-top: 20px;">
           <div class="add-buttons" style="display: flex; gap: 10px; justify-content: center;" *ngIf="uploadedFiles.length < (config.maxFiles || 10)">
-            <button class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="ouvrirSelectionFichiers(fileInput)">
-              {{ authService.isDemoBridee() ? '📂 Sélectionner dans « famille »' : 'Sélectionner des fichiers' }}
+            <button type="button" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px;" (click)="ouvrirSelectionFichiers(fileInput)">
+              {{ isBeta ? '📂 Sélectionner dans « famille »' : 'Sélectionner des fichiers' }}
             </button>
             <button *ngIf="!isBeta" class="btn btn-primary" style="display: flex; align-items: center; justify-content: center; gap: 6px; flex: 1; max-width: 250px; background: #8b5cf6; border-color: #8b5cf6;" (click)="openScanner('mobile')">
               📱 Scanner (Mobile)
@@ -342,7 +342,7 @@ export class FileUploadComponent implements OnInit {
     if (this.uploadedFiles.length >= (this.config.maxFiles || 10)) {
       return;
     }
-    if (this.authService.isDemoBridee()) {
+    if (this.isBeta) {
       this.showFamilleModal = true;
     } else {
       fileInput.click();
@@ -423,7 +423,7 @@ export class FileUploadComponent implements OnInit {
     const dropZone = event.currentTarget as HTMLElement;
     dropZone.classList.remove('drag-over');
 
-    if (this.authService.isDemoBridee()) {
+    if (this.isBeta) {
       this.showFamilleModal = true;
       return;
     }

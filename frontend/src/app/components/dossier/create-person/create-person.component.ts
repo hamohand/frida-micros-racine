@@ -349,14 +349,15 @@ export class CreatePersonComponent {
                    file: this.selectedFile,
                    id: Math.random().toString(36).substring(2, 9),
                    progress: 100,
-                   docType: 'ad'
+                   docType: 'ad',
+                   entityName: 'adc_01'
                 };
                 
                 state.windows['f1'].rawFiles = [uploadedFile];
                 state.windows['f1'].groupedFiles = [{
                    files: [this.selectedFile],
                    docType: 'ad',
-                   entityName: ''
+                   entityName: 'adc_01'
                 }];
                 this.uploadStateService.saveState(state.windows, state.ocrMode || 'rapide');
              }

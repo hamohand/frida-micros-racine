@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { forkJoin } from 'rxjs';
@@ -43,7 +43,7 @@ export interface FichierFamilleInfo {
               class="famille-item"
               [class.selected]="estSelectionne(f.nom)"
               (click)="basculerSelection(f.nom)"
-              (dblclick)="!multiple && confirmerUnique(f.nom)"
+              (dblclick)="confirmerUnique(f.nom)"
             >
               <input
                 [type]="multiple ? 'checkbox' : 'radio'"
@@ -304,8 +304,9 @@ export interface FichierFamilleInfo {
     }
   `]
 })
-export class FamillePickerModalComponent implements OnInit {
+export class FamillePickerModalComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private el = inject(ElementRef<HTMLElement>);
 
   @Input() multiple = false;
   @Input() maxFiles = 10;
@@ -320,6 +321,12 @@ export class FamillePickerModalComponent implements OnInit {
   erreur = '';
 
   ngOnInit() {
+    // Monter la modale directement dans document.body pour éviter qu'un parent avec
+    // transform: translateX(...) (comme le carrousel d'upload) ne décale position: fixed hors écran.
+    if (this.el?.nativeElement && typeof document !== 'undefined') {
+      document.body.appendChild(this.el.nativeElement);
+    }
+
     this.http.get<FichierFamilleInfo[]>('/api/demo/famille').subscribe({
       next: (data) => {
         this.fichiers = data || [];
@@ -330,6 +337,12 @@ export class FamillePickerModalComponent implements OnInit {
         this.erreur = 'Impossible de charger la liste du dossier « famille ».';
       }
     });
+  }
+
+  ngOnDestroy() {
+    if (this.el?.nativeElement?.parentNode === document.body) {
+      document.body.removeChild(this.el.nativeElement);
+    }
   }
 
   estSelectionne(nom: string): boolean {
@@ -359,7 +372,9 @@ export class FamillePickerModalComponent implements OnInit {
   }
 
   confirmerUnique(nom: string) {
-    this.selection.clear();
+    if (!this.multiple) {
+      this.selection.clear();
+    }
     this.selection.add(nom);
     this.valider();
   }

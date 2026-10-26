@@ -212,10 +212,9 @@ export class FridaComponent implements OnInit, AfterViewInit {
       return isMaleDefunt ? 'ابن عمه' : 'ابن عمها';
     } else if (numParente === 8) {
       return isMaleDefunt ? 'جده' : 'جدها';
-    } else if (numParente === 9) {
-      return isMaleDefunt ? 'حفيده' : 'حفيدها';
-    } else if (numParente === 10) {
-      return isMaleDefunt ? 'حفيدته' : 'حفيدتها';
+    } else if (numParente === 9 || numParente === 10) {
+      if (isMaleDefunt) return isMaleHeritier ? 'حفيده' : 'حفيدته';
+      else return isMaleHeritier ? 'حفيدها' : 'حفيدتها';
     } else if (numParente === 11) {
       return isMaleDefunt ? 'جدته' : 'جدتها';
     }
@@ -244,10 +243,9 @@ export class FridaComponent implements OnInit, AfterViewInit {
       return isMaleDefunt ? 'لابن عمه' : 'لابن عمها';
     } else if (numParente === 8) {
       return isMaleDefunt ? 'لجده' : 'لجدها';
-    } else if (numParente === 9) {
-      return isMaleDefunt ? 'لحفيده' : 'لحفيدها';
-    } else if (numParente === 10) {
-      return isMaleDefunt ? 'لحفيدته' : 'لحفيدتها';
+    } else if (numParente === 9 || numParente === 10) {
+      if (isMaleDefunt) return isMaleHeritier ? 'لحفيده' : 'لحفيدته';
+      else return isMaleHeritier ? 'لحفيدها' : 'لحفيدتها';
     } else if (numParente === 11) {
       return isMaleDefunt ? 'لجدته' : 'لجدتها';
     }
@@ -264,7 +262,8 @@ export class FridaComponent implements OnInit, AfterViewInit {
     const ne_le = isMaleHeritier ? 'المولود في' : 'المولودة في';
     const titulaire_nin = isMaleHeritier ? 'الحامل للرقم الوطني' : 'الحاملة للرقم الوطني';
     
-    return `${identite} ${ne_le} ${heritier.identite?.dateNaissance || ''} ${titulaire_nin} ${heritier.identite?.nin || ''}`;
+    const lieu = heritier.identite?.lieuNaissance ? ` بـ ${heritier.identite.lieuNaissance}` : '';
+    return `${identite} ${ne_le} ${heritier.identite?.dateNaissance || ''}${lieu} ${titulaire_nin} ${heritier.identite?.nin || ''}`;
   }
 
   getHeritierPart(heritier: any): {num: number, den: number} | null {
@@ -299,10 +298,12 @@ export class FridaComponent implements OnInit, AfterViewInit {
       return { num: this.frida.calcul.numerateurCousinsPaternels || 0, den: den };
     } else if (numParente === 8) {
       return { num: this.frida.calcul.numerateurGrandPerePaternel || 0, den: den };
-    } else if (numParente === 9) {
-      return { num: this.frida.calcul.numerateurPetitsFils || 0, den: den };
-    } else if (numParente === 10) {
-      return { num: this.frida.calcul.numerateurPetitesFilles || 0, den: den };
+    } else if (numParente === 9 || numParente === 10) {
+      if (this.isMasculin(heritier.identite?.sexe)) {
+         return { num: this.frida.calcul.numerateurPetitsFils || 0, den: den };
+      } else {
+         return { num: this.frida.calcul.numerateurPetitesFilles || 0, den: den };
+      }
     } else if (numParente === 11) {
       return { num: this.frida.calcul.numerateurGrandMerePaternelle || 0, den: den };
     }

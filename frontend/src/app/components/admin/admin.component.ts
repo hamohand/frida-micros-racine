@@ -93,7 +93,9 @@ const LIBELLES_AR: Record<string, string> = {
                 (click)="basculerMenu()" aria-label="Afficher ou masquer le menu">
           <svg viewBox="0 -960 960 960" width="24" height="24" fill="currentColor"><path [attr.d]="icones.menu"/></svg>
         </button>
-        <a routerLink="/" class="nav-logo"><app-bilabel fr="Ustadh-a" ar="أستاذ-ة" /></a>
+        <a routerLink="/" class="nav-logo">
+          <img src="assets/logos/logo.svg" alt="فريضة" class="logo-img">
+        </a>
 
         <nav class="fil-ariane" aria-label="Fil d'Ariane" *ngIf="miettes.length">
           <ng-container *ngFor="let m of miettes; let dernier = last">

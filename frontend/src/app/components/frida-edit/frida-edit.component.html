@@ -35,6 +35,10 @@
           <label><app-bilabel fr="Date de Naissance" ar="تاريخ الميلاد" /></label>
           <input type="date" [(ngModel)]="frida.defunt.identite.dateNaissance" class="form-control" />
         </div>
+        <div class="form-group">
+          <label><app-bilabel fr="Lieu de Naissance" ar="مكان الميلاد" /></label>
+          <input type="text" [(ngModel)]="frida.defunt.identite.lieuNaissance" class="form-control" />
+        </div>
       </div>
     </div>
 
@@ -52,6 +56,10 @@
           <div class="form-group">
             <label><app-bilabel fr="Prénom" ar="الاسم" /></label>
             <input type="text" [(ngModel)]="heritier.identite.prenom" class="form-control" />
+          </div>
+          <div class="form-group">
+            <label><app-bilabel fr="Lieu de Naissance" ar="مكان الميلاد" /></label>
+            <input type="text" [(ngModel)]="heritier.identite.lieuNaissance" class="form-control" />
           </div>
           <div class="form-group">
             <label><app-bilabel fr="Sexe" ar="الجنس" /> <span class="calc-impact" title="Impacte le calcul !">🧮</span></label>
