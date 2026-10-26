@@ -1383,7 +1383,9 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                     right = min(img_pil.width, right)
                     bottom = min(img_pil.height, bottom)
                     
-                    if right > left and bottom > top:
+                    if left <= 2 and top <= 2 and right >= img_pil.width - 2 and bottom >= img_pil.height - 2:
+                        logger.info("✂️ Cadre = image entière (100%) → rognage physique ignoré.")
+                    elif right > left and bottom > top:
                         img_crop = img_pil.crop((left, top, right, bottom))
                         
                         # Convertir RGBA → RGB si nécessaire (JPEG ne supporte pas la transparence)
@@ -1465,9 +1467,9 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                             
                         # Détection automatique du type de document (Naissance vs Décès)
                         is_deces = False
-                        if 'adc' in nom_zone.lower() or 'deces' in nom_zone.lower():
+                        if 'adc' in nom_zone.lower() or 'deces' in nom_zone.lower() or get_seq(0).upper() == 'AD':
                             is_deces = True
-                        elif len(sequences) >= 20:
+                        elif len(sequences) >= 17:
                             import re
                             is_seq_15_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(15)))
                             is_seq_5_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(5)))

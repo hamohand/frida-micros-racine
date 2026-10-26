@@ -1516,7 +1516,9 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                     right = min(img_pil.width, right)
                     bottom = min(img_pil.height, bottom)
                     
-                    if right > left and bottom > top:
+                    if left <= 2 and top <= 2 and right >= img_pil.width - 2 and bottom >= img_pil.height - 2:
+                        logger.info("✂️ Cadre = image entière (100%) → rognage physique ignoré.")
+                    elif right > left and bottom > top:
                         img_crop = img_pil.crop((left, top, right, bottom))
                         
                         # Convertir RGBA → RGB si nécessaire (JPEG ne supporte pas la transparence)
@@ -1734,9 +1736,9 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
                             
                         # Détection automatique du type de document (Naissance vs Décès)
                         is_deces = False
-                        if 'adc' in nom_zone.lower() or 'deces' in nom_zone.lower():
+                        if 'adc' in nom_zone.lower() or 'deces' in nom_zone.lower() or get_seq(0).upper() == 'AD':
                             is_deces = True
-                        elif len(sequences) >= 20:
+                        elif len(sequences) >= 17:
                             import re
                             is_seq_15_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(15)))
                             is_seq_5_date = bool(re.match(r'^\d{2}/\d{2}/\d{4}$', get_seq(5)))
@@ -1801,8 +1803,11 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
             except Exception as e:
                 logger.error(f"Erreur détection QR code zone {nom_zone}: {e}")
         
-        # 2. Zones OCR classiques (exclure les zones QR déjà traitées)
-        zones_ocr = {k: v for k, v in zones_config.items() if k not in resultats}
+        # 2. Zones OCR classiques (exclure les zones QR/codes-barres)
+        zones_ocr = {
+            k: v for k, v in zones_config.items()
+            if k not in resultats and v.get('type') not in ('qrcode', 'barcode')
+        }
         
         # 3. Essai PaddleOCR sur zones OCR en premier (Moteur le plus précis)
         if zones_ocr and PADDLEOCR_DISPONIBLE:
@@ -1818,9 +1823,11 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
         # CHAMP: Forcer Tesseract sur les zones "champ" (PaddleOCR rate souvent le ":")
         seuil_refaire_tesseract = 0.90
         zones_a_refaire_tess = {k: v for k, v in zones_config.items() 
-            if k not in resultats 
-            or resultats[k]['confiance_auto'] < seuil_refaire_tesseract
-            or (v.get('type') == 'champ' and not resultats.get(k, {}).get('champ_ok', False))
+            if v.get('type') not in ('qrcode', 'barcode') and (
+                k not in resultats 
+                or resultats[k]['confiance_auto'] < seuil_refaire_tesseract
+                or (v.get('type') == 'champ' and not resultats.get(k, {}).get('champ_ok', False))
+            )
         }
         
         # 5. Essai Tesseract sur les zones difficiles (2ème étage)
@@ -1855,9 +1862,11 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
         # 6. Mise à jour des zones à refaire (au cas où ni Paddle ni Tesseract n'auraient dépassé 70%)
         # CHAMP: Forcer EasyOCR sur les zones "champ" où aucun moteur n'a trouvé le ":"
         zones_a_refaire = {k: v for k, v in zones_config.items() 
-            if k not in resultats 
-            or resultats[k]['confiance_auto'] < 0.70
-            or (v.get('type') == 'champ' and not resultats.get(k, {}).get('champ_ok', False))
+            if v.get('type') not in ('qrcode', 'barcode') and (
+                k not in resultats 
+                or resultats[k]['confiance_auto'] < 0.70
+                or (v.get('type') == 'champ' and not resultats.get(k, {}).get('champ_ok', False))
+            )
         }
 
         # 7. Essai EasyOCR sur les zones très difficiles (3ème étage)

@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { forkJoin } from 'rxjs';
+import { forkJoin, of, tap } from 'rxjs';
 import { BilabelComponent } from '../bilabel/bilabel.component';
 
 export interface FichierFamilleInfo {
@@ -305,6 +305,9 @@ export interface FichierFamilleInfo {
   `]
 })
 export class FamillePickerModalComponent implements OnInit, OnDestroy {
+  private static catalogueCache: FichierFamilleInfo[] | null = null;
+  private static blobCache = new Map<string, Blob>();
+
   private http = inject(HttpClient);
   private el = inject(ElementRef<HTMLElement>);
 
@@ -327,9 +330,16 @@ export class FamillePickerModalComponent implements OnInit, OnDestroy {
       document.body.appendChild(this.el.nativeElement);
     }
 
+    if (FamillePickerModalComponent.catalogueCache) {
+      this.fichiers = FamillePickerModalComponent.catalogueCache;
+      this.chargementListe = false;
+      return;
+    }
+
     this.http.get<FichierFamilleInfo[]>('/api/demo/famille').subscribe({
       next: (data) => {
         this.fichiers = data || [];
+        FamillePickerModalComponent.catalogueCache = this.fichiers;
         this.chargementListe = false;
       },
       error: () => {
@@ -385,9 +395,15 @@ export class FamillePickerModalComponent implements OnInit, OnDestroy {
     this.erreur = '';
 
     const noms = Array.from(this.selection);
-    const requetes = noms.map(nom =>
-      this.http.get(`/api/demo/famille/${encodeURIComponent(nom)}`, { responseType: 'blob' })
-    );
+    const requetes = noms.map(nom => {
+      const cached = FamillePickerModalComponent.blobCache.get(nom);
+      if (cached) {
+        return of(cached);
+      }
+      return this.http.get(`/api/demo/famille/${encodeURIComponent(nom)}`, { responseType: 'blob' }).pipe(
+        tap(blob => FamillePickerModalComponent.blobCache.set(nom, blob))
+      );
+    });
 
     forkJoin(requetes).subscribe({
       next: (blobs) => {

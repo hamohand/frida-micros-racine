@@ -73,7 +73,7 @@ public class OcrProcessingController {
                 java.util.Map<String, Object> zones = new java.util.HashMap<>();
                 java.util.Map<String, Object> qrZone = new java.util.HashMap<>();
                 qrZone.put("type", "qrcode");
-                qrZone.put("coords", new double[]{0.0, 0.0, 1.0, 1.0});
+                qrZone.put("coords", new double[]{0.01, 0.68, 0.48, 0.99});
                 zones.put("qr_zone", qrZone);
                 body.put("zones", zones);
 
