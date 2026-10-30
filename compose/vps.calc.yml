@@ -15,6 +15,10 @@ services:
       - SPRING_PROFILES_ACTIVE=calc-only
       - BACKEND_PORT=8080
       - CORS_ORIGINS=${CALC_CORS_ORIGINS:-*}
+      # 1 worker de calcul actif à la fois + file d'attente Tomcat de 50 requêtes
+      - SERVER_TOMCAT_THREADS_MAX=1
+      - SERVER_TOMCAT_ACCEPT_COUNT=50
+      - JAVA_TOOL_OPTIONS=-XX:ActiveProcessorCount=1 -Xmx256m
     networks:
       - webproxy
     labels:
@@ -32,6 +36,11 @@ services:
       - "traefik.http.routers.frida-calc.tls.certresolver=myresolver"
       - "traefik.http.services.frida-calc.loadbalancer.server.port=8080"
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 45s
+      timeout: 15s
+      retries: 5
     deploy:
       resources:
         limits:

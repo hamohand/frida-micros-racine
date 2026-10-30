@@ -28,6 +28,10 @@ WORKDIR /app/app_ocr
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8082
 ENV OCR_MODE=qrcode_only
+ENV OMP_NUM_THREADS=1
+ENV OPENBLAS_NUM_THREADS=1
+ENV MKL_NUM_THREADS=1
+ENV NUMEXPR_NUM_THREADS=1
 
-HEALTHCHECK CMD curl -f http://localhost:${PORT}/api/entites || exit 1
-CMD ["gunicorn", "--bind", "0.0.0.0:8082", "--workers", "1", "--threads", "4", "run:app"]
+HEALTHCHECK --interval=45s --timeout=15s --retries=5 CMD curl -f http://localhost:${PORT}/api/entites || exit 1
+CMD ["gunicorn", "--bind", "0.0.0.0:8082", "--workers", "1", "--threads", "2", "--timeout", "120", "run:app"]
