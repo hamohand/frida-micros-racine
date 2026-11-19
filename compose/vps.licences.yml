@@ -9,6 +9,7 @@ services:
   license-db:
     image: postgres:15-alpine
     container_name: frida-license-db
+    init: true
     environment:
       POSTGRES_DB: frida_licenses_db
       POSTGRES_USER: ${DB_USER:-muhend}
@@ -29,6 +30,7 @@ services:
       context: ../license-api
       dockerfile: Dockerfile
     container_name: frida-license-api
+    init: true
     environment:
       - DB_HOST=license-db
       - DB_PORT=5432
@@ -64,6 +66,7 @@ services:
       args:
         - API_URL=https://licences.frida.enclume-numerique.com/api
     container_name: frida-license-dashboard
+    init: true
     networks:
       - webproxy
     labels:

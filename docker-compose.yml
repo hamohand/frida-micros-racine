@@ -2,6 +2,7 @@ services:
   # ===== PostgreSQL Database =====
   db:
     image: postgres:16-alpine
+    init: true
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -25,6 +26,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
       network: host
+    init: true
     environment:
       TZ: Africa/Algiers
       DB_HOST: db
@@ -61,6 +63,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       network: host
+    init: true
     ports:
       - "${FRONTEND_PORT}:80"
     environment:

@@ -9,6 +9,7 @@ services:
   db:
     image: postgres:15-alpine
     container_name: frida-db
+    init: true
     environment:
       POSTGRES_DB: ${DB_NAME:-frida_db}
       POSTGRES_USER: ${DB_USER:-muhend}
@@ -29,6 +30,7 @@ services:
       context: ../ocr-api
       dockerfile: Dockerfile
     container_name: frida-ocr-api
+    init: true
     # 1 worker OCR (_analyser_lock sérialise les analyses) + 2e thread libre pour le healthcheck, timeout 120s
     command: ["gunicorn", "--bind", "0.0.0.0:8082", "--workers", "1", "--threads", "2", "--timeout", "120", "run:app"]
     environment:
@@ -60,6 +62,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     container_name: frida-backend
+    init: true
     environment:
       - SPRING_PROFILES_ACTIVE=prod
       - DB_HOST=db
@@ -116,6 +119,7 @@ services:
       args:
         - API_URL=https://frida.enclume-numerique.com/api
     container_name: frida-frontend
+    init: true
     networks:
       - webproxy
     labels:

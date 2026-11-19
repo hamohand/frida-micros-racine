@@ -11,6 +11,7 @@ services:
       context: ../backend
       dockerfile: Dockerfile
     container_name: frida-calc-api
+    init: true
     environment:
       - SPRING_PROFILES_ACTIVE=calc-only
       - BACKEND_PORT=8080
