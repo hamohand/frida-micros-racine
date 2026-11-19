@@ -1433,7 +1433,7 @@ def analyser_hybride(image_path, zones_config, cadre_reference=None, mode='rapid
 
                     # --- NOUVEAU : Transformation des séquences en champs séparés ---
                     # Approche 1: Si un 'mapping_sequences' est défini dans la config de la zone
-                    if 'mapping_sequences' in config:
+                    if config.get('mapping_sequences'):
                         for index_str, field_name in config['mapping_sequences'].items():
                             try:
                                 idx = int(index_str)

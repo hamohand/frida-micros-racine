@@ -24,32 +24,48 @@ frida-ai/
 
 ## 🚀 Démarrage Rapide
 
-### Prérequis
+### Commande unifiée sous Windows (recommandé)
 
-- Docker & Docker Compose (v2.0+)
-- make (optionnel, pour les commandes raccourcies)
+Depuis la racine de ce dépôt (`C:\Users\hamoh\Documents\projets\frida\frida-micros\frida-micros-racine`) ou depuis la racine globale (`C:\Users\hamoh\Documents\projets\frida`) :
 
-### Installation
-
-1. **Cloner et configurer**
-```bash
-# Modifier le fichier .env si nécessaire
-nano .env
+```powershell
+.\start.bat          # ou .\start.ps1
+.\start.ps1 -Build   # reconstruit les images Docker avant démarrage
 ```
 
-2. **Construire et démarrer**
-```bash
-# Avec Docker Compose
-docker-compose up -d --build
+| Option (`start.ps1` / `start.bat`) | Effet |
+|---|---|
+| *(aucune)* | Démarre l'agent NFC USB (si présent), l'OCR natif Windows (`:8082`) et les conteneurs Docker dans **WSL Ubuntu** via `scripts/start.sh` (ou Docker natif en repli) |
+| `-Build` (`--build`) | Reconstruit les images Docker avant démarrage |
+| `-Demo` (`--demo`) | Démarre le mode démo locale (`compose/dev.demo.yml`) |
+| `-Stop` (`--stop`) | Arrête les conteneurs Docker (`docker compose down`) |
+| `-Logs` (`--logs`) | Suit les logs Docker en temps réel (`docker compose logs -f`) |
+| `-FixWsl` (`--fix-wsl`) | Répare le réseau/daemon Docker WSL (`wsl --shutdown` + `service docker start`) |
+| `-Menu` (`--menu`) | Affiche le menu interactif numéroté |
+| `-Help` (`--help`, `-h`, `/?`) | Affiche l'aide et les ports détectés dans `.env` |
 
-# Ou avec make
-make up
+Le lanceur démarre l'agent NFC USB local (`dz-eid-agent` port `8989`, si compilé), démarre automatiquement le démon Docker de **WSL Ubuntu** (`scripts/start.sh`), puis lance le service OCR natif Windows (`C:\Users\hamoh\Documents\projets\ocr\backend\app_ocr`, port `8082`).
+
+### Prérequis
+
+- WSL Ubuntu avec Docker & Docker Compose (v2.0+)
+- Environnement Python OCR natif dans `C:\Users\hamoh\Documents\projets\ocr\.venv`
+- `make` (optionnel, pour les commandes raccourcies dans WSL)
+
+### Lancement manuel dans WSL Ubuntu
+
+1. **Configurer `.env`** (adapter `FRONTEND_PORT`, `BACKEND_PORT`, secrets DB, etc.)
+2. **Démarrer via le script WSL :**
+```bash
+bash scripts/start.sh          # ou : bash scripts/start.sh --build
 ```
 
 3. **Accéder aux services**
-- 🌐 **Frontend**: http://localhost:4200
+- 🌐 **Frontend**: http://localhost:4202 *(port configuré dans `FRONTEND_PORT` du `.env`, le port `4200` étant réservé au frontend EasyTess OCR)*
 - 🔌 **Backend API**: http://localhost:8080
 - 📚 **Swagger UI**: http://localhost:8080/swagger-ui.html
+- 🔍 **OCR API (natif Windows)**: http://localhost:8082
+- 🪪 **Agent NFC USB (Windows)**: http://127.0.0.1:8989
 - 🗄️ **PostgreSQL**: localhost:5432
 
 ## 📖 Commandes Principales
@@ -430,14 +446,13 @@ Pour toute question ou problème, vérifiez:
 ## 📄 License
 
 [Votre License]
-#   f r i d a - o c r - m i c r o s 
- 
-  
- # #   =���  H i s t o r i q u e   d e s   v e r s i o n s   ( C h a n g e l o g )  
-  
- # # #   v 1 . 0 . 0 - r c 1   ( O c t o b r e   2 0 2 6 )  
- -   * * N F C   M o b i l e   ( E 2 E E ) * *   :   L e c t u r e   s a n s   c o n t a c t   d e   l a   c a r t e   C N I e   v i a   l ' a p p l i c a t i o n   m o b i l e   ( c h i f f r e m e n t   d e   b o u t   e n   b o u t ) .  
- -   * * A g e n t   L o c a l   U S B * *   :   S u p p o r t   d u   l e c t e u r   N F C   U S B .  
- -   * * U I / U X * *   :   P a r s i n g   e t   a f f i c h a g e   i n s t a n t a n �   d e   l a   p h o t o   e t   d e s   n o m s   d e   l ' h � r i t i e r .  
- -   * * B a c k e n d * *   :   S i m p l i f i c a t i o n   d u   p i p e l i n e   d e   t r a i t e m e n t ,   i n t � g r a t i o n   t r a n s p a r e n t e   d u   f l u x   N F C .  
- 
+
+# frida-ocr-micros਍ഀ
+
+## 📅 Historique des versions (Changelog)
+
+### v1.0.0-rc1 (Octobre 2026)
+- **NFC Mobile (E2EE)** : Lecture sans contact de la carte CNIe via l'application mobile (chiffrement de bout en bout).
+- **Agent Local USB** : Support du lecteur NFC USB.
+- **UI/UX** : Parsing et affichage instantané de la photo et des noms de l'héritier.
+- **Backend** : Simplification du pipeline de traitement, intégration transparente du flux NFC.

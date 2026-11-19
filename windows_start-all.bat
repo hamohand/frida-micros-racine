@@ -1,6 +1,0 @@
-@echo off
-:: Puisque vous utilisez Docker directement dans WSL (Ubuntu) et non Docker Desktop,
-:: ce script va simplement dire à WSL de lancer le bon script Linux.
-echo Lancement de Frida via WSL...
-wsl -d Ubuntu -e bash scripts/start.sh
-pause

@@ -69,12 +69,12 @@ echo "🛑 [1/3] Arrêt des conteneurs existants..."
 docker compose down
 
 echo ""
-echo "🧹 [2/3] Nettoyage des processus fantômes (Ghosting) sur les ports $FRONT_PORT, $BACK_PORT, 8082..."
+echo "🧹 [2/3] Nettoyage des processus fantômes (Ghosting) sur les ports $FRONT_PORT, $BACK_PORT..."
 
 if grep -qi microsoft /proc/version; then
-    # On est sous WSL, on utilise PowerShell pour tuer les processus Windows (wslrelay, node...)
+    # On est sous WSL, on utilise PowerShell pour tuer les processus fantômes Windows (wslrelay...) sur les ports Docker
     powershell.exe -Command "& {
-        foreach (\$p in @($FRONT_PORT, $BACK_PORT, 8082)) {
+        foreach (\$p in @($FRONT_PORT, $BACK_PORT)) {
             \$conns = Get-NetTCPConnection -LocalPort \$p -State Listen -ErrorAction SilentlyContinue
             if (\$conns) {
                 foreach (\$c in \$conns) {
@@ -86,7 +86,7 @@ if grep -qi microsoft /proc/version; then
     }"
 else
     # Linux natif ou macOS
-    for p in $FRONT_PORT $BACK_PORT 8082; do
+    for p in $FRONT_PORT $BACK_PORT; do
         if command -v lsof &> /dev/null; then
             PID=$(lsof -t -i:$p 2>/dev/null || true)
             if [ ! -z "$PID" ]; then
@@ -116,10 +116,15 @@ if grep -qi microsoft /proc/version; then
     fi
     echo "✅ IP $WIN_IP configurée dans .env"
     
-    # 3. Lancer l'OCR côté Windows via powershell.exe
-    echo "🐍 Démarrage du micro-service OCR natif (Python) sur Windows..."
-    powershell.exe -Command "Start-Process powershell -ArgumentList '-NoExit', '-Command', 'cd ..\easytess_ocr_api\backend\app_ocr; & ''..\..\.venv\Scripts\python.exe'' run.py' -WindowStyle Normal"
-    echo "✅ Fenêtre OCR lancée sous Windows."
+    # 3. Lancer l'OCR côté Windows via powershell.exe uniquement s'il n'écoute pas déjà sur :8082
+    OCR_RUNNING=$(powershell.exe -NoProfile -Command "if (Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) { 'YES' } else { 'NO' }" | tr -d '\r\n ')
+    if [ "$OCR_RUNNING" = "YES" ]; then
+        echo "✅ Service OCR natif Windows déjà actif sur le port 8082."
+    else
+        echo "🐍 Démarrage du micro-service OCR natif (Python) sur Windows..."
+        powershell.exe -Command "Start-Process powershell -ArgumentList '-NoExit', '-Command', '\$env:PYTHONPATH = ''C:\Users\hamoh\Documents\projets\ocr\backend\core_lib''; Set-Location -LiteralPath ''C:\Users\hamoh\Documents\projets\ocr\backend\app_ocr''; & ''C:\Users\hamoh\Documents\projets\ocr\.venv\Scripts\python.exe'' run.py' -WindowStyle Normal"
+        echo "✅ Fenêtre OCR lancée sous Windows."
+    fi
     echo ""
 fi
 # -----------------------------------------------
@@ -141,6 +146,14 @@ docker compose up -d
 echo ""
 echo "⏳ Attente de la disponibilité du backend..."
 sleep 10
+
+if grep -qi microsoft /proc/version; then
+    LAN_IPV4=$(powershell.exe -NoProfile -Command "(Get-NetIPConfiguration | Where-Object { \$_.IPv4DefaultGateway -ne \$null -and \$_.NetAdapter.Status -eq 'Up' } | Select-Object -First 1).IPv4Address.IPAddress" | tr -d '\r\n ')
+    if [ ! -z "$LAN_IPV4" ]; then
+        echo "📡 Synchronisation de l'IPv4 Wi-Fi/LAN ($LAN_IPV4) pour le QR Code Mobile NFC..."
+        docker compose exec -T db psql -U muhend -d fridaocr-app-db -c "INSERT INTO parametres (cle, valeur) VALUES ('reseau.adresse-locale', '$LAN_IPV4') ON CONFLICT (cle) DO UPDATE SET valeur = EXCLUDED.valeur;" >/dev/null 2>&1 || true
+    fi
+fi
 
 BACKEND_HEALTH=$(curl -s http://localhost:$BACK_PORT/actuator/health | grep -q '"status":"UP"' && echo "OK" || echo "FAILED")
 
