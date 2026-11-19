@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.ArrayList;
 
+@org.springframework.context.annotation.Profile("!calc-only")
 @RestController
 @RequestMapping("/api/brouillons")
 @RequiredArgsConstructor
